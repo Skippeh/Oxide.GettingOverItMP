@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <AssemblyName>Oxide.GettingOverItMP</AssemblyName>
+    <Authors>Oxide and Contributors</Authors>
+    <Description>Getting Over It with Bennett Foddy extension for the Oxide modding framework</Description>
+    <!--<RepositoryUrl>https://github.com/OxideMod/Oxide.Rust</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/OxideMod/Oxide.Rust/blob/develop/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/OxideMod/Oxide.Rust</PackageProjectUrl>
+    <PackageIconUrl>https://avatars1.githubusercontent.com/u/10712027?s=64</PackageIconUrl>-->
+    <Copyright>Copyright (c) 2017-$([System.DateTime]::Now.Year) $(Authors)</Copyright>
+    <PackageTags>gaming modding plugins unity unity3d</PackageTags>
+    <TargetFramework>net35</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <ManagedDir>GettingOverIt_Data\Managed</ManagedDir>
+    <SteamAppId>240720</SteamAppId>
+    <SteamBranch>public</SteamBranch>
+    <SteamLogin>anonymous</SteamLogin>
+    <!--
+      Workaround for targeting net35 with dotnet CLI
+      https://github.com/Microsoft/msbuild/issues/1333#issuecomment-296346352
+    -->
+    <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35' And '$(OS)' == 'Windows_NT'">C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
+    <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35' And '$(OS)' == 'OSX'">/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api</FrameworkPathOverride>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="LiteNetLib" Version="0.7.6.1" />
+    <PackageReference Include="Oxide.References" Version="2.0.3751" />
+    <PackageReference Include="Oxide.Core" Version="2.0.3753" />
+    <!--<PackageReference Include="Oxide.CSharp" Version="2.0.*" />-->
+    <PackageReference Include="Oxide.MySql" Version="2.0.3749" />
+    <PackageReference Include="Oxide.SQLite" Version="2.0.3749" />
+    <PackageReference Include="Oxide.Unity" Version="2.0.3747" />
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="Oxide.GettingOverIt">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\Oxide.GettingOverIt.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\System.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Compile Remove="Dependencies\**" />
+    <EmbeddedResource Remove="Dependencies\**" />
+    <None Remove="Bundle\**; Files\**; Patched\**; **\Original\**; *.config; *.opj" />
+    <None Remove="Dependencies\**" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Target Name="Clean">
+    <RemoveDir Directories="$(ProjectDir)\bin\Bundle\$(PackageId)" Condition="Exists('$(ProjectDir)\bin\Bundle\$(PackageId)')" />
+  </Target>
+  <Target Name="ChangeAliasesOfStrongNameAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'Oxide.References'">
+        <Aliases>Oxide</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <CoreFiles Include="$(TargetDir)\Oxide.*.dll" />
+      <CoreFiles Include="$(TargetDir)\LiteNetLib.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+  <Target Name="LocalDeploy" AfterTargets="AfterBuild" Condition="Exists('$(SolutionDir)\.deploy')">
+    <Exec Command="start /b /wait taskkill /f /im GettingOverIt.exe /fi &quot;memusage gt 2&quot;" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="start /b /wait taskkill /f /im CSharpCompiler.exe /fi &quot;memusage gt 2&quot;" Condition="'$(OS)' == 'Windows_NT'" />
+    <ReadLinesFromFile File="$(SolutionDir)\.deploy">
+      <Output PropertyName="DeployPath" TaskParameter="Lines" />
+    </ReadLinesFromFile>
+    <ItemGroup>
+      <DeployFiles Include="$(ProjectDir)\bin\Bundle\$(PackageId)\**\*.*" />
+    </ItemGroup>
+    <Copy Condition="'$(DeployPath)' != ''" SourceFiles="@(DeployFiles)" DestinationFiles="@(DeployFiles->'$(DeployPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+</Project>
