@@ -6,18 +6,25 @@ namespace GettingOverItMP.Server
 {
     public static class Program
     {
+        public static int MaxConnections = 100;
+        public static int Port = 25050;
+
         private static GameServer server;
 
         private static void Main(string[] args)
         {
-            server = new GameServer();
+            server = new GameServer(MaxConnections, Port, false);
             server.Start();
+
+            Console.WriteLine("Press any key to stop the server.");
 
             while (!Console.KeyAvailable)
             {
                 server.Update();
-                Thread.Sleep(100);
+                Thread.Sleep(33);
             }
+
+            server.Stop();
         }
     }
 }
