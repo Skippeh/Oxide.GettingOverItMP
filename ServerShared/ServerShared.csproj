@@ -1,16 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net35</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LiteNetLib" Version="0.7.6.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ServerShared\ServerShared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
