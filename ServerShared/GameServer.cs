@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using ServerShared.Player;
@@ -50,18 +51,59 @@ namespace ServerShared
         {
             server.Stop();
         }
-
+        
         public void Update()
         {
             server.PollEvents();
-
+            
             double ms = DateTime.Now.Ticks / 10_000d;
-
-            if (ms > nextSendTime)
+            
+            if (ms >= nextSendTime)
             {
                 nextSendTime = ms + server.UpdateTime;
 
-                Console.WriteLine("Send update");
+                if (Players.Count <= 0)
+                    return;
+
+                Dictionary<int, PlayerMove> toSend = Players.Values.Where(plr => plr.Spawned).ToDictionary(plr => plr.Id, plr => plr.Movement);
+
+                var writer = new NetDataWriter();
+                writer.Put(MessageType.MoveData);
+                writer.Put(toSend);
+
+                Broadcast(writer, SendOptions.Sequenced);
+            }
+        }
+
+        private void AddPeer(NetPeer peer)
+        {
+            var netPlayer = new NetPlayer(peer);
+            Players[peer] = netPlayer;
+        }
+
+        private void RemovePeer(NetPeer peer)
+        {
+            if (!Players.ContainsKey(peer))
+                return;
+
+            int playerId = Players[peer].Id;
+
+            Players.Remove(peer);
+            
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.RemovePlayer);
+            writer.Put(playerId);
+            Broadcast(writer, SendOptions.ReliableOrdered);
+        }
+
+        /// <summary>
+        /// Sends a message to all spawned clients.
+        /// </summary>
+        private void Broadcast(NetDataWriter writer, SendOptions sendOptions)
+        {
+            foreach (var kv in Players.Where(kv => kv.Value.Spawned))
+            {
+                kv.Key.Send(writer, sendOptions);
             }
         }
 
@@ -70,32 +112,28 @@ namespace ServerShared
             AddPeer(peer);
         }
 
-        private void AddPeer(NetPeer peer)
-        {
-            var netPlayer = new NetPlayer(peer);
-            Players[peer] = netPlayer;
-
-            // Todo: send message informing other clients the player has joined.
-        }
-
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectinfo)
         {
             RemovePeer(peer);
-        }
-
-        private void RemovePeer(NetPeer peer)
-        {
-            if (Players.ContainsKey(peer))
-                RemovePeer(peer);
-
-            // Todo: send message informing other clients the player has left.
         }
 
         private void OnReceiveData(NetPeer peer, NetDataReader reader)
         {
             try
             {
+                NetPlayer player = Players[peer];
                 MessageType messageType = (MessageType) reader.GetByte();
+
+                switch (messageType)
+                {
+                    default: throw new UnexpectedMessageFromClientException(messageType);
+                    case MessageType.MoveData:
+                    {
+                        player.Movement = reader.GetPlayerMove();
+                        player.Spawned = true;
+                        break;
+                    }
+                }
             }
             catch (Exception ex)
             {

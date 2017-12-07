@@ -9,6 +9,9 @@ namespace ServerShared.Player
         public readonly int Id;
         public readonly NetPeer Peer;
 
+        public PlayerMove Movement;
+        public bool Spawned;
+
         private static int idCounter = 1;
 
         public NetPlayer([NotNull] NetPeer peer)
