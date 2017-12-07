@@ -47,8 +47,6 @@ namespace Oxide.GettingOverIt
                 Interface.Oxide.LogDebug("Created RemotePlayer prefab:");
                 LogGameObjects(new[] {RemotePlayer.PlayerPrefab});
                 
-                InitUI();
-                
                 localPlayer = GameObject.Find("Player") ?? throw new NotImplementedException("Could not find local player");
                 localPlayerControl = localPlayer.GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl on local player");
                 localPoseControl = localPlayer.transform.Find("dude/mixamorig:Hips").GetComponent<PoseControl>() ?? throw new NotImplementedException("Could not find PoseControl on local player");
@@ -57,6 +55,8 @@ namespace Oxide.GettingOverIt
                 
                 // Create debug ghost player
                 ghostPlayer = RemotePlayer.CreatePlayer("Ghost");
+
+                InitUI();
             }
             else
             {
@@ -102,7 +102,8 @@ namespace Oxide.GettingOverIt
                 return;
 
             uiGameObject = new GameObject("GOIMP.UI");
-            uiGameObject.AddComponent<ModUI>();
+            var modUi = uiGameObject.AddComponent<ModUI>();
+            modUi.LocalPlayer = localPlayer;
         }
 
         private void DestroyUI()
