@@ -59,6 +59,7 @@
     <None Remove="Bundle\**; Files\**; Patched\**; **\Original\**; *.config; *.opj" />
     <None Remove="Dependencies\**" />
   </ItemGroup>
+  <Import Project="..\ServerShared\ServerShared.projitems" Label="Shared" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Target Name="Clean">
     <RemoveDir Directories="$(ProjectDir)\bin\Bundle\$(PackageId)" Condition="Exists('$(ProjectDir)\bin\Bundle\$(PackageId)')" />

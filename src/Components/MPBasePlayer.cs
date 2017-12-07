@@ -1,5 +1,6 @@
 ﻿using System;
 using Oxide.Core;
+using ServerShared.Player;
 using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components
@@ -9,21 +10,7 @@ namespace Oxide.GettingOverItMP.Components
         private Animator dudeAnim;
         private Transform handle;
         private Transform slider;
-
-        public struct Move
-        {
-            public Vector3 Position;
-            public Quaternion Rotation;
-
-            public float AnimationAngle;
-            public float AnimationExtension;
-            public Vector3 HandlePosition;
-            public Quaternion HandleRotation;
-
-            public Vector3 SliderPosition;
-            public Quaternion SliderRotation;
-        }
-
+        
         protected virtual void Start()
         {
             Interface.Oxide.LogDebug($"{GetType().Name} Start");
@@ -41,7 +28,7 @@ namespace Oxide.GettingOverItMP.Components
         {
         }
 
-        public void ApplyMove(Move move)
+        public void ApplyMove(PlayerMove move)
         {
             if (dudeAnim == null || handle == null || slider == null)
             {
@@ -65,15 +52,15 @@ namespace Oxide.GettingOverItMP.Components
             // Todo: fix hands not being positioned correctly.
         }
 
-        public Move CreateMove()
+        public PlayerMove CreateMove()
         {
             if (dudeAnim == null || handle == null || slider == null)
             {
                 Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({dudeAnim == null} {handle == null} {slider == null}");
-                return default(Move);
+                return default(PlayerMove);
             }
 
-            return new Move
+            return new PlayerMove
             {
                 AnimationAngle = dudeAnim.GetFloat("Angle"),
                 AnimationExtension = dudeAnim.GetFloat("Extension"),
