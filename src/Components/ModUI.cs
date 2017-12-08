@@ -48,7 +48,11 @@ namespace Oxide.GettingOverItMP.Components
 
                         if (GUILayout.Button("Connect"))
                         {
+                            string[] ipPort = ipText.Contains(":") ? ipText.Split(':') : new[] {ipText, "25050"};
+                            string ip = ipPort[0];
+                            int port = int.Parse(ipPort[1]);
 
+                            client.Connect(ip, port);
                         }
                     }
                     GUILayout.EndHorizontal();
