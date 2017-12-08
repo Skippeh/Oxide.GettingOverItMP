@@ -24,7 +24,6 @@ namespace Oxide.GettingOverIt
         private PlayerControl localPlayerControl;
         private PoseControl localPoseControl;
         private MPBasePlayer localPlayerBase;
-        private RemotePlayer ghostPlayer;
 
         public MPCore()
         {
@@ -56,9 +55,6 @@ namespace Oxide.GettingOverIt
                 localPlayer.AddComponent<PlayerDebug>();
                 localPlayerBase = localPlayer.AddComponent<LocalPlayer>();
                 
-                // Create debug ghost player
-                //ghostPlayer = RemotePlayer.CreatePlayer("Ghost");
-
                 InitClient();
                 InitUI();
             }
@@ -95,10 +91,6 @@ namespace Oxide.GettingOverIt
 
         protected override void Tick()
         {
-            if (ghostPlayer != null)
-            {
-                ghostPlayer.ApplyMove(localPlayerBase.CreateMove());
-            }
         }
 
         private void InitUI()
