@@ -87,46 +87,37 @@ namespace Oxide.GettingOverItMP.Components
                 return;
             }
 
-            interpElapsed = 0;
-            interpTarget = interpTime;
-            lastMove = CreateMove();
-            targetMove = move;
+            if (interpTime > 0)
+            {
+                interpElapsed = 0;
+                interpTarget = interpTime;
+                lastMove = CreateMove();
+                targetMove = move;
+            }
+            else
+            {
+                interpTarget = -1;
+                ApplyMoveInterp(ref move, 1);
+            }
         }
-
+        
         protected override void Start()
         {
             base.Start();
-            RemotePlayers.Add(this);
             nameContent = new GUIContent(Name);
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            RemotePlayers.Remove(this);
         }
 
         protected override void Update()
         {
             base.Update();
-            
-            interpElapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(interpElapsed / interpTarget);
 
-            dudeAnim.SetFloat("Angle", Mathf.LerpAngle(lastMove.AnimationAngle, targetMove.AnimationAngle, t));
-            dudeAnim.SetFloat("Extension", Mathf.LerpAngle(lastMove.AnimationExtension, targetMove.AnimationExtension, t));
-            dudeAnim.Update(Time.deltaTime);
+            if (interpTarget > 0)
+            {
+                interpElapsed += Time.deltaTime;
 
-            handle.position = Vector3.Lerp(lastMove.HandlePosition, targetMove.HandlePosition, t);
-            handle.rotation = Quaternion.Lerp(lastMove.HandleRotation, targetMove.HandleRotation, t);
-
-            slider.position = Vector3.Lerp(lastMove.SliderPosition, targetMove.SliderPosition, t);
-            slider.rotation = Quaternion.Lerp(lastMove.SliderRotation, targetMove.SliderRotation, t);
-
-            transform.position = Vector3.Lerp(lastMove.Position, targetMove.Position, t);
-            transform.rotation = Quaternion.Lerp(lastMove.Rotation, targetMove.Rotation, t);
-            
-            // Todo: fix hands not being positioned correctly.
+                float t = Mathf.Clamp01(interpElapsed / interpTarget);
+                ApplyMoveInterp(ref targetMove, t);
+            }
         }
 
         protected override void OnGUI()
@@ -144,6 +135,24 @@ namespace Oxide.GettingOverItMP.Components
             Rect textRect = new Rect(screenPosition.x - (textSize.x / 2f), screenPosition.y - (textSize.y / 2f), textSize.x, textSize.y);
             
             GUI.Label(textRect, nameContent);
+        }
+
+        private void ApplyMoveInterp(ref PlayerMove move, float t)
+        {
+            dudeAnim.SetFloat("Angle", Mathf.LerpAngle(lastMove.AnimationAngle, targetMove.AnimationAngle, t));
+            dudeAnim.SetFloat("Extension", Mathf.LerpAngle(lastMove.AnimationExtension, targetMove.AnimationExtension, t));
+            dudeAnim.Update(Time.deltaTime);
+
+            transform.position = Vector3.Lerp(lastMove.Position, targetMove.Position, t);
+            transform.rotation = Quaternion.Lerp(lastMove.Rotation, targetMove.Rotation, t);
+
+            handle.position = Vector3.Lerp(lastMove.HandlePosition, targetMove.HandlePosition, t);
+            handle.rotation = Quaternion.Lerp(lastMove.HandleRotation, targetMove.HandleRotation, t);
+
+            slider.position = Vector3.Lerp(lastMove.SliderPosition, targetMove.SliderPosition, t);
+            slider.rotation = Quaternion.Lerp(lastMove.SliderRotation, targetMove.SliderRotation, t);
+
+            // Todo: fix hands not being positioned correctly.
         }
     }
 }
