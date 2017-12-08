@@ -4,6 +4,7 @@ using System.Linq;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
 using Oxide.GettingOverIt.Types;
+using ServerShared.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,6 +16,8 @@ namespace Oxide.GettingOverItMP.Components
         
         public static readonly List<RemotePlayer> RemotePlayers = new List<RemotePlayer>();
 
+        public int Id;
+
         public string Name
         {
             get => nameContent.text;
@@ -23,6 +26,11 @@ namespace Oxide.GettingOverItMP.Components
 
         private GUIStyle labelStyle;
         private GUIContent nameContent;
+        
+        private PlayerMove targetMove;
+        private PlayerMove lastMove;
+        private float interpTarget;
+        private float interpElapsed;
 
         public static void CreatePlayerPrefab()
         {
@@ -71,6 +79,20 @@ namespace Oxide.GettingOverItMP.Components
             return remotePlayer;
         }
 
+        public void ApplyMove(PlayerMove move, float interpTime = 0.033f)
+        {
+            if (dudeAnim == null || handle == null || slider == null)
+            {
+                Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({dudeAnim == null} {handle == null} {slider == null})");
+                return;
+            }
+
+            interpElapsed = 0;
+            interpTarget = interpTime;
+            lastMove = CreateMove();
+            targetMove = move;
+        }
+
         protected override void Start()
         {
             base.Start();
@@ -82,6 +104,29 @@ namespace Oxide.GettingOverItMP.Components
         {
             base.OnDestroy();
             RemotePlayers.Remove(this);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+            
+            interpElapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(interpElapsed / interpTarget);
+
+            dudeAnim.SetFloat("Angle", Mathf.LerpAngle(lastMove.AnimationAngle, targetMove.AnimationAngle, t));
+            dudeAnim.SetFloat("Extension", Mathf.LerpAngle(lastMove.AnimationExtension, targetMove.AnimationExtension, t));
+            dudeAnim.Update(Time.deltaTime);
+
+            handle.position = Vector3.Lerp(lastMove.HandlePosition, targetMove.HandlePosition, t);
+            handle.rotation = Quaternion.Lerp(lastMove.HandleRotation, targetMove.HandleRotation, t);
+
+            slider.position = Vector3.Lerp(lastMove.SliderPosition, targetMove.SliderPosition, t);
+            slider.rotation = Quaternion.Lerp(lastMove.SliderRotation, targetMove.SliderRotation, t);
+
+            transform.position = Vector3.Lerp(lastMove.Position, targetMove.Position, t);
+            transform.rotation = Quaternion.Lerp(lastMove.Rotation, targetMove.Rotation, t);
+            
+            // Todo: fix hands not being positioned correctly.
         }
 
         protected override void OnGUI()

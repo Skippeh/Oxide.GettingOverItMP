@@ -17,6 +17,8 @@ namespace Oxide.GettingOverIt
     public class MPCore : GOIPlugin
     {
         private GameObject uiGameObject;
+        private GameObject clientGameObject;
+        private Client client;
 
         private GameObject localPlayer;
         private PlayerControl localPlayerControl;
@@ -34,6 +36,7 @@ namespace Oxide.GettingOverIt
         [HookMethod("Init")]
         private void Init()
         {
+            Application.runInBackground = true;
             Physics2D.IgnoreLayerCollision((int) LayerType.Player, (int) LayerType.Layer31); // Use layer 31 for remote players
         }
 
@@ -54,12 +57,14 @@ namespace Oxide.GettingOverIt
                 localPlayerBase = localPlayer.AddComponent<LocalPlayer>();
                 
                 // Create debug ghost player
-                ghostPlayer = RemotePlayer.CreatePlayer("Ghost");
+                //ghostPlayer = RemotePlayer.CreatePlayer("Ghost");
 
+                InitClient();
                 InitUI();
             }
             else
             {
+                DestroyClient();
                 DestroyUI();
             }
         }
@@ -98,7 +103,7 @@ namespace Oxide.GettingOverIt
 
         private void InitUI()
         {
-            if (uiGameObject != null && uiGameObject)
+            if (uiGameObject)
                 return;
 
             uiGameObject = new GameObject("GOIMP.UI");
@@ -112,6 +117,23 @@ namespace Oxide.GettingOverIt
                 return;
 
             GameObject.Destroy(uiGameObject);
+        }
+
+        private void InitClient()
+        {
+            if (clientGameObject)
+                return;
+
+            clientGameObject = new GameObject("GOIMP.Client");
+            client = clientGameObject.AddComponent<Client>();
+        }
+
+        private void DestroyClient()
+        {
+            if (clientGameObject == null || !clientGameObject)
+                return;
+
+            GameObject.Destroy(clientGameObject);
         }
 
         private string GameObjectToString(GameObject go)

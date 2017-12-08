@@ -79,6 +79,17 @@ namespace ServerShared
         {
             var netPlayer = new NetPlayer(peer);
             Players[peer] = netPlayer;
+
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.ConnectMessage);
+            writer.Put(netPlayer.Id);
+
+            var allPlayers = Players.Values.Where(plr => plr.Spawned).ToDictionary(plr => plr.Id, plr => plr.Movement);
+            writer.Put(allPlayers);
+
+            peer.Send(writer, SendOptions.ReliableOrdered);
+
+            Console.WriteLine($"Added peer from {peer.EndPoint} with id {netPlayer.Id} (total: {Players.Count})");
         }
 
         private void RemovePeer(NetPeer peer)
@@ -94,26 +105,33 @@ namespace ServerShared
             writer.Put(MessageType.RemovePlayer);
             writer.Put(playerId);
             Broadcast(writer, SendOptions.ReliableOrdered);
+
+            Console.WriteLine($"Removed peer from {peer.EndPoint} with id {playerId} (total: {Players.Count})");
         }
 
         /// <summary>
         /// Sends a message to all spawned clients.
         /// </summary>
-        private void Broadcast(NetDataWriter writer, SendOptions sendOptions)
+        private void Broadcast(NetDataWriter writer, SendOptions sendOptions, NetPeer except = null)
         {
-            foreach (var kv in Players.Where(kv => kv.Value.Spawned))
+            foreach (var kv in Players)
             {
-                kv.Key.Send(writer, sendOptions);
+                if (except == null || kv.Key != except)
+                {
+                    kv.Key.Send(writer, sendOptions);
+                }
             }
         }
 
         private void OnPeerConnected(NetPeer peer)
         {
+            Console.WriteLine($"Connection from {peer.EndPoint}");
             AddPeer(peer);
         }
 
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectinfo)
         {
+            Console.WriteLine($"Connection gone from {peer.EndPoint} ({disconnectinfo.Reason})");
             RemovePeer(peer);
         }
 
@@ -129,8 +147,22 @@ namespace ServerShared
                     default: throw new UnexpectedMessageFromClientException(messageType);
                     case MessageType.MoveData:
                     {
+                        bool oldSpawned = player.Spawned;
+
                         player.Movement = reader.GetPlayerMove();
                         player.Spawned = true;
+
+                        if (!oldSpawned)
+                        {
+                            var writer = new NetDataWriter();
+                            writer.Put(MessageType.CreatePlayer);
+                            writer.Put(player.Id);
+                            writer.Put(player.Movement);
+                            Broadcast(writer, SendOptions.ReliableOrdered, peer);
+                            
+                            Console.WriteLine($"Peer with id {player.Id} is now spawned");
+                        }
+
                         break;
                     }
                 }

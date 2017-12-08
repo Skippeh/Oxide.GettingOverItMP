@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using LiteNetLib;
+using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components
 {
@@ -7,12 +8,14 @@ namespace Oxide.GettingOverItMP.Components
         public GameObject LocalPlayer;
 
         private PlayerControl control;
+        private Client client;
 
         private string ipText = "";
 
         private void Start()
         {
             control = LocalPlayer.GetComponent<PlayerControl>();
+            client = GameObject.Find("GOIMP.Client").GetComponent<Client>();
         }
 
         private void Update()
@@ -39,16 +42,31 @@ namespace Oxide.GettingOverItMP.Components
             // Draw ip area
             GUILayout.BeginArea(new Rect(10, 200, 1000, 1000));
             {
-                GUILayout.BeginHorizontal(GUILayout.Width(300));
+                if (client.State == ConnectionState.Disconnected)
                 {
-                    ipText = GUILayout.TextField(ipText, "255.255.255.255:65535".Length, GUILayout.Width(250));
-
-                    if (GUILayout.Button("Connect"))
+                    if (GUILayout.Button("Connect to public server"))
                     {
-                        
+                        client.Connect("127.0.0.1", 25050);
+                    }
+
+                    GUILayout.BeginHorizontal(GUILayout.Width(300));
+                    {
+                        ipText = GUILayout.TextField(ipText, "255.255.255.255:65535".Length, GUILayout.Width(250));
+
+                        if (GUILayout.Button("Connect"))
+                        {
+
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+                }
+                else
+                {
+                    if (GUILayout.Button("Disconnect"))
+                    {
+                        client.Disconnect();
                     }
                 }
-                GUILayout.EndHorizontal();
             }
             GUILayout.EndArea();
         }

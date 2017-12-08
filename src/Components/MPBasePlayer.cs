@@ -7,9 +7,9 @@ namespace Oxide.GettingOverItMP.Components
 {
     public abstract class MPBasePlayer : MonoBehaviour
     {
-        private Animator dudeAnim;
-        private Transform handle;
-        private Transform slider;
+        protected Animator dudeAnim;
+        protected Transform handle;
+        protected Transform slider;
         
         protected virtual void Start()
         {
@@ -28,28 +28,9 @@ namespace Oxide.GettingOverItMP.Components
         {
         }
 
-        public void ApplyMove(PlayerMove move)
+        protected virtual void Update()
         {
-            if (dudeAnim == null || handle == null || slider == null)
-            {
-                Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({dudeAnim == null} {handle == null} {slider == null})");
-                return;
-            }
-
-            dudeAnim.SetFloat("Angle", move.AnimationAngle);
-            dudeAnim.SetFloat("Extension", move.AnimationExtension);
-            dudeAnim.Update(Time.deltaTime);
-
-            handle.position = move.HandlePosition;
-            handle.rotation = move.HandleRotation;
-
-            slider.position = move.SliderPosition;
-            slider.rotation = move.SliderRotation;
-
-            transform.position = move.Position;
-            transform.rotation = move.Rotation;
-
-            // Todo: fix hands not being positioned correctly.
+            
         }
 
         public PlayerMove CreateMove()
