@@ -38,7 +38,7 @@ namespace ServerShared
             
             if (listenServer)
             {
-                server.NatPunchEnabled = true;
+                // Todo: Implement NAT punchthrough.
             }
         }
 
