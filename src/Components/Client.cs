@@ -64,10 +64,10 @@ namespace Oxide.GettingOverItMP.Components
                     Id = reader.GetInt();
                     var remotePlayers = reader.GetMovementDictionary();
 
-                    /*foreach (var kv in remotePlayers)
+                    foreach (var kv in remotePlayers)
                     {
                         StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value));
-                    }*/
+                    }
 
                     Interface.Oxide.LogDebug($"Got id: {Id} and {remotePlayers.Count} remote player(s)");
 
@@ -109,13 +109,14 @@ namespace Oxide.GettingOverItMP.Components
                     {
                         if (RemotePlayers.ContainsKey(kv.Key))
                         {
-                            RemotePlayers[kv.Key].ApplyMove(kv.Value);
+                            var remotePlayer = RemotePlayers[kv.Key];
+                            remotePlayer.ApplyMove(kv.Value);
+                            Interface.Oxide.LogDebug($"{kv.Key} moved to {kv.Value.Position}");
                         }
-                        /*else if (kv.Key != Id)
+                        else if (kv.Key != Id)
                         {
-                            Interface.Oxide.LogDebug($"Spawning remote player in MoveData event with id {kv.Key}");
-                            StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value));
-                        }*/
+                            Interface.Oxide.LogDebug($"Got movement from unknown player id: {kv.Key}");
+                        }
                     }
 
                     break;
@@ -127,9 +128,9 @@ namespace Oxide.GettingOverItMP.Components
         {
             var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}");
             yield return new WaitForSeconds(0);
-            remotePlayer.ApplyMove(move);
+            remotePlayer.ApplyMove(move, 0);
             RemotePlayers.Add(id, remotePlayer);
-            Interface.Oxide.LogDebug($"Added remote player with id {id}");
+            Interface.Oxide.LogDebug($"Added remote player with id {id} at {move.Position} ({remotePlayer.transform.position}");
         }
 
         private void Update()

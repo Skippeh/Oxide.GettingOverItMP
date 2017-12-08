@@ -35,10 +35,10 @@ namespace Oxide.GettingOverItMP.Components
 
         public PlayerMove CreateMove()
         {
-            if (dudeAnim == null || handle == null || slider == null)
+            if (!dudeAnim || !handle|| !slider)
             {
-                Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({dudeAnim == null} {handle == null} {slider == null}");
-                return default(PlayerMove);
+                Interface.Oxide.LogError($"dudeAnim, handle, or slider is not valid ({!!dudeAnim} {!!handle} {!!slider}");
+                throw new NotImplementedException();
             }
 
             return new PlayerMove
