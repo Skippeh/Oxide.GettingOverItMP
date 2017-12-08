@@ -1,4 +1,5 @@
-﻿using LiteNetLib;
+﻿using System.Reflection;
+using LiteNetLib;
 using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components
@@ -12,6 +13,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private string ipText = "";
 
+        private static readonly FieldInfo menuPauseField = typeof(PlayerControl).GetField("menuPause", BindingFlags.NonPublic | BindingFlags.Instance);
+
         private void Start()
         {
             control = LocalPlayer.GetComponent<PlayerControl>();
@@ -20,31 +23,21 @@ namespace Oxide.GettingOverItMP.Components
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Tab))
-            {
-                if (Cursor.lockState == CursorLockMode.Locked)
-                {
-                    Cursor.lockState = CursorLockMode.None;
-                    Cursor.visible = true;
-                    control.Pause();
-                }
-                else
-                {
-                    Cursor.lockState = CursorLockMode.Locked;
-                    Cursor.visible = false;
-                    control.UnPause();
-                }
-            }
         }
 
         private void OnGUI()
         {
+            bool paused = (bool) menuPauseField.GetValue(control);
+
+            if (!paused)
+                return;
+
             // Draw ip area
             GUILayout.BeginArea(new Rect(10, 200, 1000, 1000));
             {
                 if (client.State == ConnectionState.Disconnected)
                 {
-                    if (GUILayout.Button("Connect to public server"))
+                    if (GUILayout.Button("Connect to public server", GUILayout.Width(100)))
                     {
                         client.Connect("127.0.0.1", 25050);
                     }
