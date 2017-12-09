@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using FluffyUnderware.DevTools.Extensions;
+using JetBrains.Annotations;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using Oxide.Core;
@@ -16,6 +18,7 @@ namespace Oxide.GettingOverItMP.Components
     {
         public ConnectionState State => server?.ConnectionState ?? ConnectionState.Disconnected;
         public int Id { get; private set; }
+        public string PlayerName { get; private set; }
 
         private EventBasedNetListener listener;
         private NetManager client;
@@ -25,6 +28,7 @@ namespace Oxide.GettingOverItMP.Components
         private Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
         private float nextSendTime = 0;
+        private bool handshakeResponseReceived;
 
         private void Start()
         {
@@ -35,7 +39,7 @@ namespace Oxide.GettingOverItMP.Components
             listener.PeerDisconnectedEvent += OnDisconnected;
             listener.NetworkReceiveEvent += OnReceiveData;
 
-            client = new NetManager(listener, "GOIMP");
+            client = new NetManager(listener, SharedConstants.AppName);
             client.UpdateTime = 33; // Poll/send 30 times per second.
             client.Start();
         }
@@ -43,6 +47,7 @@ namespace Oxide.GettingOverItMP.Components
         private void OnConnected(NetPeer server)
         {
             this.server = server;
+            SendHandshake();
         }
 
         private void OnDisconnected(NetPeer server, DisconnectInfo info)
@@ -59,16 +64,19 @@ namespace Oxide.GettingOverItMP.Components
 
             switch (messageType)
             {
-                case MessageType.ConnectMessage: // Received once after connecting to the server.
+                case MessageType.HandshakeResponse: // Should be the first message received from the server. Contains local player id and remote player data.
                 {
                     Id = reader.GetInt();
+                    PlayerName = reader.GetString();
+                    var names = reader.GetNamesDictionary();
                     var remotePlayers = reader.GetMovementDictionary();
-
+                    
                     foreach (var kv in remotePlayers)
                     {
-                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value));
+                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key]));
                     }
 
+                    handshakeResponseReceived = true;
                     Interface.Oxide.LogDebug($"Got id: {Id} and {remotePlayers.Count} remote player(s)");
 
                     break;
@@ -76,6 +84,7 @@ namespace Oxide.GettingOverItMP.Components
                 case MessageType.CreatePlayer: // Received when a remote player connects.
                 {
                     int id = reader.GetInt();
+                    string name = reader.GetString();
                     Interface.Oxide.LogDebug($"Create player with id {id}");
 
                     if (id == Id)
@@ -85,7 +94,7 @@ namespace Oxide.GettingOverItMP.Components
                     }
 
                     PlayerMove move = reader.GetPlayerMove();
-                    StartCoroutine(SpawnRemotePlayer(id, move));
+                    StartCoroutine(SpawnRemotePlayer(id, move, name));
                     
                     break;
                 }
@@ -123,10 +132,11 @@ namespace Oxide.GettingOverItMP.Components
             }
         }
 
-        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move)
+        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName)
         {
             var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}");
             yield return new WaitForSeconds(0);
+            remotePlayer.PlayerName = playerName;
             remotePlayer.ApplyMove(move, 0);
             RemotePlayers.Add(id, remotePlayer);
             Interface.Oxide.LogDebug($"Added remote player with id {id} at {move.Position} ({remotePlayer.transform.position}");
@@ -139,7 +149,7 @@ namespace Oxide.GettingOverItMP.Components
             if (server == null)
                 return;
 
-            if (State == ConnectionState.Connected && Id != 0)
+            if (State == ConnectionState.Connected && Id != 0 && handshakeResponseReceived)
             {
                 if (Time.time >= nextSendTime)
                 {
@@ -178,15 +188,31 @@ namespace Oxide.GettingOverItMP.Components
             RemotePlayers.Clear();
         }
 
-        public void Connect(string ip, int port)
+        public void Connect(string ip, int port, string playerName)
         {
+            if (string.IsNullOrEmpty(playerName?.Trim())) throw new ArgumentException("playerName can't be null or empty", nameof(playerName));
+            
             Interface.Oxide.LogDebug($"Connecting to: {ip}:{port}...");
+            PlayerName = playerName;
             client.Connect(ip, port);
         }
 
         public void Disconnect()
         {
             client.DisconnectPeer(server);
+        }
+
+        private void SendHandshake()
+        {
+            Interface.Oxide.LogDebug("Sending handshake...");
+
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.ClientHandshake);
+            writer.Put(SharedConstants.Version);
+            writer.Put(PlayerName);
+            writer.Put(localPlayer.CreateMove());
+
+            server.Send(writer, SendOptions.ReliableOrdered);
         }
     }
 }

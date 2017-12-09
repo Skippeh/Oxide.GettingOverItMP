@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using LiteNetLib;
+using ServerShared;
 using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components
@@ -12,6 +13,7 @@ namespace Oxide.GettingOverItMP.Components
         private Client client;
 
         private string ipText = "";
+        private string playerName = "";
 
         private static readonly FieldInfo menuPauseField = typeof(PlayerControl).GetField("menuPause", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -19,6 +21,8 @@ namespace Oxide.GettingOverItMP.Components
         {
             control = LocalPlayer.GetComponent<PlayerControl>();
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>();
+
+            playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
         }
 
         private void Update()
@@ -33,13 +37,21 @@ namespace Oxide.GettingOverItMP.Components
                 return;
 
             // Draw ip area
-            GUILayout.BeginArea(new Rect(10, 200, 1000, 1000));
+            GUILayout.BeginArea(new Rect(10, 10, 1000, 1000));
             {
                 if (client.State == ConnectionState.Disconnected)
                 {
-                    if (GUILayout.Button("Connect to public server", GUILayout.Width(100)))
+                    GUILayout.BeginHorizontal(GUILayout.Width(300));
                     {
-                        client.Connect("127.0.0.1", 25050);
+                        GUILayout.Label("Name", GUILayout.Width(40));
+                        playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength, GUILayout.Width(200));
+                    }
+                    GUILayout.EndHorizontal();
+
+                    if (GUILayout.Button("Connect to public server", GUILayout.Width(200)))
+                    {
+                        SavePlayerName();
+                        client.Connect(SharedConstants.PublicServerHost, SharedConstants.PublicServerPort, playerName);
                     }
 
                     GUILayout.BeginHorizontal(GUILayout.Width(300));
@@ -48,24 +60,30 @@ namespace Oxide.GettingOverItMP.Components
 
                         if (GUILayout.Button("Connect"))
                         {
-                            string[] ipPort = ipText.Contains(":") ? ipText.Split(':') : new[] {ipText, "25050"};
+                            SavePlayerName();
+                            string[] ipPort = ipText.Replace(" ", "").Contains(":") ? ipText.Split(':') : new[] {ipText, SharedConstants.DefaultPort.ToString()};
                             string ip = ipPort[0];
                             int port = int.Parse(ipPort[1]);
 
-                            client.Connect(ip, port);
+                            client.Connect(ip, port, playerName);
                         }
                     }
                     GUILayout.EndHorizontal();
                 }
                 else
                 {
-                    if (GUILayout.Button("Disconnect"))
+                    if (GUILayout.Button("Disconnect", GUILayout.Width(80)))
                     {
                         client.Disconnect();
                     }
                 }
             }
             GUILayout.EndArea();
+        }
+
+        private void SavePlayerName()
+        {
+            PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
         }
     }
 }

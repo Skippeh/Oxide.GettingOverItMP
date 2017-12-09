@@ -18,7 +18,7 @@ namespace Oxide.GettingOverItMP.Components
 
         public int Id;
 
-        public string Name
+        public string PlayerName
         {
             get => nameContent.text;
             set => nameContent = new GUIContent(value);
@@ -76,7 +76,7 @@ namespace Oxide.GettingOverItMP.Components
             clone.SetActive(true);
             clone.name = "RemotePlayer_" + name;
             var remotePlayer = clone.GetComponent<RemotePlayer>();
-            remotePlayer.Name = name;
+            remotePlayer.PlayerName = name;
             return remotePlayer;
         }
 
@@ -105,7 +105,7 @@ namespace Oxide.GettingOverItMP.Components
         protected override void Start()
         {
             base.Start();
-            nameContent = new GUIContent(Name);
+            nameContent = new GUIContent(PlayerName);
         }
 
         protected override void Update()

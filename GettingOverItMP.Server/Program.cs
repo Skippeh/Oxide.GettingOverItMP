@@ -7,7 +7,7 @@ namespace GettingOverItMP.Server
     public static class Program
     {
         public static int MaxConnections = 100;
-        public static int Port = 25050;
+        public static int Port = SharedConstants.DefaultPort;
 
         private static GameServer server;
 

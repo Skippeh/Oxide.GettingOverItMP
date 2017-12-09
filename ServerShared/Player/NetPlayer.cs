@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using LiteNetLib;
 
 namespace ServerShared.Player
@@ -10,13 +9,14 @@ namespace ServerShared.Player
         public readonly NetPeer Peer;
 
         public PlayerMove Movement;
-        public bool Spawned;
+        public string Name;
 
         private static int idCounter = 1;
 
-        public NetPlayer([NotNull] NetPeer peer)
+        public NetPlayer(NetPeer peer, string name)
         {
             Peer = peer ?? throw new ArgumentNullException(nameof(peer));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             Id = idCounter++;
         }
     }

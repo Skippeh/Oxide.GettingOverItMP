@@ -13,6 +13,11 @@ namespace ServerShared
             writer.Put((byte) messageType);
         }
 
+        public static void Put(this NetDataWriter writer, ServerShared.DisconnectReason reason)
+        {
+            writer.Put((byte) reason);
+        }
+
         public static void Put(this NetDataWriter writer, Vector3 vec3)
         {
             writer.Put(vec3.x);
@@ -65,6 +70,33 @@ namespace ServerShared
             for (int i = 0; i < count; ++i)
             {
                 result.Add(reader.GetInt(), reader.GetPlayerMove());
+            }
+
+            return result;
+        }
+
+        public static void Put(this NetDataWriter writer, IDictionary<int, string> names)
+        {
+            writer.Put(names.Count);
+
+            foreach (var kv in names)
+            {
+                string name = kv.Value;
+
+                writer.Put(kv.Key); // The player ID
+                writer.Put(name);
+            }
+        }
+
+        public static Dictionary<int, string> GetNamesDictionary(this NetDataReader reader)
+        {
+            var result = new Dictionary<int, string>();
+
+            int count = reader.GetInt();
+
+            for (int i = 0; i < count; ++i)
+            {
+                result.Add(reader.GetInt(), reader.GetString());
             }
 
             return result;
