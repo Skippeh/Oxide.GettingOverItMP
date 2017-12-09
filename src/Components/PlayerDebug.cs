@@ -7,17 +7,8 @@ namespace Oxide.GettingOverItMP.Components
 {
     public class PlayerDebug : MonoBehaviour
     {
-        private PlayerControl playerControl;
-        private PoseControl poseControl;
-
         private int textDepth = 0;
-
-        private void Start()
-        {
-            poseControl = transform.Find("dude/mixamorig:Hips").GetComponent<PoseControl>();
-            playerControl = GetComponent<PlayerControl>();
-        }
-
+        
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F2))
@@ -38,17 +29,13 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnGUI()
         {
-            GUILayout.Label($"{name}:");
-            GUILayout.Label($"- Position: {transform.position}");
-
-            if (textDepth > 0)
-                GUILayout.Label($"Text depth: {textDepth}");
-
             if (textDepth > 0)
             {
                 GUIStyle style = GUI.skin.GetStyle("Label");
                 Color originalColor = GUI.color;
-                DrawTextOnGameObjects(new[] {playerControl.gameObject}, style);
+
+                DrawTextOnGameObjects(new[] {gameObject}, style);
+
                 GUI.color = originalColor;
             }
         }

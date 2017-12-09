@@ -18,6 +18,8 @@ namespace Oxide.GettingOverItMP.Components
             dudeAnim = transform.Find("dude")?.GetComponent<Animator>() ?? throw new NotImplementedException("Could not find dude");
             handle = transform.Find("Hub/Slider/Handle") ?? throw new NotImplementedException("Could not find Hub/Slider/Handle");
             slider = transform.Find("Hub/Slider") ?? throw new NotImplementedException("Could not find Hub/Slider");
+
+            gameObject.AddComponent<PlayerDebug>();
         }
 
         protected virtual void OnDestroy()
