@@ -111,7 +111,6 @@ namespace Oxide.GettingOverItMP.Components
                         {
                             var remotePlayer = RemotePlayers[kv.Key];
                             remotePlayer.ApplyMove(kv.Value);
-                            Interface.Oxide.LogDebug($"{kv.Key} moved to {kv.Value.Position}");
                         }
                         else if (kv.Key != Id)
                         {
