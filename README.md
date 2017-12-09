@@ -10,6 +10,8 @@ A complete rewrite of the popular, original Oxide API and Lua plugin framework. 
 
 Support for each game and plugin language is added via extensions. When loading, Oxide scans the binary folder for DLL extensions with the format `Oxide.*.dll`.
 
+**This readme is not accurate at the moment, instructions probably won't work.**
+
 ## Bundled Extensions
 
  * Oxide.GettingOverIt - _Provides support for the Getting Over It game_
