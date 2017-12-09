@@ -48,6 +48,7 @@ namespace Oxide.GettingOverItMP.Components
             DestroyImmediate(PlayerPrefab.GetComponentInChildren<PotSounds>());
             DestroyImmediate(PlayerPrefab.GetComponentInChildren<HammerCollisions>());
             DestroyImmediate(PlayerPrefab.GetComponentInChildren<PlayerSounds>());
+            DestroyImmediate(PlayerPrefab.transform.Find("PotCollider/Sensor").gameObject);
 
             PlayerPrefab.name = "RemotePlayer_Prefab";
             
