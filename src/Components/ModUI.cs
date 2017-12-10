@@ -41,7 +41,7 @@ namespace Oxide.GettingOverItMP.Components
             if (!control.IsPaused() || chatUi.Writing)
                 return;
 
-            // Draw ip area
+            // Draw connect/disconnect area
             GUILayout.BeginArea(new Rect(10, 10, 1000, 1000));
             {
                 if (client.State == ConnectionState.Disconnected)
@@ -79,6 +79,11 @@ namespace Oxide.GettingOverItMP.Components
                         }
                     }
                     GUILayout.EndHorizontal();
+
+                    if (client.LastDisconnectReason != null)
+                    {
+                        GUILayout.Label("Disconnected from the server: " + client.LastDisconnectReason);
+                    }
                 }
                 else
                 {

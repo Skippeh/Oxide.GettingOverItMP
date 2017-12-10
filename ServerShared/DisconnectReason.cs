@@ -2,6 +2,8 @@
 {
     public enum DisconnectReason : byte
     {
+        Invalid,
+
         /// <summary>
         /// Client failed to send handshake within the time limit.
         /// </summary>

@@ -11,6 +11,7 @@ using Oxide.GettingOverItMP.EventArgs;
 using ServerShared;
 using ServerShared.Player;
 using UnityEngine;
+using DisconnectReason = ServerShared.DisconnectReason;
 using Time = UnityEngine.Time;
 
 namespace Oxide.GettingOverItMP.Components
@@ -21,6 +22,7 @@ namespace Oxide.GettingOverItMP.Components
         public int Id { get => localPlayer.Id; set => localPlayer.Id = value; }
         public string PlayerName { get => localPlayer.PlayerName; set => localPlayer.PlayerName = value; }
         public event ChatMessageReceived ChatMessageReceived;
+        public string LastDisconnectReason { get; private set; }
 
         private EventBasedNetListener listener;
         private NetManager client;
@@ -48,6 +50,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnConnected(NetPeer server)
         {
+            LastDisconnectReason = null;
             this.server = server;
             SendHandshake();
         }
@@ -58,6 +61,71 @@ namespace Oxide.GettingOverItMP.Components
             Id = 0;
 
             RemoveAllRemotePlayers();
+
+            switch (info.Reason)
+            {
+                default:
+                {
+                    LastDisconnectReason = $"Unknown ({info.Reason})";
+                    break;
+                }
+                case LiteNetLib.DisconnectReason.DisconnectPeerCalled: // Client disconnected
+                {
+                    LastDisconnectReason = null;
+                    break;
+                }
+                case LiteNetLib.DisconnectReason.RemoteConnectionClose: // Server disconnected the client
+                {
+                    if (info.AdditionalData.AvailableBytes == 0)
+                    {
+                        LastDisconnectReason = "Server closed the connection.";
+                        break;
+                    }
+
+                    var reason = (DisconnectReason) info.AdditionalData.GetByte();
+
+                    switch (reason)
+                    {
+                        case DisconnectReason.DuplicateHandshake:
+                        {
+                            LastDisconnectReason = "Duplicate handshake sent to the server.";
+                            break;
+                        }
+                        case DisconnectReason.HandshakeTimeout:
+                        {
+                            LastDisconnectReason = "Failed to send handshake within the time limit.";
+                            break;
+                        }
+                        case DisconnectReason.InvalidMessage:
+                        {
+                            LastDisconnectReason = "The last sent message was invalid.";
+                            break;
+                        }
+                        case DisconnectReason.InvalidName:
+                        {
+                            LastDisconnectReason = "The name contains invalid characters.";
+                            break;
+                        }
+                        case DisconnectReason.NotAccepted:
+                        {
+                            LastDisconnectReason = "Tried to send a message before getting a successful handshake response.";
+                            break;
+                        }
+                        case DisconnectReason.VersionNewer:
+                        {
+                            LastDisconnectReason = "The server is running an older version.";
+                            break;
+                        }
+                        case DisconnectReason.VersionOlder:
+                        {
+                            LastDisconnectReason = "The server is running a newer version.";
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+            }
         }
 
         private void OnReceiveData(NetPeer peer, NetDataReader reader)
