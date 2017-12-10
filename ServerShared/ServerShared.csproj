@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LiteNetLib" Version="0.7.6.1" />
+    <ProjectReference Include="..\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
