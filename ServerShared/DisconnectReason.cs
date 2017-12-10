@@ -30,6 +30,11 @@
         /// <summary>
         /// Client tried to use a name that was too long or contained invalid characters.
         /// </summary>
-        InvalidName
+        InvalidName,
+
+        /// <summary>
+        /// Client tried to send any message other than ClientHandshake before having received a successful handshake response.
+        /// </summary>
+        NotAccepted
     }
 }

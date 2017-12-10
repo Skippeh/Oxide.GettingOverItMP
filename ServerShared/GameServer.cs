@@ -182,6 +182,11 @@ namespace ServerShared
             {
                 MessageType messageType = (MessageType) reader.GetByte();
 
+                if (messageType != MessageType.ClientHandshake && pendingConnections.Any(conn => conn.Peer == peer))
+                {
+                    DisconnectPeer(peer, DisconnectReason.NotAccepted);
+                }
+
                 switch (messageType)
                 {
                     default: throw new UnexpectedMessageFromClientException(messageType);
