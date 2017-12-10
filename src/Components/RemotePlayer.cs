@@ -26,6 +26,7 @@ namespace Oxide.GettingOverItMP.Components
         private PlayerMove lastMove;
         private float interpTarget;
         private float interpElapsed;
+        private bool renderersEnabled = true;
 
         private static LocalPlayer localPlayer;
 
@@ -170,7 +171,46 @@ namespace Oxide.GettingOverItMP.Components
             slider.position = Vector3.Lerp(lastMove.SliderPosition, targetMove.SliderPosition, t);
             slider.rotation = Quaternion.Lerp(lastMove.SliderRotation, targetMove.SliderRotation, t);
 
+            Vector3 cameraPosition = Camera.main.transform.position;
+            cameraPosition.z = 0;
+            
+            // Hide players that are 15+ meters away
+            if ((transform.position - cameraPosition).sqrMagnitude >= 15 * 15)
+            {
+                DisableRenderers();
+            }
+            else
+            {
+                EnableRenderers();
+            }
+
             // Todo: fix hands not being positioned correctly.
+        }
+
+        private void EnableRenderers()
+        {
+            if (renderersEnabled)
+                return;
+
+            foreach (var meshRenderer in gameObject.GetComponentsInChildren<Renderer>())
+            {
+                meshRenderer.enabled = true;
+            }
+
+            renderersEnabled = true;
+        }
+
+        private void DisableRenderers()
+        {
+            if (!renderersEnabled)
+                return;
+
+            foreach (var meshRenderer in gameObject.GetComponentsInChildren<Renderer>())
+            {
+                meshRenderer.enabled = false;
+            }
+
+            renderersEnabled = false;
         }
     }
 }
