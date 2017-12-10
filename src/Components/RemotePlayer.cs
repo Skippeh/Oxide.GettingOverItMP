@@ -27,6 +27,8 @@ namespace Oxide.GettingOverItMP.Components
         private float interpTarget;
         private float interpElapsed;
 
+        private static LocalPlayer localPlayer;
+
         public static void CreatePlayerPrefab()
         {
             PlayerPrefab = Instantiate(GameObject.FindObjectsOfType<GameObject>().Single(obj => obj.name == "Player") ?? throw new NotImplementedException("Could not find Player object"), Vector3.zero, Quaternion.identity);
@@ -101,6 +103,11 @@ namespace Oxide.GettingOverItMP.Components
         {
             base.Start();
             nameContent = new GUIContent(PlayerName);
+
+            if (localPlayer == null)
+            {
+                localPlayer = GameObject.Find("Player").GetComponent<LocalPlayer>();
+            }
         }
 
         protected override void Update()
@@ -122,12 +129,27 @@ namespace Oxide.GettingOverItMP.Components
 
             if (labelStyle == null)
                 labelStyle = GUI.skin.GetStyle("Label");
-            
-            Vector2 screenPosition = Camera.current.WorldToScreenPoint(transform.position + transform.up * 1.5f);
-            Vector2 textSize = labelStyle.CalcSize(nameContent);
 
+            Vector2 textSize;
+            Vector2 screenPosition = Camera.current.WorldToScreenPoint(transform.position + transform.up * 1.5f);
             screenPosition.y = Screen.height - screenPosition.y;
-            
+
+            GUIContent nameContent;
+            if (screenPosition.x < 0 || screenPosition.y < 0 || screenPosition.x >= Screen.width || screenPosition.y >= Screen.height)
+            {
+                nameContent = new GUIContent(this.nameContent);
+                nameContent.text += $" ({Vector3.Distance(localPlayer.transform.position, transform.position):0.0}m)";
+                textSize = labelStyle.CalcSize(nameContent);
+
+                screenPosition.x = Mathf.Clamp(screenPosition.x, textSize.x / 2, Screen.width - textSize.x / 2);
+                screenPosition.y = Mathf.Clamp(screenPosition.y, textSize.y / 2, Screen.height - textSize.y / 2);
+            }
+            else
+            {
+                nameContent = this.nameContent;
+                textSize = labelStyle.CalcSize(nameContent);
+            }
+
             Rect textRect = new Rect(screenPosition.x - (textSize.x / 2f), screenPosition.y - (textSize.y / 2f), textSize.x, textSize.y);
             
             GUI.Label(textRect, nameContent);
