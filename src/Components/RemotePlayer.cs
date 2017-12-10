@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
@@ -13,8 +12,6 @@ namespace Oxide.GettingOverItMP.Components
     public class RemotePlayer : MPBasePlayer
     {
         public static GameObject PlayerPrefab { get; private set; }
-        
-        public static readonly List<RemotePlayer> RemotePlayers = new List<RemotePlayer>();
         
         public override string PlayerName
         {
