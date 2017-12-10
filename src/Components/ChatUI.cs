@@ -97,7 +97,7 @@ namespace Oxide.GettingOverItMP.Components
                         var chatMessage = chatMessages[i];
                         string namePrefix = "";
 
-                        if (chatMessage.Name != null)
+                        if (!string.IsNullOrEmpty(chatMessage.Name))
                             namePrefix = $"{chatMessage.Name}: ";
 
                         GUI.color = chatMessage.Color;
