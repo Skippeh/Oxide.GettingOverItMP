@@ -272,16 +272,6 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(10, 500, 1000, 1000));
-            {
-                GUILayout.Label($"Connection state: {State} {(State == ConnectionState.Connected ? server.EndPoint.ToString() : "")}");
-
-                if (State == ConnectionState.Connected)
-                {
-                    GUILayout.Label($"Next send time: {nextSendTime}");
-                }
-            }
-            GUILayout.EndArea();
         }
 
         private void OnDestroy()
