@@ -101,17 +101,17 @@ namespace ServerShared
             }
         }
 
-        public void BroadcastChatMessage(string message)
+        public void BroadcastChatMessage(string message, NetPeer except = null)
         {
-            BroadcastChatMessage(message, Color.white);
+            BroadcastChatMessage(message, Color.white, except);
         }
 
-        public void BroadcastChatMessage(string message, Color color)
+        public void BroadcastChatMessage(string message, Color color, NetPeer except = null)
         {
-            BroadcastChatMessage(message, color, null);
+            BroadcastChatMessage(message, color, null, except);
         }
 
-        public void BroadcastChatMessage(string message, Color color, NetPlayer player)
+        public void BroadcastChatMessage(string message, Color color, NetPlayer player, NetPeer except = null)
         {
             var writer = new NetDataWriter();
             writer.Put(MessageType.ChatMessage);
@@ -119,7 +119,7 @@ namespace ServerShared
             writer.Put(color);
             writer.Put(message);
 
-            Broadcast(writer, SendOptions.ReliableOrdered);
+            Broadcast(writer, SendOptions.ReliableOrdered, except);
         }
 
         private NetPlayer AddPeer(NetPeer peer, string playerName)
@@ -204,7 +204,7 @@ namespace ServerShared
             RemovePeer(peer);
 
             if (player != null)
-                BroadcastChatMessage($"{player.Name} left the server.");
+                BroadcastChatMessage($"{player.Name} left the server.", SharedConstants.ColorBlue);
         }
 
         private void OnReceiveData(NetPeer peer, NetDataReader reader)
@@ -257,10 +257,10 @@ namespace ServerShared
                         writer.Put(player.Name);
                         writer.Put(player.Movement);
                         Broadcast(writer, SendOptions.ReliableOrdered, peer);
-
+                        
                         Console.WriteLine($"Peer with id {player.Id} is now spawned");
-                        BroadcastChatMessage($"{player.Name} joined the server.");
-
+                        BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, peer);
+                        
                         break;
                     }
                     case MessageType.MoveData:

@@ -29,6 +29,8 @@ namespace Oxide.GettingOverItMP.Components
         private NetPeer server;
         private LocalPlayer localPlayer;
 
+        private ChatUI chatUi;
+
         private readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
         private float nextSendTime = 0;
@@ -46,6 +48,8 @@ namespace Oxide.GettingOverItMP.Components
             client = new NetManager(listener, SharedConstants.AppName);
             client.UpdateTime = 33; // Poll/send 30 times per second.
             client.Start();
+
+            chatUi = GameObject.Find("GOIMP.UI").GetComponent<ChatUI>() ?? throw new NotImplementedException("Could not find ChatUI");
         }
 
         private void OnConnected(NetPeer server)
@@ -126,6 +130,9 @@ namespace Oxide.GettingOverItMP.Components
                     break;
                 }
             }
+
+            if (info.Reason != LiteNetLib.DisconnectReason.DisconnectPeerCalled && info.Reason != LiteNetLib.DisconnectReason.ConnectionFailed)
+                chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);
         }
 
         private void OnReceiveData(NetPeer peer, NetDataReader reader)
@@ -150,6 +157,7 @@ namespace Oxide.GettingOverItMP.Components
                     }
 
                     handshakeResponseReceived = true;
+                    chatUi.AddMessage("Connected to the server.", null, SharedConstants.ColorGreen);
                     Interface.Oxide.LogDebug($"Got id: {Id} and {remotePlayers.Count} remote player(s)");
 
                     break;

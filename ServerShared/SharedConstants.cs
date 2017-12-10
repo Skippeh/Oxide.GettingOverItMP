@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace ServerShared
 {
@@ -12,6 +13,9 @@ namespace ServerShared
         public const int PublicServerPort = DefaultPort;
         public static readonly char[] AllowedCharacters;
         public const int MaxChatLength = 100;
+        public static readonly Color ColorGreen = new Color(0.48f, 0.74f, 0.45f);
+        public static readonly Color ColorRed = new Color(0.74f, 0.48f, 0.45f);
+        public static readonly Color ColorBlue = new Color(0.54f, 0.58f, 0.75f);
 
         static SharedConstants()
         {

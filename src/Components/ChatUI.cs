@@ -33,8 +33,8 @@ namespace Oxide.GettingOverItMP.Components
         private static GUIStyle groupStyle;
         private static GUIStyle chatTextStyle;
 
-        private const float chatShowTimeOnMessageReceived = 10; // Show the chat for 15 seconds when a message is received.
-        private const float chatShowTimeOnMessageCancelled = 3; // Show the chat for 5 seconds when a message when chat input was cancelled.
+        private const float chatShowTimeOnMessageReceived = 10; // Show the chat for 10 seconds when a message is received.
+        private const float chatShowTimeOnMessageCancelled = 3; // Show the chat for 3 seconds when a message when chat input was cancelled.
 
         private void Start()
         {
@@ -59,7 +59,14 @@ namespace Oxide.GettingOverItMP.Components
         {
             if (groupStyle == null)
             {
-                groupStyle = GUI.skin.GetStyle("Box");
+                groupStyle = new GUIStyle(GUI.skin.GetStyle("Box"))
+                {
+                    normal =
+                    {
+                        background = Texture2D.whiteTexture
+                    }
+                };
+
                 chatTextStyle = GUI.skin.GetStyle("Label");
                 chatTextStyle.fontSize = 14;
             }
@@ -74,7 +81,12 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             // Draw chat in the bottom left corner 30 pixels above the bottom.
-            GUI.BeginGroup(new Rect(10, Screen.height - 35 - ChatSize.y, ChatSize.x, ChatSize.y), (Texture) null, groupStyle);
+            {
+                var bColor = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(0, 0, 0, 0.75f);
+                GUI.BeginGroup(new Rect(5, Screen.height - 35 - ChatSize.y, ChatSize.x, ChatSize.y), (Texture) null, groupStyle);
+                GUI.backgroundColor = bColor;
+            }
             {
                 scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(ChatSize.x), GUILayout.Height(ChatSize.y));
                 {
@@ -83,9 +95,13 @@ namespace Oxide.GettingOverItMP.Components
                     for (int i = 0; i < chatMessages.Count; ++i)
                     {
                         var chatMessage = chatMessages[i];
+                        string namePrefix = "";
+
+                        if (chatMessage.Name != null)
+                            namePrefix = $"{chatMessage.Name}: ";
 
                         GUI.color = chatMessage.Color;
-                        GUILayout.Label($"{chatMessage.Name}: {chatMessage.Message}");
+                        GUILayout.Label($"{namePrefix}{chatMessage.Message}");
                         GUILayout.Space(-3);
                     }
 
@@ -98,7 +114,7 @@ namespace Oxide.GettingOverItMP.Components
             if (Writing)
             {
                 GUI.SetNextControlName("ChatInput");
-                chatInputText = GUI.TextField(new Rect(10, Screen.height - 30, ChatSize.x, 25), chatInputText, SharedConstants.MaxChatLength);
+                chatInputText = GUI.TextField(new Rect(5, Screen.height - 30, ChatSize.x, 25), chatInputText, SharedConstants.MaxChatLength);
                 GUI.FocusControl("ChatInput");
 
                 var currentEvent = UnityEngine.Event.current;
@@ -130,7 +146,7 @@ namespace Oxide.GettingOverItMP.Components
             }
         }
 
-        private void OnChatMessageReceived(object sender, ChatMessageReceivedEventArgs args)
+        public void AddMessage(string message, string name, Color color)
         {
             ShowChat(chatShowTimeOnMessageReceived);
 
@@ -141,13 +157,18 @@ namespace Oxide.GettingOverItMP.Components
 
             chatMessages.Add(new ChatMessage
             {
-                Color = args.Color,
-                Name = args.Player?.PlayerName ?? "[Server]",
-                Message = args.Message,
+                Message = message,
+                Name = name,
+                Color = color,
                 Time = DateTime.Now
             });
 
             ScrollToBottom();
+        }
+
+        private void OnChatMessageReceived(object sender, ChatMessageReceivedEventArgs args)
+        {
+            AddMessage(args.Message, args.Player?.PlayerName, args.Color);
         }
 
         private void ScrollToBottom()
