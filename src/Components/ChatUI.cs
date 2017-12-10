@@ -136,7 +136,7 @@ namespace Oxide.GettingOverItMP.Components
 
             if (chatMessages.Count > MaxChatMessages)
             {
-                chatMessages.RemoveAt(chatMessages.Count - 1);
+                chatMessages.RemoveAt(0);
             }
 
             chatMessages.Add(new ChatMessage
