@@ -168,7 +168,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnChatMessageReceived(object sender, ChatMessageReceivedEventArgs args)
         {
-            AddMessage(args.Message, args.Player?.PlayerName, args.Color);
+            AddMessage(args.Message, args.PlayerName, args.Color);
         }
 
         private void ScrollToBottom()

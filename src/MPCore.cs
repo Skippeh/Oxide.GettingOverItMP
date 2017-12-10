@@ -18,6 +18,7 @@ namespace Oxide.GettingOverIt
     {
         private GameObject uiGameObject;
         private GameObject clientGameObject;
+        private GameObject spectateGameObject;
         private Client client;
 
         private GameObject localPlayer;
@@ -56,11 +57,13 @@ namespace Oxide.GettingOverIt
                 
                 InitClient();
                 InitUI();
+                InitSpectator();
             }
             else
             {
                 DestroyClient();
                 DestroyUI();
+                DestroySpectator();
             }
         }
 
@@ -127,6 +130,23 @@ namespace Oxide.GettingOverIt
                 return;
 
             GameObject.Destroy(clientGameObject);
+        }
+
+        private void InitSpectator()
+        {
+            if (spectateGameObject)
+                return;
+
+            spectateGameObject = new GameObject("GOIMP.Spectator");
+            spectateGameObject.AddComponent<Spectator>();
+        }
+
+        private void DestroySpectator()
+        {
+            if (!spectateGameObject)
+                return;
+
+            GameObject.Destroy(spectateGameObject);
         }
 
         private string GameObjectToString(GameObject go)

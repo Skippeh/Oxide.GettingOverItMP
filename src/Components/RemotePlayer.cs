@@ -26,7 +26,6 @@ namespace Oxide.GettingOverItMP.Components
         private PlayerMove lastMove;
         private float interpTarget;
         private float interpElapsed;
-        private bool renderersEnabled = true;
 
         private static LocalPlayer localPlayer;
 
@@ -185,32 +184,6 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             // Todo: fix hands not being positioned correctly.
-        }
-
-        private void EnableRenderers()
-        {
-            if (renderersEnabled)
-                return;
-
-            foreach (var meshRenderer in gameObject.GetComponentsInChildren<Renderer>())
-            {
-                meshRenderer.enabled = true;
-            }
-
-            renderersEnabled = true;
-        }
-
-        private void DisableRenderers()
-        {
-            if (!renderersEnabled)
-                return;
-
-            foreach (var meshRenderer in gameObject.GetComponentsInChildren<Renderer>())
-            {
-                meshRenderer.enabled = false;
-            }
-
-            renderersEnabled = false;
         }
     }
 }

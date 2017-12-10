@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using FluffyUnderware.DevTools.Extensions;
 using JetBrains.Annotations;
 using LiteNetLib;
@@ -28,6 +29,7 @@ namespace Oxide.GettingOverItMP.Components
         private NetManager client;
         private NetPeer server;
         private LocalPlayer localPlayer;
+        private Spectator spectator;
 
         private ChatUI chatUi;
 
@@ -50,6 +52,7 @@ namespace Oxide.GettingOverItMP.Components
             client.Start();
 
             chatUi = GameObject.Find("GOIMP.UI").GetComponent<ChatUI>() ?? throw new NotImplementedException("Could not find ChatUI");
+            spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
         }
 
         private void OnConnected(NetPeer server)
@@ -65,6 +68,7 @@ namespace Oxide.GettingOverItMP.Components
             Id = 0;
 
             RemoveAllRemotePlayers();
+            spectator.StopSpectating();
 
             switch (info.Reason)
             {
@@ -185,6 +189,7 @@ namespace Oxide.GettingOverItMP.Components
 
                     if (RemotePlayers.ContainsKey(id))
                     {
+                        var player = RemotePlayers[id];
                         Destroy(RemotePlayers[id].gameObject);
                         RemotePlayers.Remove(id);
                     }
@@ -202,37 +207,48 @@ namespace Oxide.GettingOverItMP.Components
                             var remotePlayer = RemotePlayers[kv.Key];
                             remotePlayer.ApplyMove(kv.Value);
                         }
-                        else if (kv.Key != Id)
-                        {
-                            Interface.Oxide.LogDebug($"Got movement from unknown player id: {kv.Key}");
-                        }
                     }
 
                     break;
                 }
                 case MessageType.ChatMessage:
                 {
-                    int playerId = reader.GetInt();
+                    string name = reader.GetString();
                     Color color = reader.GetColor();
                     string message = reader.GetString();
 
-                    MPBasePlayer player;
-
-                    Interface.Oxide.LogDebug($"{playerId}: {message}");
-
-                    if (playerId == Id)
-                        player = localPlayer;
-                    else
-                    {
-                        player = RemotePlayers.ContainsKey(playerId) ? RemotePlayers[playerId] : null;
-                    }
-
                     ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs
                     {
-                        Player = player,
+                        PlayerName = name,
                         Message = message,
                         Color = color
                     });
+
+                    break;
+                }
+                case MessageType.SpectateTarget:
+                {
+                    int targetId = reader.GetInt();
+
+                    Interface.Oxide.LogDebug($"Spectate {targetId}");
+
+                    if (targetId == 0)
+                        spectator.StopSpectating();
+                    else
+                    {
+                        var targetPlayer = RemotePlayers.ContainsKey(targetId) ? RemotePlayers[targetId] : null;
+
+                        if (targetPlayer == null)
+                        {
+                            Interface.Oxide.LogError($"Could not find spectate target ({targetId}).");
+                            chatUi.AddMessage($"Could not find spectate target (shouldn't happen, id: {targetId}). Disconnecting from server.", null, SharedConstants.ColorRed);
+                            LastDisconnectReason = "Disconnected because of unexpected client message handling error.";
+                            Disconnect();
+                            return;
+                        }
+
+                        spectator.SpectatePlayer(targetPlayer);
+                    }
 
                     break;
                 }
@@ -256,7 +272,7 @@ namespace Oxide.GettingOverItMP.Components
             if (server == null)
                 return;
 
-            if (State == ConnectionState.Connected && Id != 0 && handshakeResponseReceived)
+            if (State == ConnectionState.Connected && Id != 0 && handshakeResponseReceived && !spectator.Spectating)
             {
                 if (Time.time >= nextSendTime)
                 {
@@ -268,10 +284,6 @@ namespace Oxide.GettingOverItMP.Components
                     server.Send(writer, SendOptions.Sequenced);
                 }
             }
-        }
-
-        private void OnGUI()
-        {
         }
 
         private void OnDestroy()
@@ -306,10 +318,21 @@ namespace Oxide.GettingOverItMP.Components
         {
             if (server == null)
                 return;
-
+            
             var writer = new NetDataWriter();
             writer.Put(MessageType.ChatMessage);
             writer.Put(text);
+
+            server.Send(writer, SendOptions.ReliableOrdered);
+        }
+
+        public void SendStopSpectating()
+        {
+            if (server == null)
+                return;
+
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.ClientStopSpectating);
 
             server.Send(writer, SendOptions.ReliableOrdered);
         }
