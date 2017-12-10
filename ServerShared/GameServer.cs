@@ -101,6 +101,27 @@ namespace ServerShared
             }
         }
 
+        public void BroadcastChatMessage(string message)
+        {
+            BroadcastChatMessage(message, Color.white);
+        }
+
+        public void BroadcastChatMessage(string message, Color color)
+        {
+            BroadcastChatMessage(message, color, null);
+        }
+
+        public void BroadcastChatMessage(string message, Color color, NetPlayer player)
+        {
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.ChatMessage);
+            writer.Put(player?.Id ?? -1);
+            writer.Put(color);
+            writer.Put(message);
+
+            Broadcast(writer, SendOptions.ReliableOrdered);
+        }
+
         private NetPlayer AddPeer(NetPeer peer, string playerName)
         {
             var netPlayer = new NetPlayer(peer, playerName);
@@ -174,7 +195,16 @@ namespace ServerShared
         {
             Console.WriteLine($"Connection gone from {peer.EndPoint} ({disconnectinfo.Reason})");
             pendingConnections.RemoveAll(conn => conn.Peer == peer);
+
+            NetPlayer player = null;
+
+            if (Players.ContainsKey(peer))
+                player = Players[peer];
+
             RemovePeer(peer);
+
+            if (player != null)
+                BroadcastChatMessage($"{player.Name} left the server.");
         }
 
         private void OnReceiveData(NetPeer peer, NetDataReader reader)
@@ -229,6 +259,7 @@ namespace ServerShared
                         Broadcast(writer, SendOptions.ReliableOrdered, peer);
 
                         Console.WriteLine($"Peer with id {player.Id} is now spawned");
+                        BroadcastChatMessage($"{player.Name} joined the server.");
 
                         break;
                     }
@@ -248,14 +279,8 @@ namespace ServerShared
                             message = message.Substring(0, SharedConstants.MaxChatLength);
 
                         Color color = Color.white;
+                        BroadcastChatMessage(message, color, Players[peer]);
 
-                        var writer = new NetDataWriter();
-                        writer.Put(MessageType.ChatMessage);
-                        writer.Put(Players[peer].Id);
-                        writer.Put(color);
-                        writer.Put(message);
-
-                        Broadcast(writer, SendOptions.ReliableOrdered);
                         break;
                     }
                 }
