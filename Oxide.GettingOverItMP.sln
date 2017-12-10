@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GettingOverItMP.Server", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteNetLib", "LiteNetLib\LiteNetLib\LiteNetLib.csproj", "{B0A014E4-0392-4E35-AA42-8FB5A40417E0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GettingOverIt", "GettingOverIt", "{E857A063-A7DD-4BD8-8233-21DF1ED8FAA7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{F9DBAD80-9B5A-45DF-BF20-15C771548081}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +39,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{87568E26-BF3C-4A14-A3C4-8B74616D6FA9} = {E857A063-A7DD-4BD8-8233-21DF1ED8FAA7}
+		{57B605F4-330E-4A75-9991-08D5789B5A5F} = {E857A063-A7DD-4BD8-8233-21DF1ED8FAA7}
+		{FBECFC5F-C68A-4176-B320-9B51E894CD06} = {E857A063-A7DD-4BD8-8233-21DF1ED8FAA7}
+		{B0A014E4-0392-4E35-AA42-8FB5A40417E0} = {F9DBAD80-9B5A-45DF-BF20-15C771548081}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {480BFA53-389C-4E8B-A216-9B9284270DCA}
