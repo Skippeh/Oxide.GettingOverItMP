@@ -7,5 +7,6 @@
         CreatePlayer = 5,
         RemovePlayer = 6,
         MoveData = 10,
+        ChatMessage = 20
     }
 }

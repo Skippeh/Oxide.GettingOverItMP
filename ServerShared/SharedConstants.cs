@@ -11,6 +11,7 @@ namespace ServerShared
         public const string PublicServerHost = "skippy.pizza";
         public const int PublicServerPort = DefaultPort;
         public static readonly char[] AllowedCharacters;
+        public const int MaxChatLength = 100;
 
         static SharedConstants()
         {

@@ -15,10 +15,8 @@ namespace Oxide.GettingOverItMP.Components
         public static GameObject PlayerPrefab { get; private set; }
         
         public static readonly List<RemotePlayer> RemotePlayers = new List<RemotePlayer>();
-
-        public int Id;
-
-        public string PlayerName
+        
+        public override string PlayerName
         {
             get => nameContent.text;
             set => nameContent = new GUIContent(value);

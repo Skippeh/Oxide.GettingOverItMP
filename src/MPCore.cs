@@ -100,6 +100,8 @@ namespace Oxide.GettingOverIt
             uiGameObject = new GameObject("GOIMP.UI");
             var modUi = uiGameObject.AddComponent<ModUI>();
             modUi.LocalPlayer = localPlayer;
+
+            uiGameObject.AddComponent<ChatUI>();
         }
 
         private void DestroyUI()

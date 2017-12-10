@@ -11,16 +11,18 @@ namespace Oxide.GettingOverItMP.Components
 
         private PlayerControl control;
         private Client client;
+        private ChatUI chatUi;
 
         private string ipText = "";
         private string playerName = "";
-
-        private static readonly FieldInfo menuPauseField = typeof(PlayerControl).GetField("menuPause", BindingFlags.NonPublic | BindingFlags.Instance);
+        
+        private static GUIStyle tintedBackground;
 
         private void Start()
         {
             control = LocalPlayer.GetComponent<PlayerControl>();
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>();
+            chatUi = gameObject.GetComponent<ChatUI>();
 
             playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
         }
@@ -31,9 +33,12 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnGUI()
         {
-            bool paused = (bool) menuPauseField.GetValue(control);
+            if (tintedBackground == null)
+            {
+                tintedBackground = GUI.skin.GetStyle("Box");
+            }
 
-            if (!paused)
+            if (!control.IsPaused() || chatUi.Writing)
                 return;
 
             // Draw ip area
@@ -43,7 +48,12 @@ namespace Oxide.GettingOverItMP.Components
                 {
                     GUILayout.BeginHorizontal(GUILayout.Width(300));
                     {
-                        GUILayout.Label("Name", GUILayout.Width(40));
+                        GUILayout.BeginHorizontal(tintedBackground);
+                        {
+                            GUILayout.Label("Name", GUILayout.Width(40));
+                        }
+                        GUILayout.EndHorizontal();
+
                         playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength, GUILayout.Width(200));
                     }
                     GUILayout.EndHorizontal();

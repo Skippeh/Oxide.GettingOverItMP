@@ -4,6 +4,7 @@ using System.Linq;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using ServerShared.Player;
+using UnityEngine;
 
 namespace ServerShared
 {
@@ -235,6 +236,26 @@ namespace ServerShared
                     {
                         NetPlayer player = Players[peer];
                         player.Movement = reader.GetPlayerMove();
+                        break;
+                    }
+                    case MessageType.ChatMessage:
+                    {
+                        var message = reader.GetString();
+
+                        message = message.Trim();
+
+                        if (message.Length > SharedConstants.MaxChatLength)
+                            message = message.Substring(0, SharedConstants.MaxChatLength);
+
+                        Color color = Color.white;
+
+                        var writer = new NetDataWriter();
+                        writer.Put(MessageType.ChatMessage);
+                        writer.Put(Players[peer].Id);
+                        writer.Put(color);
+                        writer.Put(message);
+
+                        Broadcast(writer, SendOptions.ReliableOrdered);
                         break;
                     }
                 }

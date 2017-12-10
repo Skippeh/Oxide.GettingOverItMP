@@ -7,6 +7,9 @@ namespace Oxide.GettingOverItMP.Components
 {
     public abstract class MPBasePlayer : MonoBehaviour
     {
+        public int Id;
+        public abstract string PlayerName { get; set; }
+
         protected Animator dudeAnim;
         protected Transform handle;
         protected Transform slider;

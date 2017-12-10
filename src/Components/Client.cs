@@ -7,6 +7,7 @@ using LiteNetLib;
 using LiteNetLib.Utils;
 using Oxide.Core;
 using Oxide.Core.Libraries;
+using Oxide.GettingOverItMP.EventArgs;
 using ServerShared;
 using ServerShared.Player;
 using UnityEngine;
@@ -17,15 +18,16 @@ namespace Oxide.GettingOverItMP.Components
     public class Client : MonoBehaviour
     {
         public ConnectionState State => server?.ConnectionState ?? ConnectionState.Disconnected;
-        public int Id { get; private set; }
-        public string PlayerName { get; private set; }
+        public int Id { get => localPlayer.Id; set => localPlayer.Id = value; }
+        public string PlayerName { get => localPlayer.PlayerName; set => localPlayer.PlayerName = value; }
+        public event ChatMessageReceived ChatMessageReceived;
 
         private EventBasedNetListener listener;
         private NetManager client;
         private NetPeer server;
         private LocalPlayer localPlayer;
 
-        private Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
+        private readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
         private float nextSendTime = 0;
         private bool handshakeResponseReceived;
@@ -70,6 +72,9 @@ namespace Oxide.GettingOverItMP.Components
                     PlayerName = reader.GetString();
                     var names = reader.GetNamesDictionary();
                     var remotePlayers = reader.GetMovementDictionary();
+
+                    localPlayer.PlayerName = PlayerName;
+                    localPlayer.Id = Id;
                     
                     foreach (var kv in remotePlayers)
                     {
@@ -129,6 +134,32 @@ namespace Oxide.GettingOverItMP.Components
 
                     break;
                 }
+                case MessageType.ChatMessage:
+                {
+                    int playerId = reader.GetInt();
+                    Color color = reader.GetColor();
+                    string message = reader.GetString();
+
+                    MPBasePlayer player;
+
+                    Interface.Oxide.LogDebug($"{playerId}: {message}");
+
+                    if (playerId == Id)
+                        player = localPlayer;
+                    else
+                    {
+                        player = RemotePlayers.ContainsKey(playerId) ? RemotePlayers[playerId] : null;
+                    }
+
+                    ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs
+                    {
+                        Player = player,
+                        Message = message,
+                        Color = color
+                    });
+
+                    break;
+                }
             }
         }
 
@@ -179,6 +210,9 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnDestroy()
         {
+            if (server != null)
+                Disconnect();
+
             RemoveAllRemotePlayers();
         }
 
@@ -202,6 +236,18 @@ namespace Oxide.GettingOverItMP.Components
             client.DisconnectPeer(server);
         }
 
+        public void SendChatMessage(string text)
+        {
+            if (server == null)
+                return;
+
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.ChatMessage);
+            writer.Put(text);
+
+            server.Send(writer, SendOptions.ReliableOrdered);
+        }
+
         private void SendHandshake()
         {
             Interface.Oxide.LogDebug("Sending handshake...");
@@ -215,4 +261,6 @@ namespace Oxide.GettingOverItMP.Components
             server.Send(writer, SendOptions.ReliableOrdered);
         }
     }
+
+    public delegate void ChatMessageReceived(object sender, ChatMessageReceivedEventArgs args);
 }

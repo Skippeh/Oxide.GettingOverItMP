@@ -134,5 +134,29 @@ namespace ServerShared
                 SliderRotation = reader.GetQuaternion()
             };
         }
+
+        public static void Put(this NetDataWriter writer, Color color)
+        {
+            byte r = (byte) (color.r * 255);
+            byte g = (byte) (color.g * 255);
+            byte b = (byte) (color.b * 255);
+            byte a = (byte) (color.a * 255);
+
+            uint rgba = (uint) (r << 24 | g << 16 | b << 8 | a);
+
+            writer.Put(rgba);
+        }
+
+        public static Color GetColor(this NetDataReader reader)
+        {
+            uint rgba = reader.GetUInt();
+
+            var r = (byte) ((rgba >> 24) & 0xFF);
+            var g = (byte) ((rgba >> 16) & 0xFF);
+            var b = (byte) ((rgba >> 8) & 0xFF);
+            var a = (byte) (rgba & 0xFF);
+
+            return new Color(r / 255f, g / 255f, b / 255f, a / 255f);
+        }
     }
 }
