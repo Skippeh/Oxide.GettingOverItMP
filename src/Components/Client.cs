@@ -265,7 +265,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName)
         {
-            var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}");
+            var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}", id);
             yield return new WaitForSeconds(0);
             remotePlayer.PlayerName = playerName;
             remotePlayer.ApplyMove(move, 0);
