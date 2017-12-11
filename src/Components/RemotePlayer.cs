@@ -151,8 +151,18 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             Rect textRect = new Rect(screenPosition.x - (textSize.x / 2f), screenPosition.y - (textSize.y / 2f), textSize.x, textSize.y);
-            
+            Rect shadowRect = new Rect(textRect);
+            shadowRect.position += Vector2.one;
+
+            Color oldColor = GUI.color;
+
+            GUI.color = Color.black;
+            GUI.Label(shadowRect, nameContent);
+
+            GUI.color = Color.white;
             GUI.Label(textRect, nameContent);
+
+            GUI.color = oldColor;
         }
 
         private void ApplyMoveInterp(ref PlayerMove move, float t)
