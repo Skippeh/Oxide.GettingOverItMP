@@ -115,7 +115,7 @@ namespace Oxide.GettingOverItMP.Components
                         }
                         case DisconnectReason.InvalidName:
                         {
-                            LastDisconnectReason = "The name contains invalid characters.";
+                            LastDisconnectReason = "The name is either empty or it contains invalid characters.";
                             break;
                         }
                         case DisconnectReason.NotAccepted:
