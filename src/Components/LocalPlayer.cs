@@ -29,11 +29,11 @@ namespace Oxide.GettingOverItMP.Components
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    client.SendSwitchSpectateTarget(-1);
+                    client.SendSwitchSpectateTarget(1);
                 }
                 if (Input.GetMouseButtonDown(1))
                 {
-                    client.SendSwitchSpectateTarget(1);
+                    client.SendSwitchSpectateTarget(-1);
                 }
             }
         }

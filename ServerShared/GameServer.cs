@@ -346,6 +346,16 @@ namespace ServerShared
                         peerPlayer.Spectate(null);
                         break;
                     }
+                    case MessageType.SpectateTarget:
+                    {
+                        int targetId = reader.GetInt();
+                        NetPlayer targetPlayer = Players.Values.FirstOrDefault(plr => !plr.Spectating && plr.Id == targetId);
+                            
+                        if (targetPlayer != null)
+                            peerPlayer.Spectate(targetPlayer);
+                        
+                        break;
+                    }
                 }
             }
             catch (UnexpectedMessageFromClientException ex)
