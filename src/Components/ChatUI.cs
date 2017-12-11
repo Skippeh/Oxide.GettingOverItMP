@@ -88,7 +88,7 @@ namespace Oxide.GettingOverItMP.Components
                 GUI.backgroundColor = bColor;
             }
             {
-                scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(ChatSize.x), GUILayout.Height(ChatSize.y));
+                scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false, GUI.skin.horizontalScrollbar, Writing ? GUI.skin.verticalScrollbar : GUIStyle.none, GUILayout.Width(ChatSize.x), GUILayout.Height(ChatSize.y));
                 {
                     Color oldColor = GUI.color;
 
