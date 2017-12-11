@@ -19,6 +19,8 @@ namespace Oxide.GettingOverItMP.Components
 {
     public class Client : MonoBehaviour
     {
+        public readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
+
         public ConnectionState State => server?.ConnectionState ?? ConnectionState.Disconnected;
         public int Id { get => localPlayer.Id; set => localPlayer.Id = value; }
         public string PlayerName { get => localPlayer.PlayerName; set => localPlayer.PlayerName = value; }
@@ -35,7 +37,6 @@ namespace Oxide.GettingOverItMP.Components
 
         private ChatUI chatUi;
 
-        private readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
         private float nextSendTime = 0;
         private bool handshakeResponseReceived;
