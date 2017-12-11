@@ -182,7 +182,7 @@ namespace Oxide.GettingOverItMP.Components
         private void ApplyMoveInterp(ref PlayerMove move, float t)
         {
             dudeAnim.SetFloat("Angle", Mathf.LerpAngle(lastMove.AnimationAngle, targetMove.AnimationAngle, t));
-            dudeAnim.SetFloat("Extension", Mathf.LerpAngle(lastMove.AnimationExtension, targetMove.AnimationExtension, t));
+            dudeAnim.SetFloat("Extension", Mathf.Lerp(lastMove.AnimationExtension, targetMove.AnimationExtension, t));
             dudeAnim.Update(Time.deltaTime);
 
             transform.position = Vector3.Lerp(lastMove.Position, targetMove.Position, t);
