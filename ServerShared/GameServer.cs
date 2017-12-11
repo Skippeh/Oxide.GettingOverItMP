@@ -91,7 +91,7 @@ namespace ServerShared
                 if (Players.Count <= 0)
                     return;
 
-                Dictionary<int, PlayerMove> toSend = Players.Values.ToDictionary(plr => plr.Id, plr => plr.Movement);
+                Dictionary<int, PlayerMove> toSend = Players.Values.Where(plr => !plr.Spectating).ToDictionary(plr => plr.Id, plr => plr.Movement);
 
                 var writer = new NetDataWriter();
                 writer.Put(MessageType.MoveData);
@@ -132,7 +132,7 @@ namespace ServerShared
             writer.Put(netPlayer.Id);
             writer.Put(netPlayer.Name);
 
-            var allPlayers = Players.Values.Where(plr => plr.Peer != peer).ToList();
+            var allPlayers = Players.Values.Where(plr => !plr.Spectating && plr.Peer != peer).ToList();
             var allNames = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Name);
             var allPlayersDict = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Movement);
             writer.Put(allNames);
