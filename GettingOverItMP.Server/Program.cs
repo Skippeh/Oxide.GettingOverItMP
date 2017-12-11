@@ -21,7 +21,7 @@ namespace GettingOverItMP.Server
             while (!Console.KeyAvailable)
             {
                 server.Update();
-                Thread.Sleep(33);
+                Thread.Sleep(1);
             }
 
             server.Stop();

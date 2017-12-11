@@ -25,6 +25,8 @@ namespace Oxide.GettingOverItMP.Components
         public event ChatMessageReceived ChatMessageReceived;
         public string LastDisconnectReason { get; private set; }
 
+        public float LastReceiveDelta { get; private set; }
+
         private EventBasedNetListener listener;
         private NetManager client;
         private NetPeer server;
@@ -37,6 +39,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private float nextSendTime = 0;
         private bool handshakeResponseReceived;
+
+        private float lastReceiveTime = 0;
 
         private void Start()
         {
@@ -198,6 +202,9 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 case MessageType.MoveData: // Received 30 times per second containing new movement data for every remote player. Includes the local player which needs to be filtered out.
                 {
+                    LastReceiveDelta = Time.time - lastReceiveTime;
+                    lastReceiveTime = Time.time;
+                    
                     var moveData = reader.GetMovementDictionary();
 
                     foreach (var kv in moveData)

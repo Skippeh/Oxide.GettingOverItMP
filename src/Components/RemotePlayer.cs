@@ -29,6 +29,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private static LocalPlayer localPlayer;
 
+        private float lastReceiveMoveTime;
+
         public static void CreatePlayerPrefab()
         {
             PlayerPrefab = Instantiate(GameObject.FindObjectsOfType<GameObject>().Single(obj => obj.name == "Player") ?? throw new NotImplementedException("Could not find Player object"), Vector3.zero, Quaternion.identity);
@@ -77,13 +79,20 @@ namespace Oxide.GettingOverItMP.Components
             return remotePlayer;
         }
 
-        public void ApplyMove(PlayerMove move, float interpTime = 0.033f)
+        public void ApplyMove(PlayerMove move)
+        {
+            ApplyMove(move, client.LastReceiveDelta);
+        }
+
+        public void ApplyMove(PlayerMove move, float interpTime)
         {
             if (dudeAnim == null || handle == null || slider == null)
             {
                 Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({dudeAnim == null} {handle == null} {slider == null})");
                 return;
             }
+
+            lastReceiveMoveTime = Time.time;
 
             if (interpTime > 0)
             {
@@ -120,6 +129,11 @@ namespace Oxide.GettingOverItMP.Components
 
                 float t = Mathf.Clamp01(interpElapsed / interpTarget);
                 ApplyMoveInterp(ref targetMove, t);
+            }
+
+            if (Time.time - lastReceiveMoveTime > 2f)
+            {
+                Interface.Oxide.LogDebug($"Peer with id {Id} has not received update in over 2 seconds");
             }
         }
 
