@@ -357,6 +357,35 @@ namespace Oxide.GettingOverItMP.Components
 
             server.Send(writer, SendOptions.ReliableOrdered);
         }
+
+        public void SendSpectate(RemotePlayer player)
+        {
+            var writer = new NetDataWriter();
+            writer.Put(MessageType.SpectateTarget);
+            writer.Put(player.Id);
+
+            server.Send(writer, SendOptions.ReliableOrdered);
+        }
+
+        public void SendSwitchSpectateTarget(int indexDelta)
+        {
+            if (!spectator.Spectating)
+                return;
+
+            var players = RemotePlayers.Values.ToList();
+            int targetIndex = players.IndexOf(spectator.Target) + indexDelta;
+
+            while (targetIndex >= players.Count)
+                targetIndex -= players.Count;
+
+            while (targetIndex < 0)
+                targetIndex += players.Count;
+
+            if (players[targetIndex] == spectator.Target)
+                return;
+
+            SendSpectate(players[targetIndex]);
+        }
     }
 
     public delegate void ChatMessageReceived(object sender, ChatMessageReceivedEventArgs args);

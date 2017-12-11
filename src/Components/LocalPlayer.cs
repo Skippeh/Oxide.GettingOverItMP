@@ -20,9 +20,21 @@ namespace Oxide.GettingOverItMP.Components
         {
             base.Update();
 
-            if (spectator.Spectating && Input.GetKeyDown(KeyCode.Space))
+            if (spectator.Spectating)
             {
-                client.SendStopSpectating();
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    client.SendStopSpectating();
+                }
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    client.SendSwitchSpectateTarget(-1);
+                }
+                if (Input.GetMouseButtonDown(1))
+                {
+                    client.SendSwitchSpectateTarget(1);
+                }
             }
         }
     }
