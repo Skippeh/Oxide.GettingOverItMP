@@ -14,6 +14,8 @@ namespace Oxide.GettingOverItMP.Components
         protected Transform handle;
         protected Transform slider;
         protected Client client;
+        protected Transform lookTarget;
+        protected Transform tip;
 
         private bool renderersEnabled = true;
 
@@ -24,6 +26,8 @@ namespace Oxide.GettingOverItMP.Components
             dudeAnim = transform.Find("dude")?.GetComponent<Animator>() ?? throw new NotImplementedException("Could not find dude");
             handle = transform.Find("Hub/Slider/Handle") ?? throw new NotImplementedException("Could not find Hub/Slider/Handle");
             slider = transform.Find("Hub/Slider") ?? throw new NotImplementedException("Could not find Hub/Slider");
+            lookTarget = transform.Find("dude/LookTarget") ?? throw new NotImplementedException("Could not find LookTarget");
+            tip = transform.Find("Hub/Slider/Handle/PoleMiddle/Tip") ?? throw new NotImplementedException("Could not find tip");
 
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>() ?? throw new NotImplementedException("Could not find Client");
 

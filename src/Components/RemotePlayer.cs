@@ -136,6 +136,8 @@ namespace Oxide.GettingOverItMP.Components
             {
                 Interface.Oxide.LogDebug($"Peer with id {Id} has not received update in over 2 seconds");
             }
+
+            lookTarget.position = Vector3.Lerp(lookTarget.position, tip.position, 7 * Time.deltaTime);
         }
 
         protected override void OnGUI()
