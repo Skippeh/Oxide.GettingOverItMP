@@ -154,8 +154,11 @@ namespace Oxide.GettingOverItMP.Components
             GUIContent nameContent;
             if (screenPosition.x < 0 || screenPosition.y < 0 || screenPosition.x >= Screen.width || screenPosition.y >= Screen.height)
             {
+                Vector3 cameraPosition = Camera.main.transform.position;
+                cameraPosition.z = 0;
+
                 nameContent = new GUIContent(this.nameContent);
-                nameContent.text += $" ({Vector3.Distance(localPlayer.transform.position, transform.position):0.0}m)";
+                nameContent.text += $" ({Vector3.Distance(cameraPosition, transform.position):0.0}m)";
                 textSize = labelStyle.CalcSize(nameContent);
 
                 screenPosition.x = Mathf.Clamp(screenPosition.x, textSize.x / 2, Screen.width - textSize.x / 2);
