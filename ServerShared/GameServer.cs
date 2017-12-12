@@ -85,7 +85,7 @@ namespace ServerShared
             
             if (ms >= nextSendTime)
             {
-                nextSendTime = ms + 1f / SharedConstants.UpdateRate;
+                nextSendTime = ms + 1000f / SharedConstants.UpdateRate;
 
                 if (Players.Count <= 0)
                     return;
