@@ -73,7 +73,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             var clone = Instantiate(PlayerPrefab);
             clone.SetActive(true);
-            clone.name = "RemotePlayer_" + name;
+            clone.name = "RemotePlayer_" + id;
             var remotePlayer = clone.GetComponent<RemotePlayer>();
             remotePlayer.PlayerName = name;
             remotePlayer.Id = id;
