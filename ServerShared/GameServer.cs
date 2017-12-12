@@ -97,7 +97,7 @@ namespace ServerShared
                 writer.Put(MessageType.MoveData);
                 writer.Put(toSend);
 
-                Broadcast(writer, SendOptions.Sequenced);
+                Broadcast(writer, SendOptions.ReliableOrdered);
             }
         }
 
