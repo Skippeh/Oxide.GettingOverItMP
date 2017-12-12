@@ -196,10 +196,12 @@ namespace ServerShared
             Console.WriteLine($"Connection gone from {peer.EndPoint} ({disconnectinfo.Reason})");
             pendingConnections.RemoveAll(conn => conn.Peer == peer);
 
-            NetPlayer player = null;
+            NetPlayer player;
 
             if (Players.ContainsKey(peer))
                 player = Players[peer];
+            else
+                return;
 
             foreach (var netPlayer in Players.Values)
             {
@@ -210,9 +212,7 @@ namespace ServerShared
             }
 
             RemovePeer(peer);
-
-            if (player != null)
-                BroadcastChatMessage($"{player.Name} left the server.", SharedConstants.ColorBlue);
+            BroadcastChatMessage($"{player.Name} left the server.", SharedConstants.ColorBlue);
         }
 
         private void OnReceiveData(NetPeer peer, NetDataReader reader)
