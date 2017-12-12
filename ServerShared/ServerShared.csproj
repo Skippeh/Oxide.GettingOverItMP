@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
+    <ProjectReference Include="..\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj" />
   </ItemGroup>
 
   <ItemGroup>
