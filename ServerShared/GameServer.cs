@@ -332,12 +332,23 @@ namespace ServerShared
 
                                 peerPlayer.Spectate(target);
                             }
+                            else if (message.StartsWith("/shrug"))
+                            {
+                                string prefix = "";
+
+                                if (message.Length > "/shrug ".Length)
+                                    prefix = message.Substring("/shrug ".Length);
+                                
+                                prefix = prefix.Trim();
+
+                                BroadcastChatMessage($"{prefix} ¯\\_(ツ)_/¯", Color.white, peerPlayer);
+                            }
 
                             return;
                         }
 
                         Color color = Color.white;
-                        BroadcastChatMessage(message, color, Players[peer]);
+                        BroadcastChatMessage(message, color, peerPlayer);
 
                         break;
                     }
