@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using LiteNetLib;
-using LiteNetLib.Utils;
+using Lidgren.Network;
 using ServerShared.Player;
 using UnityEngine;
 
@@ -12,25 +11,24 @@ namespace ServerShared
     {
         class PendingConnection
         {
-            public readonly NetPeer Peer;
+            public readonly NetConnection Client;
             public readonly DateTime JoinTime;
 
-            public PendingConnection(NetPeer peer, DateTime joinTime)
+            public PendingConnection(NetConnection client, DateTime joinTime)
             {
-                Peer = peer;
+                Client = client;
                 JoinTime = joinTime;
             }
         }
 
         public static readonly TimeSpan PendingConnectionTimeout = new TimeSpan(0, 0, 0, 5); // 5 seconds
 
-        public readonly int Port;
+        public int Port => server.Configuration.Port;
         public readonly bool ListenServer;
 
-        public readonly Dictionary<NetPeer, NetPlayer> Players = new Dictionary<NetPeer, NetPlayer>();
-
-        private readonly EventBasedNetListener listener;
-        private readonly NetManager server;
+        public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
+        
+        private readonly GameServerPeer server;
 
         private double nextSendTime = 0;
         private readonly List<PendingConnection> pendingConnections = new List<PendingConnection>();
@@ -39,18 +37,19 @@ namespace ServerShared
         {
             if (maxConnections <= 0)
                 throw new ArgumentException("Max connections needs to be > 0.");
+            
+            server = new GameServerPeer(new NetPeerConfiguration(SharedConstants.AppName)
+            {
+                MaximumConnections = maxConnections,
+                Port = port,
+                ConnectionTimeout = 5
+            });
 
-            listener = new EventBasedNetListener();
+            server.Connected += OnConnectionConnected;
+            server.Disconnected += OnConnectionDisconnected;
+            server.DataReceived += OnReceiveData;
 
-            listener.PeerConnectedEvent += OnPeerConnected;
-            listener.PeerDisconnectedEvent += OnPeerDisconnected;
-            listener.NetworkReceiveEvent += OnReceiveData;
-
-            server = new NetManager(listener, maxConnections, SharedConstants.AppName);
-            Port = port;
             ListenServer = listenServer;
-
-            server.UpdateTime = 33; // Send/receive 30 times per second.
             
             if (listenServer)
             {
@@ -60,17 +59,17 @@ namespace ServerShared
 
         public void Start()
         {
-            server.Start(Port);
+            server.Start();
         }
 
         public void Stop()
         {
-            server.Stop();
+            server.Shutdown("bye");
         }
         
         public void Update()
         {
-            server.PollEvents();
+            server.Update();
 
             // Disconnect timed out pending connections
             foreach (var connection in pendingConnections.ToList())
@@ -78,7 +77,7 @@ namespace ServerShared
                 if (DateTime.UtcNow - connection.JoinTime >= PendingConnectionTimeout)
                 {
                     Console.WriteLine("Disconnecting pending connection (handshake timeout)");
-                    DisconnectPeer(connection.Peer, DisconnectReason.HandshakeTimeout);
+                    KickConnection(connection.Client, DisconnectReason.HandshakeTimeout);
                 }
             }
 
@@ -86,120 +85,123 @@ namespace ServerShared
             
             if (ms >= nextSendTime)
             {
-                nextSendTime = ms + server.UpdateTime;
+                nextSendTime = ms + 1f / SharedConstants.UpdateRate;
 
                 if (Players.Count <= 0)
                     return;
 
                 Dictionary<int, PlayerMove> toSend = Players.Values.Where(plr => !plr.Spectating).ToDictionary(plr => plr.Id, plr => plr.Movement);
 
-                var writer = new NetDataWriter();
-                writer.Put(MessageType.MoveData);
-                writer.Put(toSend);
+                var writer = server.CreateMessage();
+                writer.Write(MessageType.MoveData);
+                writer.Write(toSend);
 
-                Broadcast(writer, SendOptions.ReliableOrdered);
+                Broadcast(writer, NetDeliveryMethod.UnreliableSequenced, SharedConstants.MoveDataChannel);
             }
         }
 
-        public void BroadcastChatMessage(string message, NetPeer except = null)
+        public void BroadcastChatMessage(string message, NetConnection except = null)
         {
             BroadcastChatMessage(message, Color.white, except);
         }
 
-        public void BroadcastChatMessage(string message, Color color, NetPeer except = null)
+        public void BroadcastChatMessage(string message, Color color, NetConnection except = null)
         {
             BroadcastChatMessage(message, color, null, except);
         }
 
-        public void BroadcastChatMessage(string message, Color color, NetPlayer player, NetPeer except = null)
+        public void BroadcastChatMessage(string message, Color color, NetPlayer player, NetConnection except = null)
         {
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.ChatMessage);
-            writer.Put(player?.Name);
-            writer.Put(color);
-            writer.Put(message);
-
-            Broadcast(writer, SendOptions.ReliableOrdered, except);
+            var netMessage = server.CreateMessage();
+            netMessage.Write(MessageType.ChatMessage);
+            netMessage.Write(player?.Name);
+            netMessage.WriteRgbaColor(color);
+            netMessage.Write(message);
+            netMessage.Write(netMessage);
+            
+            Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, except);
         }
 
-        private NetPlayer AddPeer(NetPeer peer, string playerName)
+        public NetOutgoingMessage CreateMessage()
         {
-            var netPlayer = new NetPlayer(peer, playerName, this);
-            Players[peer] = netPlayer;
+            return server.CreateMessage();
+        }
 
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.HandshakeResponse);
-            writer.Put(netPlayer.Id);
-            writer.Put(netPlayer.Name);
+        private NetPlayer AddConnection(NetConnection connection, string playerName)
+        {
+            var netPlayer = new NetPlayer(connection, playerName, this);
+            Players[connection] = netPlayer;
 
-            var allPlayers = Players.Values.Where(plr => !plr.Spectating && plr.Peer != peer).ToList();
+            var netMessage = server.CreateMessage();
+            netMessage.Write(MessageType.HandshakeResponse);
+            netMessage.Write(netPlayer.Id);
+            netMessage.Write(netPlayer.Name);
+
+            var allPlayers = Players.Values.Where(plr => !plr.Spectating && plr.Peer != connection).ToList();
             var allNames = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Name);
             var allPlayersDict = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Movement);
-            writer.Put(allNames);
-            writer.Put(allPlayersDict);
-            peer.Send(writer, SendOptions.ReliableOrdered);
+            netMessage.Write(allNames);
+            netMessage.Write(allPlayersDict);
+            connection.SendMessage(netMessage, NetDeliveryMethod.ReliableOrdered, 0);
 
-            Console.WriteLine($"Added peer from {peer.EndPoint} with id {netPlayer.Id} (total: {Players.Count})");
+            Console.WriteLine($"Added client from {connection.RemoteEndPoint} with id {netPlayer.Id} (total: {Players.Count})");
             return netPlayer;
         }
 
-        private void RemovePeer(NetPeer peer)
+        private void RemoveConnection(NetConnection connection)
         {
-            if (!Players.ContainsKey(peer))
+            if (!Players.ContainsKey(connection))
                 return;
 
-            int playerId = Players[peer].Id;
+            int playerId = Players[connection].Id;
 
-            Players.Remove(peer);
-            
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.RemovePlayer);
-            writer.Put(playerId);
-            Broadcast(writer, SendOptions.ReliableOrdered);
+            Players.Remove(connection);
 
-            Console.WriteLine($"Removed peer from {peer.EndPoint} with id {playerId} (total: {Players.Count})");
+            var writer = server.CreateMessage();
+            writer.Write(MessageType.RemovePlayer);
+            writer.Write(playerId);
+            Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0);
+
+            Console.WriteLine($"Removed client from {connection.RemoteEndPoint} with id {playerId} (total: {Players.Count})");
         }
 
         /// <summary>
         /// Sends a message to all spawned clients.
         /// </summary>
-        public void Broadcast(NetDataWriter writer, SendOptions sendOptions, NetPeer except = null)
+        public void Broadcast(NetOutgoingMessage message, NetDeliveryMethod method, int sequenceChannel, NetConnection except = null)
         {
-            foreach (var kv in Players)
-            {
-                if (except == null || kv.Key != except)
-                {
-                    kv.Key.Send(writer, sendOptions);
-                }
-            }
+            var sendTargets = Players.Where(kv => except == null || kv.Key != except).Select(kv => kv.Key).ToList();
+
+            if (sendTargets.Count > 0)
+                server.SendMessage(message, sendTargets, method, sequenceChannel);
         }
 
-        private void DisconnectPeer(NetPeer peer, DisconnectReason reason)
+        private void KickConnection(NetConnection connection, DisconnectReason reason)
         {
-            Console.WriteLine($"Disconnecting peer from {peer.EndPoint}: {reason}");
+            Console.WriteLine($"Disconnecting client from {connection.RemoteEndPoint}: {reason}");
 
-            var writer = new NetDataWriter();
-            writer.Put(reason);
-            server.DisconnectPeer(peer, writer);
+            connection.Disconnect(((byte) reason).ToString());
         }
 
-        private void OnPeerConnected(NetPeer peer)
+        private void OnConnectionConnected(object sender, ConnectedEventArgs args)
         {
             // Todo: protect against mass connections from the same ip.
 
-            Console.WriteLine($"Connection from {peer.EndPoint}");
-            pendingConnections.Add(new PendingConnection(peer, DateTime.UtcNow));
+            Console.WriteLine($"Connection from {args.Connection.RemoteEndPoint}");
+            pendingConnections.Add(new PendingConnection(args.Connection, DateTime.UtcNow));
         }
 
-        private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectinfo)
+        private void OnConnectionDisconnected(object sender, DisconnectedEventArgs args)
         {
-            Console.WriteLine($"Connection gone from {peer.EndPoint} ({disconnectinfo.Reason})");
-            pendingConnections.RemoveAll(conn => conn.Peer == peer);
+            var connection = args.Connection;
+
+            Console.WriteLine($"Connection gone from {connection.RemoteEndPoint} (reason)"); // Todo: reason
+            pendingConnections.RemoveAll(conn => conn.Client == connection);
 
             NetPlayer player;
 
-            if (Players.ContainsKey(peer))
-                player = Players[peer];
+            if (Players.ContainsKey(connection))
+                player = Players[connection];
             else
                 return;
 
@@ -211,77 +213,79 @@ namespace ServerShared
                 }
             }
 
-            RemovePeer(peer);
+            RemoveConnection(connection);
             BroadcastChatMessage($"{player.Name} left the server.", SharedConstants.ColorBlue);
         }
 
-        private void OnReceiveData(NetPeer peer, NetDataReader reader)
+        private void OnReceiveData(object sender, DataReceivedEventArgs args)
         {
+            var connection = args.Connection;
+            var netMessage = args.Message;
+            MessageType messageType = args.MessageType;
+
             try
             {
-                MessageType messageType = (MessageType) reader.GetByte();
-
-                if (messageType != MessageType.ClientHandshake && pendingConnections.Any(conn => conn.Peer == peer))
+                if (messageType != MessageType.ClientHandshake && pendingConnections.Any(conn => conn.Client == connection))
                 {
-                    DisconnectPeer(peer, DisconnectReason.NotAccepted);
+                    KickConnection(connection, DisconnectReason.NotAccepted);
                     return;
                 }
 
-                NetPlayer peerPlayer = Players.ContainsKey(peer) ? Players[peer] : null;
+                NetPlayer peerPlayer = Players.ContainsKey(connection) ? Players[connection] : null;
 
                 switch (messageType)
                 {
                     default: throw new UnexpectedMessageFromClientException(messageType);
                     case MessageType.ClientHandshake:
                     {
-                        if (Players.ContainsKey(peer))
+                        if (Players.ContainsKey(connection))
                         {
-                            DisconnectPeer(peer, DisconnectReason.DuplicateHandshake);
+                            KickConnection(connection, DisconnectReason.DuplicateHandshake);
                             break;
                         }
 
-                        int version = reader.GetInt();
-                        string playerName = reader.GetString();
-                        PlayerMove movementData = reader.GetPlayerMove();
+                        int version = netMessage.ReadInt32();
+                        string playerName = netMessage.ReadString();
+                        PlayerMove movementData = netMessage.ReadPlayerMove();
 
                         if (version != SharedConstants.Version)
                         {
-                            DisconnectPeer(peer, version < SharedConstants.Version ? DisconnectReason.VersionOlder : DisconnectReason.VersionNewer);
+                            KickConnection(connection, version < SharedConstants.Version ? DisconnectReason.VersionOlder : DisconnectReason.VersionNewer);
                             break;
                         }
 
                         if (playerName.Length > SharedConstants.MaxNameLength || !playerName.All(ch => SharedConstants.AllowedCharacters.Contains(ch)))
                         {
-                            DisconnectPeer(peer, DisconnectReason.InvalidName);
+                            KickConnection(connection, DisconnectReason.InvalidName);
                             break;
                         }
 
-                        pendingConnections.RemoveAll(conn => conn.Peer == peer);
-                        Console.WriteLine($"Got valid handshake from {peer.EndPoint}");
+                        pendingConnections.RemoveAll(conn => conn.Client == connection);
+                        Console.WriteLine($"Got valid handshake from {connection.RemoteEndPoint}");
 
-                        var player = AddPeer(peer, playerName);
-                        Players[peer].Movement = movementData;
+                        var player = AddConnection(connection, playerName);
+                        Players[connection].Movement = movementData;
+
+                        var writer = server.CreateMessage();
+                        writer.Write(MessageType.CreatePlayer);
+                        writer.Write(player.Id);
+                        writer.Write(player.Name);
+                        writer.Write(player.Movement);
+                        Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
                         
-                        var writer = new NetDataWriter();
-                        writer.Put(MessageType.CreatePlayer);
-                        writer.Put(player.Id);
-                        writer.Put(player.Name);
-                        writer.Put(player.Movement);
-                        Broadcast(writer, SendOptions.ReliableOrdered, peer);
-                        
-                        Console.WriteLine($"Peer with id {player.Id} is now spawned");
-                        BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, peer);
+                        Console.WriteLine($"Client with id {player.Id} is now spawned");
+                        BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, connection);
                         
                         break;
                     }
                     case MessageType.MoveData:
                     {
-                        peerPlayer.Movement = reader.GetPlayerMove();
+                        peerPlayer.Movement = netMessage.ReadPlayerMove();
                         break;
                     }
                     case MessageType.ChatMessage:
                     {
-                        var message = reader.GetString();
+                        var message = netMessage.ReadString();
 
                         message = message.Trim();
 
@@ -370,7 +374,7 @@ namespace ServerShared
                     }
                     case MessageType.SpectateTarget:
                     {
-                        int targetId = reader.GetInt();
+                        int targetId = netMessage.ReadInt32();
                         NetPlayer targetPlayer = Players.Values.FirstOrDefault(plr => !plr.Spectating && plr.Id == targetId);
                             
                         if (targetPlayer != null)
@@ -382,13 +386,13 @@ namespace ServerShared
             }
             catch (UnexpectedMessageFromClientException ex)
             {
-                Console.WriteLine($"Peer sent unexpected message type: {ex.MessageType}");
-                DisconnectPeer(peer, DisconnectReason.InvalidMessage);
+                Console.WriteLine($"Client sent unexpected message type: {ex.MessageType}");
+                KickConnection(connection, DisconnectReason.InvalidMessage);
             }
             catch (Exception ex)
             {
                 Console.WriteLine("OnReceiveData errored:\n" + ex);
-                DisconnectPeer(peer, DisconnectReason.InvalidMessage);
+                KickConnection(connection, DisconnectReason.InvalidMessage);
             }
         }
     }

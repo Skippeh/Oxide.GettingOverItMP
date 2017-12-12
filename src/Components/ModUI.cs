@@ -1,5 +1,6 @@
-﻿using System.Reflection;
-using LiteNetLib;
+﻿using System.Data;
+using System.Reflection;
+using Lidgren.Network;
 using ServerShared;
 using UnityEngine;
 
@@ -44,7 +45,7 @@ namespace Oxide.GettingOverItMP.Components
             // Draw connect/disconnect area
             GUILayout.BeginArea(new Rect(10, 10, 1000, 1000));
             {
-                if (client.State == ConnectionState.Disconnected)
+                if (client.Status == NetConnectionStatus.Disconnected)
                 {
                     GUILayout.BeginHorizontal(GUILayout.Width(300));
                     {
@@ -74,6 +75,9 @@ namespace Oxide.GettingOverItMP.Components
                             string[] ipPort = ipText.Replace(" ", "").Contains(":") ? ipText.Split(':') : new[] {ipText, SharedConstants.DefaultPort.ToString()};
                             string ip = ipPort[0];
                             int port = int.Parse(ipPort[1]);
+
+                            if (string.IsNullOrEmpty(ip))
+                                ip = "127.0.0.1";
 
                             client.Connect(ip, port, playerName);
                         }

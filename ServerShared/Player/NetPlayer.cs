@@ -1,7 +1,5 @@
 ﻿using System;
-using JetBrains.Annotations;
-using LiteNetLib;
-using LiteNetLib.Utils;
+using Lidgren.Network;
 using UnityEngine;
 
 namespace ServerShared.Player
@@ -9,7 +7,7 @@ namespace ServerShared.Player
     public class NetPlayer
     {
         public readonly int Id;
-        public readonly NetPeer Peer;
+        public readonly NetConnection Peer;
 
         public PlayerMove Movement;
         public string Name;
@@ -20,9 +18,9 @@ namespace ServerShared.Player
 
         private static int idCounter = 1;
 
-        public NetPlayer(NetPeer peer, string name, [NotNull] GameServer server)
+        public NetPlayer(NetConnection connection, string name, GameServer server)
         {
-            Peer = peer ?? throw new ArgumentNullException(nameof(peer));
+            Peer = connection ?? throw new ArgumentNullException(nameof(connection));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             Id = idCounter++;
@@ -30,13 +28,13 @@ namespace ServerShared.Player
         
         public void SendChatMessage(string message, Color color)
         {
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.ChatMessage);
-            writer.Put((string) null);
-            writer.Put(color);
-            writer.Put(message);
+            var writer = server.CreateMessage();
+            writer.Write(MessageType.ChatMessage);
+            writer.Write((string) null);
+            writer.Write(color);
+            writer.Write(message);
 
-            Peer.Send(writer, SendOptions.ReliableOrdered);
+            Peer.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
         public void Spectate(NetPlayer target)
@@ -47,14 +45,14 @@ namespace ServerShared.Player
             bool wasSpectating = SpectateTarget != null;
             SpectateTarget = target;
 
-            // Send message to peer to start/stop spectating target
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.SpectateTarget);
-            writer.Put(target?.Id ?? 0);
+            // Send message to connection to start/stop spectating target
+            var netMessage = server.CreateMessage();
+            netMessage.Write(MessageType.SpectateTarget);
+            netMessage.Write(target?.Id ?? 0);
 
-            Peer.Send(writer, SendOptions.ReliableOrdered);
+            Peer.SendMessage(netMessage, NetDeliveryMethod.ReliableOrdered, 0);
 
-            writer.Reset();
+            netMessage = server.CreateMessage();
 
             if (target != null && !wasSpectating) // Started spectating
             {
@@ -66,19 +64,19 @@ namespace ServerShared.Player
                 }
 
                 // Broadcast message to all other peers to remove this peers player (if he wasn't spectating already, otherwise he would already be despawned)
-                writer.Put(MessageType.RemovePlayer);
-                writer.Put(Id);
+                netMessage.Write(MessageType.RemovePlayer);
+                netMessage.Write(Id);
 
-                server.Broadcast(writer, SendOptions.ReliableOrdered, Peer);
+                server.Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, Peer);
             }
             else if (target == null) // Stopped spectating
             {
                 // Broadcast message to all other peers to add this peers player
-                writer.Put(MessageType.CreatePlayer);
-                writer.Put(Id);
-                writer.Put(Name);
-                writer.Put(Movement);
-                server.Broadcast(writer, SendOptions.ReliableOrdered, Peer);
+                netMessage.Write(MessageType.CreatePlayer);
+                netMessage.Write(Id);
+                netMessage.Write(Name);
+                netMessage.Write(Movement);
+                server.Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, Peer);
             }
         }
     }

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using FluffyUnderware.DevTools.Extensions;
-using JetBrains.Annotations;
-using LiteNetLib;
-using LiteNetLib.Utils;
+using Lidgren.Network;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.GettingOverItMP.EventArgs;
@@ -21,23 +20,21 @@ namespace Oxide.GettingOverItMP.Components
     {
         public readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
-        public ConnectionState State => server?.ConnectionState ?? ConnectionState.Disconnected;
+        public NetConnectionStatus Status => server?.Status ?? NetConnectionStatus.Disconnected;
         public int Id { get => localPlayer.Id; set => localPlayer.Id = value; }
         public string PlayerName { get => localPlayer.PlayerName; set => localPlayer.PlayerName = value; }
         public event ChatMessageReceived ChatMessageReceived;
         public string LastDisconnectReason { get; private set; }
 
         public float LastReceiveDelta { get; private set; }
-
-        private EventBasedNetListener listener;
-        private NetManager client;
-        private NetPeer server;
+        
+        private GameClientPeer client;
+        private NetConnection server;
         private LocalPlayer localPlayer;
         private Spectator spectator;
 
         private ChatUI chatUi;
-
-
+        
         private float nextSendTime = 0;
         private bool handshakeResponseReceived;
 
@@ -47,27 +44,30 @@ namespace Oxide.GettingOverItMP.Components
         {
             localPlayer = GameObject.Find("Player").GetComponent<LocalPlayer>();
 
-            listener = new EventBasedNetListener();
-            listener.PeerConnectedEvent += OnConnected;
-            listener.PeerDisconnectedEvent += OnDisconnected;
-            listener.NetworkReceiveEvent += OnReceiveData;
+            client = new GameClientPeer(new NetPeerConfiguration(SharedConstants.AppName)
+            {
+                MaximumConnections = 1,
+                ConnectionTimeout = 5
+            });
 
-            client = new NetManager(listener, SharedConstants.AppName);
-            client.UpdateTime = 33; // Poll/send 30 times per second.
+            client.Connected += OnConnected;
+            client.Disconnected += OnDisconnected;
+            client.DataReceived += OnReceiveData;
+
             client.Start();
 
             chatUi = GameObject.Find("GOIMP.UI").GetComponent<ChatUI>() ?? throw new NotImplementedException("Could not find ChatUI");
             spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
         }
 
-        private void OnConnected(NetPeer server)
+        private void OnConnected(object sender, ConnectedEventArgs args)
         {
+            server = args.Connection;
             LastDisconnectReason = null;
-            this.server = server;
             SendHandshake();
         }
 
-        private void OnDisconnected(NetPeer server, DisconnectInfo info)
+        private void OnDisconnected(object sender, DisconnectedEventArgs args)
         {
             this.server = null;
             Id = 0;
@@ -75,11 +75,53 @@ namespace Oxide.GettingOverItMP.Components
             RemoveAllRemotePlayers();
             spectator.StopSpectating();
 
-            switch (info.Reason)
+            switch (args.Reason)
+            {
+                default:
+                    LastDisconnectReason = args.ReasonString;
+                    break;
+                case DisconnectReason.DuplicateHandshake:
+                {
+                    LastDisconnectReason = "Duplicate handshake sent to the server.";
+                    break;
+                }
+                case DisconnectReason.HandshakeTimeout:
+                {
+                    LastDisconnectReason = "Failed to send handshake within the time limit.";
+                    break;
+                }
+                case DisconnectReason.InvalidMessage:
+                {
+                    LastDisconnectReason = "The last sent message was invalid.";
+                    break;
+                }
+                case DisconnectReason.InvalidName:
+                {
+                    LastDisconnectReason = "The name is either empty or it contains invalid characters.";
+                    break;
+                }
+                case DisconnectReason.NotAccepted:
+                {
+                    LastDisconnectReason = "Tried to send a message before getting a successful handshake response.";
+                    break;
+                }
+                case DisconnectReason.VersionNewer:
+                {
+                    LastDisconnectReason = "The server is running an older version.";
+                    break;
+                }
+                case DisconnectReason.VersionOlder:
+                {
+                    LastDisconnectReason = "The server is running a newer version.";
+                    break;
+                }
+            }
+
+            /*switch (reason)
             {
                 default:
                 {
-                    LastDisconnectReason = $"Unknown ({info.Reason})";
+                    LastDisconnectReason = $"Unknown ({reason})";
                     break;
                 }
                 case LiteNetLib.DisconnectReason.DisconnectPeerCalled: // Client disconnected
@@ -94,9 +136,7 @@ namespace Oxide.GettingOverItMP.Components
                         LastDisconnectReason = "Server closed the connection.";
                         break;
                     }
-
-                    var reason = (DisconnectReason) info.AdditionalData.GetByte();
-
+                    
                     switch (reason)
                     {
                         case DisconnectReason.DuplicateHandshake:
@@ -138,24 +178,25 @@ namespace Oxide.GettingOverItMP.Components
 
                     break;
                 }
-            }
+        }*/
 
-            if (info.Reason != LiteNetLib.DisconnectReason.DisconnectPeerCalled && info.Reason != LiteNetLib.DisconnectReason.ConnectionFailed)
-                chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);
+            /*if (info.Reason != LiteNetLib.DisconnectReason.DisconnectPeerCalled && info.Reason != LiteNetLib.DisconnectReason.ConnectionFailed)
+                chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);*/
         }
 
-        private void OnReceiveData(NetPeer peer, NetDataReader reader)
+        private void OnReceiveData(object sender, DataReceivedEventArgs args)
         {
-            var messageType = (MessageType) reader.GetByte();
+            var netMessage = args.Message;
+            var messageType = args.MessageType;
 
             switch (messageType)
             {
                 case MessageType.HandshakeResponse: // Should be the first message received from the server. Contains local player id and remote player data.
                 {
-                    Id = reader.GetInt();
-                    PlayerName = reader.GetString();
-                    var names = reader.GetNamesDictionary();
-                    var remotePlayers = reader.GetMovementDictionary();
+                    Id = netMessage.ReadInt32();
+                    PlayerName = netMessage.ReadString();
+                    var names = netMessage.ReadNamesDictionary();
+                    var remotePlayers = netMessage.ReadMovementDictionary();
 
                     localPlayer.PlayerName = PlayerName;
                     localPlayer.Id = Id;
@@ -173,8 +214,8 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 case MessageType.CreatePlayer: // Received when a remote player connects.
                 {
-                    int id = reader.GetInt();
-                    string name = reader.GetString();
+                    int id = netMessage.ReadInt32();
+                    string name = netMessage.ReadString();
                     Interface.Oxide.LogDebug($"Create player with id {id}");
 
                     if (id == Id)
@@ -183,14 +224,14 @@ namespace Oxide.GettingOverItMP.Components
                         return;
                     }
 
-                    PlayerMove move = reader.GetPlayerMove();
+                    PlayerMove move = netMessage.ReadPlayerMove();
                     StartCoroutine(SpawnRemotePlayer(id, move, name));
                     
                     break;
                 }
                 case MessageType.RemovePlayer: // Received when a remote player disconnects.
                 {
-                    int id = reader.GetInt();
+                    int id = netMessage.ReadInt32();
 
                     if (RemotePlayers.ContainsKey(id))
                     {
@@ -206,7 +247,7 @@ namespace Oxide.GettingOverItMP.Components
                     LastReceiveDelta = Time.time - lastReceiveTime;
                     lastReceiveTime = Time.time;
                     
-                    var moveData = reader.GetMovementDictionary();
+                    var moveData = netMessage.ReadMovementDictionary();
 
                     foreach (var kv in moveData)
                     {
@@ -221,9 +262,9 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 case MessageType.ChatMessage:
                 {
-                    string name = reader.GetString();
-                    Color color = reader.GetColor();
-                    string message = reader.GetString();
+                    string name = netMessage.ReadString();
+                    Color color = netMessage.ReadRgbaColor();
+                    string message = netMessage.ReadString();
 
                     ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs
                     {
@@ -236,7 +277,7 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 case MessageType.SpectateTarget:
                 {
-                    int targetId = reader.GetInt();
+                    int targetId = netMessage.ReadInt32();
 
                     Interface.Oxide.LogDebug($"Spectate {targetId}");
 
@@ -275,21 +316,21 @@ namespace Oxide.GettingOverItMP.Components
 
         private void Update()
         {
-            client.PollEvents();
+            client.Update();
 
             if (server == null)
                 return;
 
-            if (State == ConnectionState.Connected && Id != 0 && handshakeResponseReceived && !spectator.Spectating)
+            if (Status == NetConnectionStatus.Connected && Id != 0 && handshakeResponseReceived && !spectator.Spectating)
             {
                 if (Time.time >= nextSendTime)
                 {
-                    nextSendTime = Time.time + 0.033f;
-
-                    var writer = new NetDataWriter();
-                    writer.Put(MessageType.MoveData);
-                    writer.Put(localPlayer.CreateMove());
-                    server.Send(writer, SendOptions.Sequenced);
+                    nextSendTime = Time.time + 1f / SharedConstants.UpdateRate;
+                    
+                    var writer = client.CreateMessage();
+                    writer.Write(MessageType.MoveData);
+                    writer.Write(localPlayer.CreateMove());
+                    server.SendMessage(writer, NetDeliveryMethod.UnreliableSequenced, SharedConstants.MoveDataChannel);
                 }
             }
         }
@@ -319,19 +360,19 @@ namespace Oxide.GettingOverItMP.Components
 
         public void Disconnect()
         {
-            client.DisconnectPeer(server);
+            server.Disconnect("bye");
         }
 
         public void SendChatMessage(string text)
         {
             if (server == null)
                 return;
-            
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.ChatMessage);
-            writer.Put(text);
 
-            server.Send(writer, SendOptions.ReliableOrdered);
+            var message = client.CreateMessage();
+            message.Write(MessageType.ChatMessage);
+            message.Write(text);
+
+            server.SendMessage(message, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
         public void SendStopSpectating()
@@ -339,32 +380,32 @@ namespace Oxide.GettingOverItMP.Components
             if (server == null)
                 return;
 
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.ClientStopSpectating);
+            var writer = client.CreateMessage();
+            writer.Write(MessageType.ClientStopSpectating);
 
-            server.Send(writer, SendOptions.ReliableOrdered);
+            server.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
         private void SendHandshake()
         {
             Interface.Oxide.LogDebug("Sending handshake...");
 
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.ClientHandshake);
-            writer.Put(SharedConstants.Version);
-            writer.Put(PlayerName);
-            writer.Put(localPlayer.CreateMove());
+            var writer = client.CreateMessage();
+            writer.Write(MessageType.ClientHandshake);
+            writer.Write(SharedConstants.Version);
+            writer.Write(PlayerName);
+            writer.Write(localPlayer.CreateMove());
 
-            server.Send(writer, SendOptions.ReliableOrdered);
+            server.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
         public void SendSpectate(RemotePlayer player)
         {
-            var writer = new NetDataWriter();
-            writer.Put(MessageType.SpectateTarget);
-            writer.Put(player.Id);
+            var writer = client.CreateMessage();
+            writer.Write(MessageType.SpectateTarget);
+            writer.Write(player.Id);
 
-            server.Send(writer, SendOptions.ReliableOrdered);
+            server.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
         public void SendSwitchSpectateTarget(int indexDelta)

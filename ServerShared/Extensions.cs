@@ -1,162 +1,111 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using LiteNetLib.Utils;
+﻿using System.Collections.Generic;
+using Lidgren.Network;
 using ServerShared.Player;
-using UnityEngine;
 
 namespace ServerShared
 {
     public static class Extensions
     {
-        public static void Put(this NetDataWriter writer, MessageType messageType)
+        public static void Write(this NetOutgoingMessage message, MessageType messageType)
         {
-            writer.Put((byte) messageType);
+            message.Write((byte) messageType);
         }
 
-        public static void Put(this NetDataWriter writer, ServerShared.DisconnectReason reason)
+        public static void Write(this NetOutgoingMessage message, ServerShared.DisconnectReason reason)
         {
-            writer.Put((byte) reason);
+            message.Write((byte) reason);
         }
-
-        public static void Put(this NetDataWriter writer, Vector3 vec3)
+        
+        public static void Write(this NetOutgoingMessage message, IDictionary<int, PlayerMove> moves)
         {
-            writer.Put(vec3.x);
-            writer.Put(vec3.y);
-            writer.Put(vec3.z);
-        }
-
-        public static Vector3 GetVector3(this NetDataReader reader)
-        {
-            return new Vector3(reader.GetFloat(),
-                               reader.GetFloat(),
-                               reader.GetFloat());
-        }
-
-        public static void Put(this NetDataWriter writer, Quaternion quat)
-        {
-            writer.Put(quat.x);
-            writer.Put(quat.y);
-            writer.Put(quat.z);
-            writer.Put(quat.w);
-        }
-
-        public static Quaternion GetQuaternion(this NetDataReader reader)
-        {
-            return new Quaternion(reader.GetFloat(),
-                                  reader.GetFloat(),
-                                  reader.GetFloat(),
-                                  reader.GetFloat());
-        }
-
-        public static void Put(this NetDataWriter writer, IDictionary<int, PlayerMove> moves)
-        {
-            writer.Put(moves.Count);
+            message.Write(moves.Count);
 
             foreach (var kv in moves)
             {
                 var move = kv.Value;
                 
-                writer.Put(kv.Key); // The player ID
-                writer.Put(move);
+                message.Write(kv.Key); // The player ID
+                message.Write(move);
             }
         }
 
-        public static Dictionary<int, PlayerMove> GetMovementDictionary(this NetDataReader reader)
+        public static Dictionary<int, PlayerMove> ReadMovementDictionary(this NetIncomingMessage message)
         {
             var result = new Dictionary<int, PlayerMove>();
 
-            int count = reader.GetInt();
+            int count = message.ReadInt32();
 
             for (int i = 0; i < count; ++i)
             {
-                result.Add(reader.GetInt(), reader.GetPlayerMove());
+                result.Add(message.ReadInt32(), message.ReadPlayerMove());
             }
 
             return result;
         }
 
-        public static void Put(this NetDataWriter writer, IDictionary<int, string> names)
+        public static void Write(this NetOutgoingMessage message, IDictionary<int, string> names)
         {
-            writer.Put(names.Count);
+            message.Write(names.Count);
 
             foreach (var kv in names)
             {
                 string name = kv.Value;
 
-                writer.Put(kv.Key); // The player ID
-                writer.Put(name);
+                message.Write(kv.Key); // The player ID
+                message.Write(name);
             }
         }
 
-        public static Dictionary<int, string> GetNamesDictionary(this NetDataReader reader)
+        public static Dictionary<int, string> ReadNamesDictionary(this NetIncomingMessage message)
         {
             var result = new Dictionary<int, string>();
 
-            int count = reader.GetInt();
+            int count = message.ReadInt32();
 
             for (int i = 0; i < count; ++i)
             {
-                result.Add(reader.GetInt(), reader.GetString());
+                result.Add(message.ReadInt32(), message.ReadString());
             }
 
             return result;
         }
 
-        public static void Put(this NetDataWriter writer, PlayerMove move)
+        public static void Write(this NetOutgoingMessage message, PlayerMove move)
         {
-            writer.Put(move.Position);
-            writer.Put(move.Rotation);
+            message.Write(move.Position);
+            message.Write(move.Rotation);
 
-            writer.Put(move.AnimationAngle);
-            writer.Put(move.AnimationExtension);
+            message.Write(move.AnimationAngle);
+            message.Write(move.AnimationExtension);
 
-            writer.Put(move.HandlePosition);
-            writer.Put(move.HandleRotation);
+            message.Write(move.HandlePosition);
+            message.Write(move.HandleRotation);
 
-            writer.Put(move.SliderPosition);
-            writer.Put(move.SliderRotation);
+            message.Write(move.SliderPosition);
+            message.Write(move.SliderRotation);
         }
 
-        public static PlayerMove GetPlayerMove(this NetDataReader reader)
+        public static PlayerMove ReadPlayerMove(this NetIncomingMessage message)
         {
             return new PlayerMove
             {
-                Position = reader.GetVector3(),
-                Rotation = reader.GetQuaternion(),
+                Position = message.ReadVector3(),
+                Rotation = message.ReadQuaternion(),
 
-                AnimationAngle = reader.GetFloat(),
-                AnimationExtension = reader.GetFloat(),
+                AnimationAngle = message.ReadSingle(),
+                AnimationExtension = message.ReadSingle(),
 
-                HandlePosition = reader.GetVector3(),
-                HandleRotation = reader.GetQuaternion(),
+                HandlePosition = message.ReadVector3(),
+                HandleRotation = message.ReadQuaternion(),
 
-                SliderPosition = reader.GetVector3(),
-                SliderRotation = reader.GetQuaternion()
+                SliderPosition = message.ReadVector3(),
+                SliderRotation = message.ReadQuaternion()
             };
         }
 
-        public static void Put(this NetDataWriter writer, Color color)
+        public static void Disconnect(this NetConnection connection, DisconnectReason reason)
         {
-            byte r = (byte) (color.r * 255);
-            byte g = (byte) (color.g * 255);
-            byte b = (byte) (color.b * 255);
-            byte a = (byte) (color.a * 255);
-
-            uint rgba = (uint) (r << 24 | g << 16 | b << 8 | a);
-
-            writer.Put(rgba);
-        }
-
-        public static Color GetColor(this NetDataReader reader)
-        {
-            uint rgba = reader.GetUInt();
-
-            var r = (byte) ((rgba >> 24) & 0xFF);
-            var g = (byte) ((rgba >> 16) & 0xFF);
-            var b = (byte) ((rgba >> 8) & 0xFF);
-            var a = (byte) (rgba & 0xFF);
-
-            return new Color(r / 255f, g / 255f, b / 255f, a / 255f);
+            connection.Disconnect(((byte) reason).ToString());
         }
     }
 }
