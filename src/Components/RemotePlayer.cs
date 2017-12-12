@@ -89,7 +89,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             if (dudeAnim == null || handle == null || slider == null)
             {
-                Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({dudeAnim == null} {handle == null} {slider == null})");
+                Interface.Oxide.LogError($"dudeAnim, handle, or slider is null ({!!dudeAnim} {!!handle} {!!slider})");
                 return;
             }
 
