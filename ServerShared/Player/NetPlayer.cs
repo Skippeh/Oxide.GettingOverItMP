@@ -31,7 +31,7 @@ namespace ServerShared.Player
             var writer = server.CreateMessage();
             writer.Write(MessageType.ChatMessage);
             writer.Write((string) null);
-            writer.Write(color);
+            writer.WriteRgbaColor(color);
             writer.Write(message);
 
             Peer.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
