@@ -75,10 +75,13 @@ namespace Oxide.GettingOverItMP.Components
             RemoveAllRemotePlayers();
             spectator.StopSpectating();
 
+            LastDisconnectReason = null;
+
             switch (args.Reason)
             {
                 default:
-                    LastDisconnectReason = args.ReasonString;
+                    if (args.ReasonString != "bye")
+                        LastDisconnectReason = args.ReasonString;
                     break;
                 case DisconnectReason.DuplicateHandshake:
                 {
@@ -117,71 +120,10 @@ namespace Oxide.GettingOverItMP.Components
                 }
             }
 
-            /*switch (reason)
-            {
-                default:
-                {
-                    LastDisconnectReason = $"Unknown ({reason})";
-                    break;
-                }
-                case LiteNetLib.DisconnectReason.DisconnectPeerCalled: // Client disconnected
-                {
-                    LastDisconnectReason = null;
-                    break;
-                }
-                case LiteNetLib.DisconnectReason.RemoteConnectionClose: // Server disconnected the client
-                {
-                    if (info.AdditionalData.AvailableBytes == 0)
-                    {
-                        LastDisconnectReason = "Server closed the connection.";
-                        break;
-                    }
-                    
-                    switch (reason)
-                    {
-                        case DisconnectReason.DuplicateHandshake:
-                        {
-                            LastDisconnectReason = "Duplicate handshake sent to the server.";
-                            break;
-                        }
-                        case DisconnectReason.HandshakeTimeout:
-                        {
-                            LastDisconnectReason = "Failed to send handshake within the time limit.";
-                            break;
-                        }
-                        case DisconnectReason.InvalidMessage:
-                        {
-                            LastDisconnectReason = "The last sent message was invalid.";
-                            break;
-                        }
-                        case DisconnectReason.InvalidName:
-                        {
-                            LastDisconnectReason = "The name is either empty or it contains invalid characters.";
-                            break;
-                        }
-                        case DisconnectReason.NotAccepted:
-                        {
-                            LastDisconnectReason = "Tried to send a message before getting a successful handshake response.";
-                            break;
-                        }
-                        case DisconnectReason.VersionNewer:
-                        {
-                            LastDisconnectReason = "The server is running an older version.";
-                            break;
-                        }
-                        case DisconnectReason.VersionOlder:
-                        {
-                            LastDisconnectReason = "The server is running a newer version.";
-                            break;
-                        }
-                    }
-
-                    break;
-                }
-        }*/
-
-            /*if (info.Reason != LiteNetLib.DisconnectReason.DisconnectPeerCalled && info.Reason != LiteNetLib.DisconnectReason.ConnectionFailed)
-                chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);*/
+            if (args.ReasonString != "bye")
+                chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);
+            else
+                chatUi.AddMessage("Disconnected from the server.", null, SharedConstants.ColorRed);
         }
 
         private void OnReceiveData(object sender, DataReceivedEventArgs args)

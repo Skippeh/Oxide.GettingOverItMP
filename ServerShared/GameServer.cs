@@ -179,8 +179,7 @@ namespace ServerShared
         private void KickConnection(NetConnection connection, DisconnectReason reason)
         {
             Console.WriteLine($"Disconnecting client from {connection.RemoteEndPoint}: {reason}");
-
-            connection.Disconnect(((byte) reason).ToString());
+            connection.Disconnect(reason);
         }
 
         private void OnConnectionConnected(object sender, ConnectedEventArgs args)

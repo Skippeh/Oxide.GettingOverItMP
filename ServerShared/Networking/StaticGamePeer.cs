@@ -15,6 +15,14 @@ namespace ServerShared
                         var status = (NetConnectionStatus) message.ReadByte();
                         string reason = message.ReadString();
 
+                        DisconnectReason? enumReason = null;
+                        int enumReasonInt;
+
+                        if (int.TryParse(reason, out enumReasonInt))
+                        {
+                            enumReason = (DisconnectReason) enumReasonInt;
+                        }
+
                         if (status == NetConnectionStatus.Connected)
                         {
                             peer.InvokeConnected(peer, new ConnectedEventArgs {Connection = message.SenderConnection});
@@ -22,7 +30,7 @@ namespace ServerShared
                         else if (status == NetConnectionStatus.Disconnected)
                         {
                             Console.WriteLine($"{message.SenderEndPoint} new status: {status} ({reason})");
-                            peer.InvokeDisconnected(peer, new DisconnectedEventArgs {Connection = message.SenderConnection, Reason = DisconnectReason.Invalid, ReasonString = reason});
+                            peer.InvokeDisconnected(peer, new DisconnectedEventArgs {Connection = message.SenderConnection, Reason = enumReason ?? DisconnectReason.Invalid, ReasonString = reason});
                         }
 
                         break;
