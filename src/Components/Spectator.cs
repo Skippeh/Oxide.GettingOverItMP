@@ -72,10 +72,37 @@ namespace Oxide.GettingOverItMP.Components
 
             Target = player;
 
+            Vector3 cameraLocation = Camera.main.transform.position;
+            float oldZ = cameraLocation.z;
+
+            Vector3 cameraZ0 = cameraLocation;
+            cameraZ0.z = 0;
+
             if (player != null)
+            {
                 DisableLocalPlayer();
+
+                // Teleport camera if target is 20+ meters away
+                if ((cameraZ0 - player.transform.position).sqrMagnitude > 20 * 20)
+                {
+                    cameraLocation = player.transform.position;
+                    cameraLocation.z = oldZ;
+
+                    Camera.main.transform.position = cameraLocation;
+                }
+            }
             else
+            {
                 EnableLocalPlayer();
+
+                if ((cameraZ0 - localPlayer.transform.position).sqrMagnitude > 20 * 20)
+                {
+                    cameraLocation = localPlayer.transform.position;
+                    cameraLocation.z = oldZ;
+
+                    Camera.main.transform.position = cameraLocation;
+                }
+            }
         }
 
         public void StopSpectating()
