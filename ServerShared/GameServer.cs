@@ -343,6 +343,17 @@ namespace ServerShared
 
                                 BroadcastChatMessage($"{prefix} ¯\\_(ツ)_/¯", Color.white, peerPlayer);
                             }
+                            else if (message.StartsWith("/tableflip"))
+                            {
+                                string prefix = "";
+
+                                if (message.Length > "/tableflip ".Length)
+                                    prefix = message.Substring("/tableflip ".Length);
+
+                                prefix = prefix.Trim();
+
+                                BroadcastChatMessage($"{prefix} (╯°□°）╯︵ ┻━┻", Color.white, peerPlayer);
+                            }
 
                             return;
                         }
