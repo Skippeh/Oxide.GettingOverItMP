@@ -47,7 +47,8 @@ namespace Oxide.GettingOverItMP.Components
             client = new GameClientPeer(new NetPeerConfiguration(SharedConstants.AppName)
             {
                 MaximumConnections = 1,
-                ConnectionTimeout = 5
+                ConnectionTimeout = 5,
+                PingInterval = 1f
             });
 
             client.Connected += OnConnected;

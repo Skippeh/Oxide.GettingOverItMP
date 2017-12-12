@@ -42,9 +42,11 @@ namespace ServerShared
             {
                 MaximumConnections = maxConnections,
                 Port = port,
-                ConnectionTimeout = 5
+                ConnectionTimeout = 5,
+                PingInterval = 1f,
+                EnableUPnP = true
             });
-
+            
             server.Connected += OnConnectionConnected;
             server.Disconnected += OnConnectionDisconnected;
             server.DataReceived += OnReceiveData;
@@ -244,7 +246,7 @@ namespace ServerShared
                         }
 
                         int version = netMessage.ReadInt32();
-                        string playerName = netMessage.ReadString();
+                        string playerName = netMessage.ReadString().Trim();
                         PlayerMove movementData = netMessage.ReadPlayerMove();
 
                         if (version != SharedConstants.Version)
@@ -253,12 +255,12 @@ namespace ServerShared
                             break;
                         }
 
-                        if (playerName.Length > SharedConstants.MaxNameLength || !playerName.All(ch => SharedConstants.AllowedCharacters.Contains(ch)))
+                        if (playerName.Length == 0 || playerName.Length > SharedConstants.MaxNameLength || !playerName.All(ch => SharedConstants.AllowedCharacters.Contains(ch)))
                         {
                             KickConnection(connection, DisconnectReason.InvalidName);
                             break;
                         }
-
+                        
                         pendingConnections.RemoveAll(conn => conn.Client == connection);
                         Console.WriteLine($"Got valid handshake from {connection.RemoteEndPoint}");
 
