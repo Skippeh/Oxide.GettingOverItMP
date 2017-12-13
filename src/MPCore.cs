@@ -45,20 +45,15 @@ namespace Oxide.GettingOverIt
             if (sceneType == SceneType.Game)
             {
                 RemotePlayer.CreatePlayerPrefab();
-
-                //Interface.Oxide.LogDebug("Created RemotePlayer prefab:");
-                //LogGameObjects(new[] {RemotePlayer.PlayerPrefab});
-
-
                 
                 localPlayer = GameObject.Find("Player") ?? throw new NotImplementedException("Could not find local player");
                 localPlayerControl = localPlayer.GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl on local player");
                 localPoseControl = localPlayer.transform.Find("dude/mixamorig:Hips").GetComponent<PoseControl>() ?? throw new NotImplementedException("Could not find PoseControl on local player");
                 localPlayerBase = localPlayer.AddComponent<LocalPlayer>();
-                
-                InitClient();
-                InitUI();
+
                 InitSpectator();
+                InitUI();
+                InitClient();
             }
             else
             {
