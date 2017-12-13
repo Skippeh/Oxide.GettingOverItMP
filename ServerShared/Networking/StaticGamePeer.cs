@@ -29,7 +29,7 @@ namespace ServerShared
                         }
                         else if (status == NetConnectionStatus.Disconnected)
                         {
-                            Console.WriteLine($"{message.SenderEndPoint} new status: {status} ({reason})");
+                            Console.WriteLine($"{message.SenderEndPoint} new status: {status} ({enumReason?.ToString() ?? reason})");
                             peer.InvokeDisconnected(peer, new DisconnectedEventArgs {Connection = message.SenderConnection, Reason = enumReason ?? DisconnectReason.Invalid, ReasonString = reason});
                         }
 

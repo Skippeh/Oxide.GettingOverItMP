@@ -195,8 +195,6 @@ namespace ServerShared
         private void OnConnectionDisconnected(object sender, DisconnectedEventArgs args)
         {
             var connection = args.Connection;
-
-            Console.WriteLine($"Connection gone from {connection.RemoteEndPoint} (reason)"); // Todo: reason
             pendingConnections.RemoveAll(conn => conn.Client == connection);
 
             NetPlayer player;
