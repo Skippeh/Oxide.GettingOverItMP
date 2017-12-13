@@ -63,30 +63,6 @@ namespace Oxide.GettingOverIt
             }
         }
 
-        private void LogGameObjects(IEnumerable<GameObject> gameObjects, int indentLevel = 0)
-        {
-            var gameObjectList = gameObjects.ToList();
-
-            if (indentLevel == 0)
-                Interface.Oxide.LogDebug($"# GameObjects: {gameObjectList.Count}");
-
-            foreach (GameObject gameObject in gameObjectList)
-            {
-                Interface.Oxide.LogDebug(indentLevel + " " + new string(' ', indentLevel) + GameObjectToString(gameObject));
-
-                if (gameObject == null)
-                    continue;
-
-                List<GameObject> childObjects = new List<GameObject>();
-                foreach (Transform childTransform in gameObject.transform)
-                {
-                    childObjects.Add(childTransform.gameObject);
-                }
-
-                LogGameObjects(childObjects, indentLevel + 1);
-            }
-        }
-
         protected override void Tick()
         {
         }
@@ -142,7 +118,31 @@ namespace Oxide.GettingOverIt
             GameObject.Destroy(spectateGameObject);
         }
 
-        private string GameObjectToString(GameObject go)
+        public static void LogGameObjects(IEnumerable<GameObject> gameObjects, int indentLevel = 0)
+        {
+            var gameObjectList = gameObjects.ToList();
+
+            if (indentLevel == 0)
+                Interface.Oxide.LogDebug($"# GameObjects: {gameObjectList.Count}");
+
+            foreach (GameObject gameObject in gameObjectList)
+            {
+                Interface.Oxide.LogDebug(indentLevel + " " + new string(' ', indentLevel) + GameObjectToString(gameObject));
+
+                if (gameObject == null)
+                    continue;
+
+                List<GameObject> childObjects = new List<GameObject>();
+                foreach (Transform childTransform in gameObject.transform)
+                {
+                    childObjects.Add(childTransform.gameObject);
+                }
+
+                LogGameObjects(childObjects, indentLevel + 1);
+            }
+        }
+
+        private static string GameObjectToString(GameObject go)
         {
             if (go == null)
                 return "null";
