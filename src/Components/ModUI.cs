@@ -23,7 +23,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             control = LocalPlayer.GetComponent<PlayerControl>();
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>();
-            chatUi = gameObject.GetComponent<ChatUI>();
+            chatUi = gameObject.AddComponent<ChatUI>();
 
             playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
         }
