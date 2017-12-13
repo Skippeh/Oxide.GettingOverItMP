@@ -38,7 +38,7 @@ namespace ServerShared
                         if (message.Data.Length == 0)
                         {
                             message.SenderConnection.Disconnect(DisconnectReason.InvalidMessage);
-                            return;
+                            break;
                         }
 
                         peer.InvokeDataReceived(peer, new DataReceivedEventArgs {Message = message, MessageType = (MessageType) message.ReadByte()});
