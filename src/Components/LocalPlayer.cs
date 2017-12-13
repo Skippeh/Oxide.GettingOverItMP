@@ -14,6 +14,7 @@ namespace Oxide.GettingOverItMP.Components
             base.Start();
 
             spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
+            gameObject.AddComponent<LocalPlayerDebug>();
         }
 
         protected override void Update()
