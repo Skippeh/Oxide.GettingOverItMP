@@ -44,7 +44,7 @@ namespace Oxide.GettingOverItMP.Components
                 return;
 
             // Draw connect/disconnect area
-            GUILayout.BeginArea(new Rect(10, 10, 1000, 1000));
+            /*GUILayout.BeginArea(new Rect(10, 10, 1000, 1000));
             {
                 if (client.Status == NetConnectionStatus.Disconnected)
                 {
@@ -98,7 +98,7 @@ namespace Oxide.GettingOverItMP.Components
                     }
                 }
             }
-            GUILayout.EndArea();
+            GUILayout.EndArea();*/
         }
 
         private void SavePlayerName()
