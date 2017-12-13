@@ -8,7 +8,7 @@ namespace Oxide.GettingOverItMP.Components
 {
     public class ModUI : MonoBehaviour
     {
-        public GameObject LocalPlayer;
+        private GameObject localPlayer;
 
         private PlayerControl control;
         private Client client;
@@ -21,7 +21,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private void Start()
         {
-            control = LocalPlayer.GetComponent<PlayerControl>();
+            localPlayer = GameObject.Find("Player");
+            control = localPlayer.GetComponent<PlayerControl>();
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>();
             chatUi = gameObject.AddComponent<ChatUI>();
 
