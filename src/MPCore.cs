@@ -46,8 +46,10 @@ namespace Oxide.GettingOverIt
             {
                 RemotePlayer.CreatePlayerPrefab();
 
-                Interface.Oxide.LogDebug("Created RemotePlayer prefab:");
-                LogGameObjects(new[] {RemotePlayer.PlayerPrefab});
+                //Interface.Oxide.LogDebug("Created RemotePlayer prefab:");
+                //LogGameObjects(new[] {RemotePlayer.PlayerPrefab});
+
+
                 
                 localPlayer = GameObject.Find("Player") ?? throw new NotImplementedException("Could not find local player");
                 localPlayerControl = localPlayer.GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl on local player");
