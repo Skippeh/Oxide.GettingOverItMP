@@ -19,12 +19,15 @@ namespace Oxide.GettingOverItMP.Components
         
         private static GUIStyle tintedBackground;
 
+        private ServerBrowser serverBrowser;
+
         private void Start()
         {
             localPlayer = GameObject.Find("Player");
             control = localPlayer.GetComponent<PlayerControl>();
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>();
             chatUi = gameObject.AddComponent<ChatUI>();
+            serverBrowser = gameObject.AddComponent<ServerBrowser>();
 
             playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
         }
