@@ -16,14 +16,22 @@ namespace GettingOverItMP.Server
             server = new GameServer(MaxConnections, Port, false);
             server.Start();
 
-            Console.WriteLine("Press any key to stop the server.");
+            Console.WriteLine("Press CTRL+Q to stop the server.");
 
-            while (!Console.KeyAvailable)
+            while (true)
             {
+                ConsoleKeyInfo key = default(ConsoleKeyInfo);
+
+                if (Console.KeyAvailable)
+                    key = Console.ReadKey(true);
+
+                if (key.Modifiers == ConsoleModifiers.Control && key.Key == ConsoleKey.Q)
+                    break;
+
                 server.Update();
                 Thread.Sleep(1);
             }
-
+            
             server.Stop();
         }
     }
