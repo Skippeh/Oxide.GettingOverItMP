@@ -1,3 +1,4 @@
+using System;
 using Lidgren.Network;
 
 namespace ServerShared
@@ -7,7 +8,7 @@ namespace ServerShared
         public event ConnectedEventHandler Connected;
         public event DisconnectedEventHandler Disconnected;
         public event DataReceivedEventHandler DataReceived;
-
+        
         public GameClientPeer(NetPeerConfiguration config) : base(config)
         {
         }
@@ -25,6 +26,11 @@ namespace ServerShared
         public void InvokeDataReceived(object sender, DataReceivedEventArgs args)
         {
             DataReceived?.Invoke(sender, args);
+        }
+
+        public void InvokeDiscoveryRequest(object sender, NetIncomingMessage message)
+        {
+            // Clients will never receive this.
         }
 
         public void Update()

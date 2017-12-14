@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Lidgren.Network;
 using ServerShared.Player;
 using UnityEngine;
@@ -23,36 +24,44 @@ namespace ServerShared
 
         public static readonly TimeSpan PendingConnectionTimeout = new TimeSpan(0, 0, 0, 5); // 5 seconds
 
+        public string Name;
         public int Port => server.Configuration.Port;
         public readonly bool ListenServer;
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
-        
+
         private readonly GameServerPeer server;
 
         private double nextSendTime = 0;
         private readonly List<PendingConnection> pendingConnections = new List<PendingConnection>();
 
-        public GameServer(int maxConnections, int port, bool listenServer)
+        public GameServer(string name, int maxConnections, int port, bool listenServer)
         {
             if (maxConnections <= 0)
                 throw new ArgumentException("Max connections needs to be > 0.");
-            
-            server = new GameServerPeer(new NetPeerConfiguration(SharedConstants.AppName)
+
+            var config = new NetPeerConfiguration(SharedConstants.AppName)
             {
                 MaximumConnections = maxConnections,
                 Port = port,
                 ConnectionTimeout = 5,
                 PingInterval = 1f,
                 EnableUPnP = true
-            });
-            
+            };
+
+            config.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
+
+            server = new GameServerPeer(config);
+
             server.Connected += OnConnectionConnected;
             server.Disconnected += OnConnectionDisconnected;
             server.DataReceived += OnReceiveData;
+            server.DiscoveryRequest += OnDiscoveryRequest;
 
             ListenServer = listenServer;
-            
+            Name = name;
+
+
             if (listenServer)
             {
                 // Todo: Implement NAT punchthrough.
@@ -68,7 +77,7 @@ namespace ServerShared
         {
             server.Shutdown("bye");
         }
-        
+
         public void Update()
         {
             server.Update();
@@ -84,7 +93,7 @@ namespace ServerShared
             }
 
             double ms = DateTime.UtcNow.Ticks / 10_000d;
-            
+
             if (ms >= nextSendTime)
             {
                 nextSendTime = ms + 1000f / SharedConstants.UpdateRate;
@@ -120,7 +129,7 @@ namespace ServerShared
             netMessage.WriteRgbaColor(color);
             netMessage.Write(message);
             netMessage.Write(netMessage);
-            
+
             Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, except);
         }
 
@@ -258,7 +267,7 @@ namespace ServerShared
                             KickConnection(connection, DisconnectReason.InvalidName);
                             break;
                         }
-                        
+
                         pendingConnections.RemoveAll(conn => conn.Client == connection);
                         Console.WriteLine($"Got valid handshake from {connection.RemoteEndPoint}");
 
@@ -271,10 +280,10 @@ namespace ServerShared
                         writer.Write(player.Name);
                         writer.Write(player.Movement);
                         Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
-                        
+
                         Console.WriteLine($"Client with id {player.Id} is now spawned");
                         BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, connection);
-                        
+
                         break;
                     }
                     case MessageType.MoveData:
@@ -341,7 +350,7 @@ namespace ServerShared
 
                                 if (message.Length > "/shrug ".Length)
                                     prefix = message.Substring("/shrug ".Length);
-                                
+
                                 prefix = prefix.Trim();
 
                                 BroadcastChatMessage($"{prefix} ¯\\_(ツ)_/¯", Color.white, peerPlayer);
@@ -375,10 +384,10 @@ namespace ServerShared
                     {
                         int targetId = netMessage.ReadInt32();
                         NetPlayer targetPlayer = Players.Values.FirstOrDefault(plr => !plr.Spectating && plr.Id == targetId);
-                            
+
                         if (targetPlayer != null)
                             peerPlayer.Spectate(targetPlayer);
-                        
+
                         break;
                     }
                 }
@@ -393,6 +402,17 @@ namespace ServerShared
                 Console.WriteLine("OnReceiveData errored:\n" + ex);
                 KickConnection(connection, DisconnectReason.InvalidMessage);
             }
+        }
+
+        private void OnDiscoveryRequest(object sender, NetIncomingMessage message)
+        {
+            var toSend = server.CreateMessage();
+
+            toSend.Write(Name);
+            toSend.Write((ushort)Players.Count);
+            toSend.Write((ushort)server.Configuration.MaximumConnections);
+
+            server.SendDiscoveryResponse(toSend, message.SenderEndPoint);
         }
     }
 }

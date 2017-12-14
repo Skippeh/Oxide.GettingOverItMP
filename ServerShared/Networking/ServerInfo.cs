@@ -10,4 +10,10 @@
         public string Ip;
         public int Port;
     }
+
+    public class MasterServerInfo
+    {
+        public string Ip;
+        public int Port;
+    }
 }

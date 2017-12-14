@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using Lidgren.Network;
+using Oxide.Core;
 using ServerShared;
 using ServerShared.Networking;
 
@@ -31,45 +33,63 @@ namespace Oxide.GettingOverItMP.Networking
 
             ThreadPool.QueueUserWorkItem(state =>
             {
-                var client = CreateClientAndQuery(endPoint);
-                NetIncomingMessage response;
-
-                while (true)
+                try
                 {
-                    response = client.WaitMessage((int) (MaxTime * 1000));
+                    var endPoint2 = ((QueryInfo) state).EndPoint;
+                    var doneCallback2 = ((QueryInfo) state).Callback;
+                    NetClient client = CreateClientAndQuery(endPoint2);
+                    Stopwatch pingStopwatch = Stopwatch.StartNew();
 
-                    // Wait for timeout or DiscoveryResponse.
-                    if (response == null || response.MessageType == NetIncomingMessageType.DiscoveryResponse)
-                        break;
-                }
+                    NetIncomingMessage response;
 
-                if (response == null)
-                {
-                    doneCallback(new QueryDoneEventArgs
+                    while (true)
                     {
-                        ServerInfo = null,
-                        Successful = false
-                    });
-                }
-                else
-                {
-                    string serverName = response.ReadString();
-                    ushort players = response.ReadUInt16();
-                    ushort maxPlayers = response.ReadUInt16();
-                    float ping = response.SenderConnection?.AverageRoundtripTime ?? -1;
+                        response = client.WaitMessage((int) (MaxTime * 1000));
 
-                    doneCallback(new QueryDoneEventArgs
+                        // Wait for timeout or DiscoveryResponse.
+                        if (response == null || response.MessageType == NetIncomingMessageType.DiscoveryResponse)
+                            break;
+                    }
+
+                    pingStopwatch.Stop();
+
+                    if (response == null)
                     {
-                        ServerInfo = new ServerInfo
+                        doneCallback2(new QueryDoneEventArgs
                         {
-                            Ip = ip,
-                            Port = port,
-                            Name = serverName,
-                            Players = players,
-                            MaxPlayers = maxPlayers,
-                            Ping = ping
-                        },
-                        Successful = true
+                            Successful = false
+                        });
+                    }
+                    else
+                    {
+                        string serverName = response.ReadString();
+                        ushort players = response.ReadUInt16();
+                        ushort maxPlayers = response.ReadUInt16();
+                        float ping = (float) pingStopwatch.Elapsed.TotalMilliseconds;
+
+                        if (serverName.Length > 40)
+                            serverName = serverName.Substring(0, 100);
+
+                        doneCallback2(new QueryDoneEventArgs
+                        {
+                            ServerInfo = new ServerInfo
+                            {
+                                Ip = ip,
+                                Port = port,
+                                Name = serverName,
+                                Players = players,
+                                MaxPlayers = maxPlayers,
+                                Ping = ping
+                            },
+                            Successful = true
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    doneCallback(new QueryDoneEventArgs
+                    {
+                        Successful = false
                     });
                 }
             }, new QueryInfo(endPoint, doneCallback));
@@ -77,19 +97,14 @@ namespace Oxide.GettingOverItMP.Networking
 
         private static NetClient CreateClientAndQuery(IPEndPoint endPoint)
         {
-            var config = new NetPeerConfiguration(SharedConstants.AppName)
-            {
-                Port = endPoint.Port
-            };
+            var config = new NetPeerConfiguration(SharedConstants.AppName);
             
             config.EnableMessageType(NetIncomingMessageType.DiscoveryResponse);
 
             var client = new NetClient(config);
             client.Start();
-
-            var message = client.CreateMessage();
-            message.Write(SharedConstants.QueryVersion);
-            client.SendDiscoveryResponse(message, endPoint);
+            
+            client.DiscoverKnownPeer(endPoint);
 
             return client;
         }

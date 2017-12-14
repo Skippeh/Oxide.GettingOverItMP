@@ -13,7 +13,7 @@ namespace GettingOverItMP.Server
 
         private static void Main(string[] args)
         {
-            server = new GameServer(MaxConnections, Port, false);
+            server = new GameServer("TODO: server names", MaxConnections, Port, false);
             server.Start();
 
             Console.WriteLine("Press CTRL+Q to stop the server.");

@@ -11,6 +11,9 @@ namespace ServerShared
             {
                 switch (message.MessageType)
                 {
+                    case NetIncomingMessageType.DiscoveryRequest:
+                        peer.InvokeDiscoveryRequest(peer, message);
+                        break;
                     case NetIncomingMessageType.StatusChanged:
                         var status = (NetConnectionStatus) message.ReadByte();
                         string reason = message.ReadString();

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Lidgren.Network;
 using Oxide.Core;
 using Oxide.GettingOverIt;
+using Oxide.GettingOverItMP.Networking;
 using ServerShared;
 using ServerShared.Networking;
 using UnityEngine;
@@ -39,17 +42,7 @@ namespace Oxide.GettingOverItMP.Components
         private bool drawCustomConnect;
         private string ipText = "";
 
-        private readonly List<ServerInfo> servers = new List<ServerInfo>()
-        {
-            new ServerInfo
-            {
-                Name = "Test server with a long name boi",
-                Ip = "127.0.0.1",
-                Players = 10,
-                MaxPlayers = 100,
-                Ping = 43
-            }
-        };
+        private readonly List<ServerInfo> servers = new List<ServerInfo>();
 
         private void Start()
         {
@@ -101,7 +94,7 @@ namespace Oxide.GettingOverItMP.Components
 
                 if (!drawCustomConnect)
                 {
-                    GUI.Window(1, windowRect, DrawWindow, "Servers", windowStyle);
+                    GUI.Window(1, windowRect, DrawServersWindow, "Servers", windowStyle);
 
                     // Draw stuff below server list window
                     GUILayout.BeginArea(new Rect(windowRect.x + 5, windowRect.yMax + 5, windowRect.width - 10, 100));
@@ -181,11 +174,14 @@ namespace Oxide.GettingOverItMP.Components
                 if (GUILayout.Button("Server browser"))
                 {
                     Open = true;
+
+                    if (!searching)
+                        StartSearching();
                 }
             }
         }
 
-        private void DrawWindow(int id)
+        private void DrawServersWindow(int id)
         {
             float innerWidth = windowSize.x;
             float innerHeight = windowSize.y;
@@ -209,6 +205,7 @@ namespace Oxide.GettingOverItMP.Components
             {
                 GUILayout.BeginVertical();
 
+                var servers = this.servers.ToList(); // Copy server list incase a server is added mid drawing (while querying).
                 for (var i = 0; i < servers.Count; i++)
                 {
                     ServerInfo serverInfo = servers[i];
@@ -242,7 +239,7 @@ namespace Oxide.GettingOverItMP.Components
                 GUI.skin.label.alignment = TextAnchor.UpperRight;
                 GUILayout.Label($"{info.Players}/{info.MaxPlayers}", GUILayout.Width(80));
 
-                GUILayout.Label($"{info.Ping}", GUILayout.Width(45));
+                GUILayout.Label($"{info.Ping:0}", GUILayout.Width(45));
                 GUI.skin.label.alignment = TextAnchor.UpperLeft;
             }
             GUILayout.EndHorizontal();
@@ -254,6 +251,17 @@ namespace Oxide.GettingOverItMP.Components
                 if (lastArea.Contains(UnityEngine.Event.current.mousePosition))
                 {
                     selectedServer = info;
+                    Interface.Oxide.LogDebug(UnityEngine.Event.current.clickCount.ToString());
+
+                    if (UnityEngine.Event.current.clickCount > 0 && UnityEngine.Event.current.clickCount == 2)
+                    {
+                        if (connected)
+                        {
+                            client.Disconnect();
+                        }
+                        
+                        ConnectToServer(info);
+                    }
                 }
             }
 
@@ -316,6 +324,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
             client.Connect(ip, port, playerName);
+            Open = false;
         }
 
         private void StartSearching()
@@ -323,6 +332,53 @@ namespace Oxide.GettingOverItMP.Components
             searching = true;
             selectedServer = null;
             servers.Clear();
+            
+            QueryServerList(serverList =>
+            {
+                if (!searching)
+                    return;
+
+                Interface.Oxide.LogDebug($"Quering {serverList.Length} server(s)...");
+
+                foreach (var masterServerInfo in serverList)
+                {
+                    if (!searching)
+                        return;
+
+                    int numDone = 0;
+                    ServerQuery.Query(masterServerInfo.Ip, masterServerInfo.Port, args =>
+                    {
+                        if (!searching)
+                            return;
+
+                        lock (this)
+                        {
+                            if (args.Successful)
+                                servers.Add(args.ServerInfo);
+
+                            ++numDone;
+
+                            if (numDone >= serverList.Length)
+                                searching = false;
+                        }
+                    });
+                }
+            });
+        }
+
+        private void QueryServerList(Action<MasterServerInfo[]> callback)
+        {
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                callback(new List<MasterServerInfo>
+                {
+                    new MasterServerInfo
+                    {
+                        Ip = "127.0.0.1",
+                        Port = 25050
+                    }
+                }.ToArray());
+            });
         }
 
         private void CancelSearching()
