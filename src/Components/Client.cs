@@ -20,7 +20,7 @@ namespace Oxide.GettingOverItMP.Components
     {
         public readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
-        public NetConnectionStatus Status => server?.Status ?? NetConnectionStatus.Disconnected;
+        public NetConnectionStatus Status => client.ConnectionStatus;
         public int Id { get => localPlayer.Id; set => localPlayer.Id = value; }
         public string PlayerName { get => localPlayer.PlayerName; set => localPlayer.PlayerName = value; }
         public event ChatMessageReceived ChatMessageReceived;

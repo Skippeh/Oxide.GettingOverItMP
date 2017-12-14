@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Lidgren.Network;
 using Oxide.Core;
 using Oxide.GettingOverIt;
+using ServerShared;
 using ServerShared.Networking;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,7 +21,16 @@ namespace Oxide.GettingOverItMP.Components
         private PlayerControl control;
         private ChatUI chatUi;
         private GameObject ingameMenu;
+        private Client client;
+        private string playerName;
+        private ServerInfo selectedServer;
+        private GUIStyle rowStyle;
+        private GUIStyle backgroundStyle;
 
+        private bool disconnected => client.Status == NetConnectionStatus.Disconnected || client.Status == NetConnectionStatus.Disconnecting;
+        private bool connected => client.Status == NetConnectionStatus.Connected || client.Status == NetConnectionStatus.InitiatedConnect;
+
+        private bool searching;
         private readonly List<ServerInfo> servers = new List<ServerInfo>()
         {
             new ServerInfo
@@ -32,11 +43,6 @@ namespace Oxide.GettingOverItMP.Components
             }
         };
 
-        private ServerInfo selectedServer;
-
-        private GUIStyle rowStyle;
-        private GUIStyle backgroundStyle;
-
         private void Start()
         {
             windowRect = new Rect(Screen.width / 2f - windowSize.x / 2f, Screen.height / 2f - windowSize.y / 2f, windowSize.x, windowSize.y);
@@ -46,6 +52,10 @@ namespace Oxide.GettingOverItMP.Components
 
             var canvas = GameObject.Find("Canvas");
             ingameMenu = canvas.transform.Find("InGame Menu").gameObject ?? throw new NotImplementedException("Could not find Ingame Menu");
+
+            client = GameObject.Find("GOIMP.Client").GetComponent<Client>() ?? throw new NotImplementedException("Could not find Client");
+
+            playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
         }
 
         private void OnGUI()
@@ -78,7 +88,48 @@ namespace Oxide.GettingOverItMP.Components
                     return;
                 }
 
-                GUI.ModalWindow(1, windowRect, DrawWindow, "Servers");
+                GUI.Window(1, windowRect, DrawWindow, "Servers");
+
+                GUILayout.BeginArea(new Rect(windowRect.x + 5, windowRect.yMax + 5, windowRect.width - 10, 100));
+                {
+                    bool oldEnabled = GUI.enabled;
+
+                    // Local player stuff below
+                    GUI.enabled = !connected;
+                    GUILayout.BeginHorizontal();
+                    {
+                        var nameContent = new GUIContent("Name");
+                        var nameSize = GUI.skin.label.CalcSize(nameContent);
+
+                        GUILayout.Label(nameContent, GUILayout.Width(nameSize.x));
+                        playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength);
+                    }
+                    GUILayout.EndHorizontal();
+
+                    // Selected server info below
+                    GUI.enabled = selectedServer != null;
+                    GUILayout.BeginHorizontal();
+                    {
+                        if (GUILayout.Button(connected ? "Disconnect" : "Connect"))
+                        {
+                            if (disconnected)
+                                ConnectToServer(selectedServer);
+                            else
+                            {
+                                client.Disconnect();
+                            }
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUI.enabled = oldEnabled;
+                }
+                GUILayout.EndArea();
+
+                if (GUILayout.Button("Close browser"))
+                {
+                    Open = false;
+                }
             }
             else
             {
@@ -91,9 +142,6 @@ namespace Oxide.GettingOverItMP.Components
 
         private void DrawWindow(int id)
         {
-            // Make window draggable
-            GUI.DragWindow(new Rect(0, 0, windowSize.x, 20));
-            
             float innerWidth = windowSize.x;
             float innerHeight = windowSize.y;
             
@@ -183,6 +231,12 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             _open = open;
+        }
+
+        private void ConnectToServer(ServerInfo info)
+        {
+            PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
+            client.Connect(info.Ip, info.Port, playerName);
         }
     }
 }
