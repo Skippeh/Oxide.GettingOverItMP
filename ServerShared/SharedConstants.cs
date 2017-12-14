@@ -16,6 +16,7 @@ namespace ServerShared
         public static readonly Color ColorBlue = new Color(0.54f, 0.58f, 0.75f);
         public const float UpdateRate = 30;
         public const int MoveDataChannel = 1;
+        public const string MasterServerHost = "master.gettingoverit.mp";
 
         static SharedConstants()
         {
