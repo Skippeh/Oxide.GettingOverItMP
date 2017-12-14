@@ -208,9 +208,10 @@ namespace Oxide.GettingOverItMP.Components
             {
                 GUILayout.BeginVertical();
 
-                foreach (ServerInfo serverInfo in servers)
+                for (var i = 0; i < servers.Count; i++)
                 {
-                    DrawRow(serverInfo, 0);
+                    ServerInfo serverInfo = servers[i];
+                    DrawRow(serverInfo, i);
                 }
 
                 GUILayout.EndVertical();
