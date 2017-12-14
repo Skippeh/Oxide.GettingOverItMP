@@ -9,7 +9,6 @@ namespace ServerShared
         public const int MaxNameLength = 30;
         public const int DefaultPort = 25050;
         public const int Version = 5;
-        public const int QueryVersion = 1;
         public const string PublicServerHost = "skippy.pizza";
         public const int PublicServerPort = DefaultPort;
         public static readonly char[] AllowedCharacters;
