@@ -125,6 +125,7 @@ namespace Oxide.GettingOverItMP.Components
                             var connectIpContent = new GUIContent("Connect to IP");
                             var connectIpSize = GUI.skin.button.CalcSize(connectIpContent);
 
+                            GUI.enabled = !connected;
                             if (GUILayout.Button(connectIpContent, GUILayout.Width(connectIpSize.x)))
                             {
                                 drawCustomConnect = true;
