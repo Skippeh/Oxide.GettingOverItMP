@@ -17,6 +17,10 @@ namespace Oxide.GettingOverItMP.Components
 
         private static readonly Vector2 windowSize = new Vector2(600, 400);
         private Rect windowRect;
+
+        private static readonly Vector2 ipWindowSize = new Vector2(250, 100);
+        private Rect ipWindowRect;
+
         private Vector2 scrollPosition;
         private PlayerControl control;
         private ChatUI chatUi;
@@ -26,11 +30,15 @@ namespace Oxide.GettingOverItMP.Components
         private ServerInfo selectedServer;
         private GUIStyle rowStyle;
         private GUIStyle backgroundStyle;
+        private GUIStyle windowStyle;
 
         private bool disconnected => client.Status == NetConnectionStatus.Disconnected || client.Status == NetConnectionStatus.Disconnecting;
         private bool connected => client.Status == NetConnectionStatus.Connected || client.Status == NetConnectionStatus.InitiatedConnect;
 
         private bool searching;
+        private bool drawCustomConnect;
+        private string ipText = "";
+
         private readonly List<ServerInfo> servers = new List<ServerInfo>()
         {
             new ServerInfo
@@ -46,6 +54,7 @@ namespace Oxide.GettingOverItMP.Components
         private void Start()
         {
             windowRect = new Rect(Screen.width / 2f - windowSize.x / 2f, Screen.height / 2f - windowSize.y / 2f, windowSize.x, windowSize.y);
+            ipWindowRect = new Rect(Screen.width / 2f - ipWindowSize.x / 2f, Screen.height / 2f - ipWindowSize.y / 2f, ipWindowSize.x, ipWindowSize.y);
 
             control = GameObject.Find("Player").GetComponent<PlayerControl>();
             chatUi = GetComponent<ChatUI>();
@@ -68,8 +77,10 @@ namespace Oxide.GettingOverItMP.Components
 
                 backgroundStyle = new GUIStyle();
                 backgroundStyle.normal.background = Texture2D.whiteTexture;
+
+                windowStyle = new GUIStyle(GUI.skin.window);
             }
-            
+
             if (!control.IsPaused() || chatUi.Writing)
                 return;
 
@@ -88,47 +99,80 @@ namespace Oxide.GettingOverItMP.Components
                     return;
                 }
 
-                GUI.Window(1, windowRect, DrawWindow, "Servers");
-
-                GUILayout.BeginArea(new Rect(windowRect.x + 5, windowRect.yMax + 5, windowRect.width - 10, 100));
+                if (!drawCustomConnect)
                 {
-                    bool oldEnabled = GUI.enabled;
+                    GUI.Window(1, windowRect, DrawWindow, "Servers", windowStyle);
 
-                    // Local player stuff below
-                    GUI.enabled = !connected;
-                    GUILayout.BeginHorizontal();
+                    // Draw stuff below server list window
+                    GUILayout.BeginArea(new Rect(windowRect.x + 5, windowRect.yMax + 5, windowRect.width - 10, 100));
                     {
-                        var nameContent = new GUIContent("Name");
-                        var nameSize = GUI.skin.label.CalcSize(nameContent);
+                        bool oldEnabled = GUI.enabled;
 
-                        GUILayout.Label(nameContent, GUILayout.Width(nameSize.x));
-                        playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength);
-                    }
-                    GUILayout.EndHorizontal();
-
-                    // Selected server info below
-                    GUI.enabled = selectedServer != null;
-                    GUILayout.BeginHorizontal();
-                    {
-                        if (GUILayout.Button(connected ? "Disconnect" : "Connect"))
+                        // Browser stuff below
+                        GUILayout.BeginHorizontal();
                         {
-                            if (disconnected)
-                                ConnectToServer(selectedServer);
-                            else
+                            var refreshContent = new GUIContent(searching ? "Cancel" : "Refresh");
+                            var refreshSize = GUI.skin.button.CalcSize(refreshContent);
+
+                            if (GUILayout.Button(refreshContent, GUILayout.Width(refreshSize.x)))
                             {
-                                client.Disconnect();
+                                if (!searching)
+                                    StartSearching();
+                                else
+                                    CancelSearching();
+                            }
+
+                            var connectIpContent = new GUIContent("Connect to IP");
+                            var connectIpSize = GUI.skin.button.CalcSize(connectIpContent);
+
+                            if (GUILayout.Button(connectIpContent, GUILayout.Width(connectIpSize.x)))
+                            {
+                                drawCustomConnect = true;
                             }
                         }
-                    }
-                    GUILayout.EndHorizontal();
+                        GUILayout.EndHorizontal();
 
-                    GUI.enabled = oldEnabled;
+                        // Local player stuff below
+                        GUI.enabled = !connected;
+                        GUILayout.BeginHorizontal();
+                        {
+                            var nameContent = new GUIContent("Name");
+                            var nameSize = GUI.skin.label.CalcSize(nameContent);
+
+                            GUILayout.Label(nameContent, GUILayout.Width(nameSize.x));
+                            playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength);
+                        }
+                        GUILayout.EndHorizontal();
+
+                        // Selected server info below
+                        GUI.enabled = selectedServer != null || connected;
+                        GUILayout.BeginHorizontal();
+                        {
+                            if (GUILayout.Button(connected ? "Disconnect" : "Connect"))
+                            {
+                                if (disconnected)
+                                    ConnectToServer(selectedServer);
+                                else
+                                {
+                                    client.Disconnect();
+                                }
+                            }
+                        }
+                        GUILayout.EndHorizontal();
+
+                        GUI.enabled = oldEnabled;
+                    }
+                    GUILayout.EndArea();
                 }
-                GUILayout.EndArea();
+                else
+                {
+                    GUI.Window(2, ipWindowRect, DrawCustomConnectWindow, "Connect to IP", windowStyle);
+                }
 
                 if (GUILayout.Button("Close browser"))
                 {
                     Open = false;
+                    drawCustomConnect = false;
                 }
             }
             else
@@ -144,7 +188,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             float innerWidth = windowSize.x;
             float innerHeight = windowSize.y;
-            
+
             GUILayout.BeginHorizontal(GUILayout.Width(innerWidth - 4));
             {
                 GUILayout.Label("Name", GUILayout.Width(430));
@@ -158,7 +202,7 @@ namespace Oxide.GettingOverItMP.Components
             GUILayout.EndHorizontal();
 
             var lastRect = GUILayoutUtility.GetLastRect();
-            
+
             GUILayout.BeginArea(new Rect(0, 45, innerWidth - 4, innerHeight - lastRect.height - 48));
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, true);
             {
@@ -174,7 +218,7 @@ namespace Oxide.GettingOverItMP.Components
             GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
-        
+
         private void DrawRow(ServerInfo info, int index)
         {
             bool even = index % 2 == 0;
@@ -200,11 +244,11 @@ namespace Oxide.GettingOverItMP.Components
                 GUI.skin.label.alignment = TextAnchor.UpperLeft;
             }
             GUILayout.EndHorizontal();
-            
+
             if (UnityEngine.Event.current.type == EventType.MouseDown && UnityEngine.Event.current.button == 0)
             {
                 var lastArea = GUILayoutUtility.GetLastRect();
-                
+
                 if (lastArea.Contains(UnityEngine.Event.current.mousePosition))
                 {
                     selectedServer = info;
@@ -212,6 +256,34 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             GUI.backgroundColor = oldBackground;
+        }
+
+        private void DrawCustomConnectWindow(int id)
+        {
+            GUILayout.Label("IP");
+            ipText = GUILayout.TextField(ipText, "255.255.255.255:25565".Length);
+
+            GUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("Connect"))
+                {
+                    string[] ipPort = ipText.Replace(" ", "").Contains(":") ? ipText.Split(':') : new[] {ipText, SharedConstants.DefaultPort.ToString()};
+                    string ip = ipPort[0];
+                    int port = int.Parse(ipPort[1]);
+
+                    if (string.IsNullOrEmpty(ip))
+                        ip = "127.0.0.1";
+
+                    client.Connect(ip, port, playerName);
+                    drawCustomConnect = false;
+                }
+
+                if (GUILayout.Button("Cancel"))
+                {
+                    drawCustomConnect = false;
+                }
+            }
+            GUILayout.EndHorizontal();
         }
 
         private void SetOpen(bool open)
@@ -235,8 +307,25 @@ namespace Oxide.GettingOverItMP.Components
 
         private void ConnectToServer(ServerInfo info)
         {
+            ConnectToServer(info.Ip, info.Port);
+        }
+
+        private void ConnectToServer(string ip, int port)
+        {
             PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
-            client.Connect(info.Ip, info.Port, playerName);
+            client.Connect(ip, port, playerName);
+        }
+
+        private void StartSearching()
+        {
+            searching = true;
+            selectedServer = null;
+            servers.Clear();
+        }
+
+        private void CancelSearching()
+        {
+            searching = false;
         }
     }
 }
