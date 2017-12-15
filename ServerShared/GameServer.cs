@@ -29,6 +29,7 @@ namespace ServerShared
         public int MaxPlayers => server.Configuration.MaximumConnections;
 
         public readonly bool ListenServer;
+        public readonly bool PrivateServer;
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
 
@@ -37,7 +38,7 @@ namespace ServerShared
         private double nextSendTime = 0;
         private readonly List<PendingConnection> pendingConnections = new List<PendingConnection>();
 
-        public GameServer(string name, int maxConnections, int port, bool listenServer)
+        public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer)
         {
             if (maxConnections <= 0)
                 throw new ArgumentException("Max connections needs to be > 0.");
@@ -61,8 +62,8 @@ namespace ServerShared
             server.DiscoveryRequest += OnDiscoveryRequest;
 
             ListenServer = listenServer;
+            PrivateServer = privateServer;
             Name = name;
-
 
             if (listenServer)
             {
@@ -73,11 +74,21 @@ namespace ServerShared
         public void Start()
         {
             server.Start();
+
+            if (!PrivateServer)
+            {
+                MasterServer.Start(this);
+            }
         }
 
         public void Stop()
         {
             server.Shutdown("bye");
+
+            if (!PrivateServer)
+            {
+                MasterServer.Stop();
+            }
         }
 
         public void Update()

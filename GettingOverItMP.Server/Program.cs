@@ -29,7 +29,7 @@ namespace GettingOverItMP.Server
                 return 1;
             }
 
-            server = new GameServer(launchArguments.ServerName, MaxConnections, Port, false);
+            server = new GameServer(launchArguments.ServerName, MaxConnections, Port, false, launchArguments.Private);
             server.Start();
 
             Console.WriteLine("Press CTRL+Q to stop the server.");
