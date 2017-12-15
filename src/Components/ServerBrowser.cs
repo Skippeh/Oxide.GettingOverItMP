@@ -359,6 +359,9 @@ namespace Oxide.GettingOverItMP.Components
 
                 Interface.Oxide.LogDebug($"Quering {serverList.Length} server(s)...");
 
+                if (serverList.Length == 0)
+                    searching = false;
+
                 foreach (var masterServerInfo in serverList)
                 {
                     if (!searching)
