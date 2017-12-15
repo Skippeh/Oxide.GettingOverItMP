@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using Lidgren.Network;
 using Oxide.Core;
-using Oxide.GettingOverIt;
 using Oxide.GettingOverItMP.Networking;
 using ServerShared;
 using ServerShared.Networking;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Oxide.GettingOverItMP.Components
 {
@@ -372,15 +371,34 @@ namespace Oxide.GettingOverItMP.Components
         {
             ThreadPool.QueueUserWorkItem(_ =>
             {
-                callback(new List<MasterServerInfo>
+                try
                 {
-                    new MasterServerInfo
+                    using (var webClient = new WebClient())
                     {
-                        Ip = "127.0.0.1",
-                        Port = 25050
+                        string serversString = webClient.DownloadString($"{SharedConstants.MasterServerUrl}/list");
+                        callback(ParseServersString(serversString).ToArray());
                     }
-                }.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    Interface.Oxide.LogError(ex.ToString());
+                    callback(new MasterServerInfo[0]);
+                }
             });
+        }
+
+        private IEnumerable<MasterServerInfo> ParseServersString(string servers)
+        {
+            string[] serversArray = servers.Split(new[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string endPoint in serversArray)
+            {
+                string[] ipPort = endPoint.Split(';');
+                string host = ipPort[0];
+                string strPort = ipPort[1];
+                
+                yield return new MasterServerInfo(host, int.Parse(strPort));
+            }
         }
 
         private void CancelSearching()

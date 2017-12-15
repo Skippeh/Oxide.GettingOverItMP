@@ -15,5 +15,11 @@
     {
         public string Ip;
         public int Port;
+
+        public MasterServerInfo(string ip, int port)
+        {
+            Ip = ip;
+            Port = port;
+        }
     }
 }
