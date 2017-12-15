@@ -192,7 +192,7 @@ namespace Oxide.GettingOverItMP.Components
                 {
                     Open = true;
 
-                    if (!searching)
+                    if (!searching && currentMenuState == MenuState.Browser)
                         StartSearching();
                 }
             }
