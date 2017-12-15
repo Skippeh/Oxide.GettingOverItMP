@@ -14,6 +14,13 @@ namespace Oxide.GettingOverItMP.Components
 {
     public class ServerBrowser : MonoBehaviour
     {
+        enum MenuState
+        {
+            Browser,
+            CustomConnect,
+            Host
+        }
+
         public bool Open { get => _open; private set => SetOpen(value); }
         private bool _open;
 
@@ -38,7 +45,7 @@ namespace Oxide.GettingOverItMP.Components
         private bool connected => client.Status == NetConnectionStatus.Connected || client.Status == NetConnectionStatus.InitiatedConnect;
 
         private bool searching;
-        private bool drawCustomConnect;
+        private MenuState currentMenuState = MenuState.Browser;
         private string ipText = "";
 
         private readonly List<ServerInfo> servers = new List<ServerInfo>();
@@ -91,7 +98,7 @@ namespace Oxide.GettingOverItMP.Components
                     return;
                 }
 
-                if (!drawCustomConnect)
+                if (currentMenuState == MenuState.Browser)
                 {
                     GUI.Window(1, windowRect, DrawServersWindow, "Servers", windowStyle);
 
@@ -120,7 +127,16 @@ namespace Oxide.GettingOverItMP.Components
                             GUI.enabled = !connected;
                             if (GUILayout.Button(connectIpContent, GUILayout.Width(connectIpSize.x)))
                             {
-                                drawCustomConnect = true;
+                                currentMenuState = MenuState.CustomConnect;
+                            }
+
+                            var hostContent = new GUIContent("Host server");
+                            var hostSize = GUI.skin.button.CalcSize(hostContent);
+
+                            GUI.enabled = !connected;
+                            if (GUILayout.Button(hostContent, GUILayout.Width(hostSize.x)))
+                            {
+                                currentMenuState = MenuState.Host;
                             }
                         }
                         GUILayout.EndHorizontal();
@@ -157,7 +173,7 @@ namespace Oxide.GettingOverItMP.Components
                     }
                     GUILayout.EndArea();
                 }
-                else
+                else if (currentMenuState == MenuState.CustomConnect)
                 {
                     GUI.Window(2, ipWindowRect, DrawCustomConnectWindow, "Connect to IP", windowStyle);
                 }
@@ -165,7 +181,9 @@ namespace Oxide.GettingOverItMP.Components
                 if (GUILayout.Button("Close browser"))
                 {
                     Open = false;
-                    drawCustomConnect = false;
+
+                    if (currentMenuState != MenuState.Host)
+                        currentMenuState = MenuState.Browser;
                 }
             }
             else
@@ -286,12 +304,12 @@ namespace Oxide.GettingOverItMP.Components
                         ip = "127.0.0.1";
 
                     client.Connect(ip, port, playerName);
-                    drawCustomConnect = false;
+                    currentMenuState = MenuState.Browser;
                 }
 
                 if (GUILayout.Button("Cancel"))
                 {
-                    drawCustomConnect = false;
+                    currentMenuState = MenuState.Browser;
                 }
             }
             GUILayout.EndHorizontal();
