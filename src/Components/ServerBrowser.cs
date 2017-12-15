@@ -30,6 +30,9 @@ namespace Oxide.GettingOverItMP.Components
         private static readonly Vector2 ipWindowSize = new Vector2(250, 100);
         private Rect ipWindowRect;
 
+        private static readonly Vector2 hostWindowSize = new Vector2(600, 400);
+        private Rect hostWindowRect;
+
         private Vector2 scrollPosition;
         private PlayerControl control;
         private ChatUI chatUi;
@@ -47,6 +50,8 @@ namespace Oxide.GettingOverItMP.Components
         private bool searching;
         private MenuState currentMenuState = MenuState.Browser;
         private string ipText = "";
+        private string strHostPort;
+        private bool hostPrivate;
 
         private readonly List<ServerInfo> servers = new List<ServerInfo>();
 
@@ -54,6 +59,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             windowRect = new Rect(Screen.width / 2f - windowSize.x / 2f, Screen.height / 2f - windowSize.y / 2f, windowSize.x, windowSize.y);
             ipWindowRect = new Rect(Screen.width / 2f - ipWindowSize.x / 2f, Screen.height / 2f - ipWindowSize.y / 2f, ipWindowSize.x, ipWindowSize.y);
+            hostWindowRect = new Rect(Screen.width / 2f - hostWindowSize.x / 2f, Screen.height / 2f - hostWindowSize.y / 2f, hostWindowSize.x, hostWindowSize.y);
 
             control = GameObject.Find("Player").GetComponent<PlayerControl>();
             chatUi = GetComponent<ChatUI>();
@@ -64,6 +70,9 @@ namespace Oxide.GettingOverItMP.Components
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>() ?? throw new NotImplementedException("Could not find Client");
 
             playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
+            strHostPort = PlayerPrefs.GetString("GOIMP_HostPort", SharedConstants.DefaultPort.ToString());
+            ipText = PlayerPrefs.GetString("GOIMP_ConnectIp", "");
+            hostPrivate = PlayerPrefs.GetInt("GOIMP_HostPrivate", 0) != 0;
         }
 
         private void OnGUI()
@@ -176,6 +185,10 @@ namespace Oxide.GettingOverItMP.Components
                 else if (currentMenuState == MenuState.CustomConnect)
                 {
                     GUI.Window(2, ipWindowRect, DrawCustomConnectWindow, "Connect to IP", windowStyle);
+                }
+                else if (currentMenuState == MenuState.Host)
+                {
+                    GUI.Window(3, hostWindowRect, DrawHostWindow, "Host server", windowStyle);
                 }
 
                 if (GUILayout.Button("Close browser"))
@@ -303,11 +316,48 @@ namespace Oxide.GettingOverItMP.Components
                     if (string.IsNullOrEmpty(ip))
                         ip = "127.0.0.1";
 
+                    PlayerPrefs.SetString("GOIMP_ConnectIp", ip);
                     client.Connect(ip, port, playerName);
                     currentMenuState = MenuState.Browser;
                 }
 
                 if (GUILayout.Button("Cancel"))
+                {
+                    currentMenuState = MenuState.Browser;
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawHostWindow(int id)
+        {
+            GUILayout.Label("Port");
+            strHostPort = GUILayout.TextField(strHostPort, "25565".Length);
+            
+            if (!ushort.TryParse(strHostPort, out _))
+            {
+                Color oldColor = GUI.color;
+                GUI.color = SharedConstants.ColorRed;
+                GUILayout.Label($"Port needs to be between 0-65535.");
+                GUI.color = oldColor;
+            }
+
+            hostPrivate = GUILayout.Toggle(hostPrivate, " Private server (don't show in server browser)");
+
+            GUILayout.BeginHorizontal();
+            {
+                GUIContent startContent = new GUIContent("Start");
+                Vector2 startSize = GUI.skin.button.CalcSize(startContent);
+
+                if (GUILayout.Button(startContent, GUILayout.Width(startSize.x)))
+                {
+                    
+                }
+
+                GUIContent backContent = new GUIContent("Back");
+                Vector2 backSize = GUI.skin.button.CalcSize(backContent);
+                
+                if (GUILayout.Button(backContent, GUILayout.Width(backSize.x)))
                 {
                     currentMenuState = MenuState.Browser;
                 }
