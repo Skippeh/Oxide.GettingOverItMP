@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using CommandLineParser.Exceptions;
 using ServerShared;
 
 namespace GettingOverItMP.Server
@@ -11,9 +12,24 @@ namespace GettingOverItMP.Server
 
         private static GameServer server;
 
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
-            server = new GameServer("TODO: server names", MaxConnections, Port, false);
+            var parser = new CommandLineParser.CommandLineParser();
+            var launchArguments = new LaunchArguments();
+            
+            try
+            {
+                parser.ExtractArgumentAttributes(launchArguments);
+                parser.ParseCommandLine(args);
+            }
+            catch (CommandLineException ex)
+            {
+                Console.WriteLine(ex.Message);
+                parser.ShowUsage();
+                return 1;
+            }
+
+            server = new GameServer(launchArguments.ServerName, MaxConnections, Port, false);
             server.Start();
 
             Console.WriteLine("Press CTRL+Q to stop the server.");
@@ -33,6 +49,7 @@ namespace GettingOverItMP.Server
             }
             
             server.Stop();
+            return 0;
         }
     }
 }
