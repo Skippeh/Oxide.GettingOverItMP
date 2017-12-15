@@ -43,9 +43,11 @@ namespace GettingOverItMP.Server
 
                 if (key.Modifiers == ConsoleModifiers.Control && key.Key == ConsoleKey.Q)
                     break;
-
+                
                 server.Update();
                 Thread.Sleep(1);
+
+                Console.Title = $"{server.Name} | {server.Players.Count}/{server.MaxPlayers}";
             }
             
             server.Stop();

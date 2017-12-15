@@ -26,6 +26,8 @@ namespace ServerShared
 
         public string Name;
         public int Port => server.Configuration.Port;
+        public int MaxPlayers => server.Configuration.MaximumConnections;
+
         public readonly bool ListenServer;
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
