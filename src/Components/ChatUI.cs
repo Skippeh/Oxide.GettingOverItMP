@@ -91,6 +91,7 @@ namespace Oxide.GettingOverItMP.Components
                 scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, false, GUI.skin.horizontalScrollbar, Writing ? GUI.skin.verticalScrollbar : GUIStyle.none, GUILayout.Width(ChatSize.x), GUILayout.Height(ChatSize.y));
                 {
                     Color oldColor = GUI.color;
+                    GUI.skin.label.richText = false;
 
                     for (int i = 0; i < chatMessages.Count; ++i)
                     {
@@ -105,6 +106,7 @@ namespace Oxide.GettingOverItMP.Components
                         GUILayout.Space(-3);
                     }
 
+                    GUI.skin.label.richText = true;
                     GUI.color = oldColor;
                 }
                 GUI.EndScrollView();

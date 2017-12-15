@@ -234,7 +234,9 @@ namespace Oxide.GettingOverItMP.Components
 
             GUILayout.BeginHorizontal(rowStyle);
             {
+                GUI.skin.label.richText = false;
                 GUILayout.Label(info.Name, GUILayout.Width(430));
+                GUI.skin.label.richText = true;
 
                 GUI.skin.label.alignment = TextAnchor.UpperRight;
                 GUILayout.Label($"{info.Players}/{info.MaxPlayers}", GUILayout.Width(80));
