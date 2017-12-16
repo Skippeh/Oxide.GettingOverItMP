@@ -26,6 +26,19 @@ namespace GettingOverItMP.Server
                 return 1;
             }
 
+            if (launchArguments.MaxPlayers > SharedConstants.MaxPlayerLimit)
+            {
+                Console.WriteLine($"Max players exceeded max limit of {SharedConstants.MaxPlayerLimit}. Value was adjusted.");
+                launchArguments.MaxPlayers = SharedConstants.MaxPlayerLimit;
+            }
+
+            if (launchArguments.MaxPlayers < 1)
+            {
+                Console.WriteLine("Player limit can't be lower than 1.");
+                parser.ShowUsage();
+                return 1;
+            }
+
             server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private);
             server.Start();
 
