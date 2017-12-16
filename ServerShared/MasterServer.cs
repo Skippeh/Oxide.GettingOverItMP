@@ -31,11 +31,11 @@ namespace ServerShared
             if (started)
                 throw new Exception("Start was called while already running.");
 
+            started = true;
             Server = server ?? throw new ArgumentNullException(nameof(server));
             webClient = new WebClient();
             updateThread = new Thread(DoUpdateThread);
             updateThread.Start();
-            started = true;
 
             Console.WriteLine("Started beating to master server.");
         }
