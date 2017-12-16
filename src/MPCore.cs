@@ -61,6 +61,9 @@ namespace Oxide.GettingOverIt
                 DestroyClient();
                 DestroyUI();
                 DestroySpectator();
+
+                if (ListenServer.Running)
+                    ListenServer.Stop();
             }
         }
 
