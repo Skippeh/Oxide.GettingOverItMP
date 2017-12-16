@@ -7,9 +7,6 @@ namespace GettingOverItMP.Server
 {
     public static class Program
     {
-        public static int MaxConnections = 100;
-        public static int Port = SharedConstants.DefaultPort;
-
         private static GameServer server;
 
         private static int Main(string[] args)
@@ -29,7 +26,7 @@ namespace GettingOverItMP.Server
                 return 1;
             }
 
-            server = new GameServer(launchArguments.ServerName, MaxConnections, Port, false, launchArguments.Private);
+            server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private);
             server.Start();
 
             Console.WriteLine("Press CTRL+Q to stop the server.");
