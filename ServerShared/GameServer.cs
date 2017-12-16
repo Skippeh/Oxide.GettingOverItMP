@@ -285,7 +285,8 @@ namespace ServerShared
                         Console.WriteLine($"Got valid handshake from {connection.RemoteEndPoint}");
 
                         var player = AddConnection(connection, playerName);
-                        Players[connection].Movement = movementData;
+                        player.Movement = movementData;
+                        player.Name = $"[{player.Id}] {player.Name}";
 
                         var writer = server.CreateMessage();
                         writer.Write(MessageType.CreatePlayer);
