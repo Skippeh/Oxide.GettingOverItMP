@@ -18,7 +18,7 @@ namespace ServerShared
         public const int MoveDataChannel = 1;
         public const string MasterServerUrl = "https://master.gettingoverit.mp";
         public const int MaxServerNameLength = 40;
-        public const int MaxPlayerLimit = 1000;
+        public const int MaxPlayerLimit = 9999;
 
         static SharedConstants()
         {
