@@ -448,7 +448,6 @@ namespace Oxide.GettingOverItMP.Components
         {
             SavePlayerPrefs();
             client.Connect(ip, port, playerName);
-            Open = false;
         }
 
         private void StartSearching()
