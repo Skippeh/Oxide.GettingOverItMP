@@ -51,7 +51,7 @@ namespace Oxide.GettingOverItMP.Components
                 Writing = true;
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-                playerControl.Pause();
+                playerControl.PauseInput(float.MinValue);
             }
         }
 
@@ -122,6 +122,8 @@ namespace Oxide.GettingOverItMP.Components
                 var currentEvent = UnityEngine.Event.current;
                 if (currentEvent.isKey && (currentEvent.keyCode == KeyCode.Return || currentEvent.keyCode == KeyCode.KeypadEnter))
                 {
+                    playerControl.PauseInput(0);
+
                     if (chatInputText.Trim().Length > 0)
                     {
                         client.SendChatMessage(chatInputText);
@@ -139,6 +141,8 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 else if (currentEvent.isKey && currentEvent.keyCode == KeyCode.Escape)
                 {
+                    playerControl.PauseInput(0);
+
                     chatInputText = "";
                     Writing = false;
                     ShowChat(chatShowTimeOnMessageCancelled);
@@ -188,7 +192,6 @@ namespace Oxide.GettingOverItMP.Components
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            playerControl.UnPause();
         }
     }
 }
