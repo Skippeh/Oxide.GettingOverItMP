@@ -303,7 +303,7 @@ namespace Oxide.GettingOverItMP.Components
 
         public void Disconnect()
         {
-            server.Disconnect("bye");
+            server?.Disconnect("bye");
         }
 
         public void SendChatMessage(string text)

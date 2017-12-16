@@ -67,8 +67,8 @@ namespace Oxide.GettingOverItMP.Networking
                         ushort maxPlayers = response.ReadUInt16();
                         float ping = (float) pingStopwatch.Elapsed.TotalMilliseconds;
 
-                        if (serverName.Length > 40)
-                            serverName = serverName.Substring(0, 100);
+                        if (serverName.Length > SharedConstants.MaxServerNameLength)
+                            serverName = serverName.Substring(0, SharedConstants.MaxServerNameLength);
 
                         doneCallback2(new QueryDoneEventArgs
                         {

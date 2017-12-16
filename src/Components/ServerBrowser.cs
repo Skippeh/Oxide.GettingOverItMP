@@ -52,6 +52,8 @@ namespace Oxide.GettingOverItMP.Components
         private string ipText = "";
         private string strHostPort;
         private bool hostPrivate;
+        private string serverName;
+        private string strMaxPlayers;
 
         private readonly List<ServerInfo> servers = new List<ServerInfo>();
 
@@ -73,6 +75,8 @@ namespace Oxide.GettingOverItMP.Components
             strHostPort = PlayerPrefs.GetString("GOIMP_HostPort", SharedConstants.DefaultPort.ToString());
             ipText = PlayerPrefs.GetString("GOIMP_ConnectIp", "");
             hostPrivate = PlayerPrefs.GetInt("GOIMP_HostPrivate", 0) != 0;
+            serverName = PlayerPrefs.GetString("GOIMP_ServerName", "");
+            strMaxPlayers = PlayerPrefs.GetString("GOIMP_MaxPlayers", "100");
         }
 
         private void OnGUI()
@@ -316,7 +320,7 @@ namespace Oxide.GettingOverItMP.Components
                     if (string.IsNullOrEmpty(ip))
                         ip = "127.0.0.1";
 
-                    PlayerPrefs.SetString("GOIMP_ConnectIp", ip);
+                    SavePlayerPrefs();
                     client.Connect(ip, port, playerName);
                     currentMenuState = MenuState.Browser;
                 }
@@ -331,6 +335,37 @@ namespace Oxide.GettingOverItMP.Components
 
         private void DrawHostWindow(int id)
         {
+            bool fieldsValid = true;
+            GUI.enabled = !ListenServer.Running;
+
+            GUILayout.Label("Server name");
+            serverName = GUILayout.TextField(serverName, SharedConstants.MaxServerNameLength);
+
+            if (serverName.Length == 0)
+            {
+                Color oldColor = GUI.color;
+                GUI.color = SharedConstants.ColorRed;
+                GUILayout.Label($"Server name can't be empty.");
+                GUI.color = oldColor;
+
+                fieldsValid = false;
+            }
+
+            GUILayout.Label("Max players");
+            strMaxPlayers = GUILayout.TextField(strMaxPlayers, SharedConstants.MaxPlayerLimit);
+
+            {
+                if (!int.TryParse(strMaxPlayers, out int maxPlayers) || maxPlayers < 2 || maxPlayers > SharedConstants.MaxPlayerLimit)
+                {
+                    Color oldColor = GUI.color;
+                    GUI.color = SharedConstants.ColorRed;
+                    GUILayout.Label($"Max players needs to be between 2-{SharedConstants.MaxPlayerLimit}.");
+                    GUI.color = oldColor;
+
+                    fieldsValid = false;
+                }
+            }
+
             GUILayout.Label("Port");
             strHostPort = GUILayout.TextField(strHostPort, "25565".Length);
             
@@ -340,27 +375,47 @@ namespace Oxide.GettingOverItMP.Components
                 GUI.color = SharedConstants.ColorRed;
                 GUILayout.Label($"Port needs to be between 0-65535.");
                 GUI.color = oldColor;
+
+                fieldsValid = false;
             }
 
             hostPrivate = GUILayout.Toggle(hostPrivate, " Private server (don't show in server browser)");
 
+            GUI.enabled = true;
+
             GUILayout.BeginHorizontal();
             {
-                GUIContent startContent = new GUIContent("Start");
+                GUIContent startContent = new GUIContent(ListenServer.Running ? "Stop" : "Start");
                 Vector2 startSize = GUI.skin.button.CalcSize(startContent);
 
+                GUI.enabled = fieldsValid || ListenServer.Running;
                 if (GUILayout.Button(startContent, GUILayout.Width(startSize.x)))
                 {
-                    
+                    if (!ListenServer.Running)
+                    {
+                        var port = ushort.Parse(strHostPort);
+                        int maxPlayers = int.Parse(strMaxPlayers);
+
+                        ListenServer.Start(serverName, maxPlayers, port, hostPrivate);
+                        client.Connect("127.0.0.1", port, playerName);
+                        SavePlayerPrefs();
+                    }
+                    else
+                    {
+                        client.Disconnect();
+                        ListenServer.Stop();
+                    }
                 }
 
                 GUIContent backContent = new GUIContent("Back");
                 Vector2 backSize = GUI.skin.button.CalcSize(backContent);
-                
+
+                GUI.enabled = !ListenServer.Running;
                 if (GUILayout.Button(backContent, GUILayout.Width(backSize.x)))
                 {
                     currentMenuState = MenuState.Browser;
                 }
+                GUI.enabled = true;
             }
             GUILayout.EndHorizontal();
         }
@@ -391,7 +446,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private void ConnectToServer(string ip, int port)
         {
-            PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
+            SavePlayerPrefs();
             client.Connect(ip, port, playerName);
             Open = false;
         }
@@ -475,6 +530,16 @@ namespace Oxide.GettingOverItMP.Components
         private void CancelSearching()
         {
             searching = false;
+        }
+
+        private void SavePlayerPrefs()
+        {
+            PlayerPrefs.SetString("GOIMP_ConnectIp", ipText);
+            PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
+            PlayerPrefs.SetString("GOIMP_HostPort", strHostPort);
+            PlayerPrefs.SetInt("GOIMP_HostPrivate", hostPrivate ? 1 : 0);
+            PlayerPrefs.SetString("GOIMP_ServerName", serverName);
+            PlayerPrefs.SetString("GOIMP_MaxPlayers", strMaxPlayers);
         }
     }
 }

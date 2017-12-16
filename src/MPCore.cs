@@ -8,6 +8,7 @@ using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP.Components;
+using Oxide.GettingOverItMP.Networking;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -65,6 +66,8 @@ namespace Oxide.GettingOverIt
 
         protected override void Tick()
         {
+            if (ListenServer.Running)
+                ListenServer.Update();
         }
 
         private void InitUI()
