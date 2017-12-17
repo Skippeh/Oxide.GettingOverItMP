@@ -52,8 +52,10 @@ namespace Oxide.GettingOverItMP.Components
         {
             if (backgroundStyle == null)
             {
-                backgroundStyle = GUI.skin.box;
-                backgroundStyle.normal.background = Texture2D.whiteTexture;
+                backgroundStyle = new GUIStyle(GUI.skin.box)
+                {
+                    normal = {background = Texture2D.whiteTexture}
+                };
 
                 serverNameStyle = new GUIStyle(GUI.skin.label)
                 {
@@ -66,8 +68,10 @@ namespace Oxide.GettingOverItMP.Components
                     alignment = TextAnchor.UpperRight
                 };
 
-                rowStyle = new GUIStyle();
-                rowStyle.normal.background = Texture2D.whiteTexture;
+                rowStyle = new GUIStyle
+                {
+                    normal = {background = Texture2D.whiteTexture}
+                };
             }
 
             if (client.Status != NetConnectionStatus.Connected)
