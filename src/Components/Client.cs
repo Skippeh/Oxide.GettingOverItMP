@@ -19,6 +19,9 @@ namespace Oxide.GettingOverItMP.Components
 {
     public class Client : MonoBehaviour
     {
+        public event PlayerJoinedEventHandler PlayerJoined;
+        public event PlayerLeftEventHandler PlayerLeft;
+
         public readonly Dictionary<int, RemotePlayer> RemotePlayers = new Dictionary<int, RemotePlayer>();
 
         public NetConnectionStatus Status => client.ConnectionStatus;
@@ -174,13 +177,14 @@ namespace Oxide.GettingOverItMP.Components
                     
                     break;
                 }
-                case MessageType.RemovePlayer: // Received when a remote player disconnects.
+                case MessageType.RemovePlayer: // Received when a remote player disconnects or starts spectating.
                 {
                     int id = netMessage.ReadInt32();
 
                     if (RemotePlayers.ContainsKey(id))
                     {
                         var player = RemotePlayers[id];
+                        PlayerLeft?.Invoke(this, new PlayerLeftEventArgs {Player = player});
                         Destroy(RemotePlayers[id].gameObject);
                         RemotePlayers.Remove(id);
                     }
@@ -256,6 +260,7 @@ namespace Oxide.GettingOverItMP.Components
             remotePlayer.PlayerName = playerName;
             remotePlayer.ApplyMove(move, 0);
             RemotePlayers.Add(id, remotePlayer);
+            PlayerJoined?.Invoke(this, new PlayerJoinedEventArgs {Player = remotePlayer});
             Interface.Oxide.LogDebug($"Added remote player with id {id} at {move.Position} ({remotePlayer.transform.position}");
         }
 
@@ -290,7 +295,11 @@ namespace Oxide.GettingOverItMP.Components
 
         private void RemoveAllRemotePlayers()
         {
-            RemotePlayers.ForEach(plr => Destroy(plr.Value.gameObject));
+            RemotePlayers.ForEach(kv =>
+            {
+                PlayerLeft?.Invoke(this, new PlayerLeftEventArgs {Player = kv.Value});
+                Destroy(kv.Value.gameObject);
+            });
             RemotePlayers.Clear();
         }
 
@@ -373,6 +382,8 @@ namespace Oxide.GettingOverItMP.Components
             SendSpectate(players[targetIndex]);
         }
     }
-
+    
+    public delegate void PlayerJoinedEventHandler(object sender, PlayerJoinedEventArgs args);
+    public delegate void PlayerLeftEventHandler(object sender, PlayerLeftEventArgs args);
     public delegate void ChatMessageReceived(object sender, ChatMessageReceivedEventArgs args);
 }
