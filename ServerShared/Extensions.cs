@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Lidgren.Network;
+using ServerShared.Networking;
 using ServerShared.Player;
 
 namespace ServerShared
@@ -101,6 +102,28 @@ namespace ServerShared
                 SliderPosition = message.ReadVector3(),
                 SliderRotation = message.ReadQuaternion()
             };
+        }
+
+        public static void Write(this NetOutgoingMessage message, DiscoveryServerInfo serverInfo)
+        {
+            message.Write(serverInfo.Name);
+            message.Write(serverInfo.Players);
+            message.Write(serverInfo.MaxPlayers);
+        }
+
+        public static DiscoveryServerInfo ReadDiscoveryServerInfo(this NetIncomingMessage message)
+        {
+            var info = new DiscoveryServerInfo
+            {
+                Name = message.ReadString(),
+                Players = message.ReadUInt16(),
+                MaxPlayers = message.ReadUInt16()
+            };
+
+            if (info.Name.Length > SharedConstants.MaxServerNameLength)
+                info.Name = info.Name.Substring(0, SharedConstants.MaxServerNameLength);
+
+            return info;
         }
 
         public static void Disconnect(this NetConnection connection, DisconnectReason reason)

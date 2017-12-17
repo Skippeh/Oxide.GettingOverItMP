@@ -62,13 +62,8 @@ namespace Oxide.GettingOverItMP.Networking
                     }
                     else
                     {
-                        string serverName = response.ReadString();
-                        ushort players = response.ReadUInt16();
-                        ushort maxPlayers = response.ReadUInt16();
+                        var serverInfo = response.ReadDiscoveryServerInfo();
                         float ping = (float) pingStopwatch.Elapsed.TotalMilliseconds;
-
-                        if (serverName.Length > SharedConstants.MaxServerNameLength)
-                            serverName = serverName.Substring(0, SharedConstants.MaxServerNameLength);
 
                         doneCallback2(new QueryDoneEventArgs
                         {
@@ -76,9 +71,9 @@ namespace Oxide.GettingOverItMP.Networking
                             {
                                 Ip = ip,
                                 Port = port,
-                                Name = serverName,
-                                Players = players,
-                                MaxPlayers = maxPlayers,
+                                Name = serverInfo.Name,
+                                Players = serverInfo.Players,
+                                MaxPlayers = serverInfo.MaxPlayers,
                                 Ping = ping
                             },
                             Successful = true

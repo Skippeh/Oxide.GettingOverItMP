@@ -421,12 +421,20 @@ namespace ServerShared
         private void OnDiscoveryRequest(object sender, NetIncomingMessage message)
         {
             var toSend = server.CreateMessage();
+            var serverInfo = GetServerInfo();
 
-            toSend.Write(Name);
-            toSend.Write((ushort)Players.Count);
-            toSend.Write((ushort)server.Configuration.MaximumConnections);
-
+            toSend.Write(serverInfo);
             server.SendDiscoveryResponse(toSend, message.SenderEndPoint);
+        }
+
+        private DiscoveryServerInfo GetServerInfo()
+        {
+            return new DiscoveryServerInfo
+            {
+                Name = Name,
+                Players = (ushort) Players.Count,
+                MaxPlayers = (ushort) server.Configuration.MaximumConnections
+            };
         }
     }
 }
