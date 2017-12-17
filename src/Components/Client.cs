@@ -31,7 +31,8 @@ namespace Oxide.GettingOverItMP.Components
         public string LastDisconnectReason { get; private set; }
         public float LastReceiveDelta { get; private set; }
         public DiscoveryServerInfo ServerInfo { get; private set; }
-        
+        public LocalPlayer LocalPlayer => localPlayer;
+
         private GameClientPeer client;
         private NetConnection server;
         private LocalPlayer localPlayer;

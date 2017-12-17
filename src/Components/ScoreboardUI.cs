@@ -155,12 +155,33 @@ namespace Oxide.GettingOverItMP.Components
         private void DrawRow(MPBasePlayer player, int index)
         {
             float rgb = index % 2 == 0 ? 0.3f : 0.2f;
+
+            if (client.LocalPlayer.gameObject == player.gameObject)
+            {
+                rgb = 0.5f;
+            }
+
             GUI.backgroundColor = new Color(rgb, rgb, rgb, 0.2f);
 
             GUILayout.BeginHorizontal(rowStyle, GUILayout.Width(scoreboardSize.x - 41));
             {
+                bool resetFont = false;
+
+                if (client.LocalPlayer.gameObject == player.gameObject)
+                {
+                    GUI.skin.label.fontStyle = FontStyle.Bold;
+                    rightAlignedLabel.fontStyle = FontStyle.Bold;
+                    resetFont = true;
+                }
+
                 GUILayout.Label(player.PlayerName, GUILayout.Width(scoreboardSize.x - 157));
                 GUILayout.Label($"{(player.transform.position.y - waterHeight):0}m", rightAlignedLabel, GUILayout.Width(100));
+
+                if (resetFont)
+                {
+                    GUI.skin.label.fontStyle = FontStyle.Normal;
+                    rightAlignedLabel.fontStyle = FontStyle.Normal;
+                }
             }
             GUILayout.EndHorizontal();
         }
