@@ -130,7 +130,7 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 GUILayout.EndHorizontal();
                 
-                GUILayout.BeginArea(new Rect(10, 50, scoreboardSize.x - 20, scoreboardSize.y - 55));
+                GUILayout.BeginArea(new Rect(10, 50, scoreboardSize.x - 20, scoreboardSize.y - 60));
                 {
                     var oldBackgroundColor2 = GUI.backgroundColor;
                     GUI.backgroundColor = Color.white;
