@@ -8,7 +8,7 @@ namespace ServerShared
         public const string AppName = "GOIMP";
         public const int MaxNameLength = 30;
         public const int DefaultPort = 25050;
-        public const int Version = 6;
+        public const int Version = 7;
         public static readonly char[] AllowedCharacters;
         public const int MaxChatLength = 100;
         public static readonly Color ColorGreen = new Color(0.48f, 0.74f, 0.45f);
