@@ -157,6 +157,8 @@ namespace ServerShared
             var netPlayer = new NetPlayer(connection, playerName, this);
             Players[connection] = netPlayer;
 
+            netPlayer.Name = $"[{netPlayer.Id}] {netPlayer.Name}"; // Prefix name with ID.
+
             var netMessage = server.CreateMessage();
             netMessage.Write(MessageType.HandshakeResponse);
             netMessage.Write(netPlayer.Id);
@@ -291,7 +293,6 @@ namespace ServerShared
 
                         var player = AddConnection(connection, playerName);
                         player.Movement = movementData;
-                        player.Name = $"[{player.Id}] {player.Name}";
 
                         var writer = server.CreateMessage();
                         writer.Write(MessageType.CreatePlayer);
