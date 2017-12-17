@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Lidgren.Network;
+using ServerShared.Networking;
 using ServerShared.Player;
 using UnityEngine;
 
@@ -166,6 +167,10 @@ namespace ServerShared
             var allPlayersDict = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Movement);
             netMessage.Write(allNames);
             netMessage.Write(allPlayersDict);
+
+            var serverInfo = GetServerInfo();
+            netMessage.Write(serverInfo);
+
             connection.SendMessage(netMessage, NetDeliveryMethod.ReliableOrdered, 0);
 
             Console.WriteLine($"Added client from {connection.RemoteEndPoint} with id {netPlayer.Id} (total: {Players.Count})");

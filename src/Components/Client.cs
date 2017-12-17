@@ -9,6 +9,7 @@ using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.GettingOverItMP.EventArgs;
 using ServerShared;
+using ServerShared.Networking;
 using ServerShared.Player;
 using UnityEngine;
 using DisconnectReason = ServerShared.DisconnectReason;
@@ -25,8 +26,8 @@ namespace Oxide.GettingOverItMP.Components
         public string PlayerName { get => localPlayer.PlayerName; set => localPlayer.PlayerName = value; }
         public event ChatMessageReceived ChatMessageReceived;
         public string LastDisconnectReason { get; private set; }
-
         public float LastReceiveDelta { get; private set; }
+        public DiscoveryServerInfo ServerInfo { get; private set; }
         
         private GameClientPeer client;
         private NetConnection server;
@@ -140,6 +141,7 @@ namespace Oxide.GettingOverItMP.Components
                     PlayerName = netMessage.ReadString();
                     var names = netMessage.ReadNamesDictionary();
                     var remotePlayers = netMessage.ReadMovementDictionary();
+                    ServerInfo = netMessage.ReadDiscoveryServerInfo();
 
                     localPlayer.PlayerName = PlayerName;
                     localPlayer.Id = Id;
