@@ -88,6 +88,7 @@ namespace Oxide.GettingOverItMP.Components
                 Cursor.visible = false;
                 mouseVisible = false;
                 control.PauseInput(0);
+                scrollPosition = Vector2.zero;
             }
 
             if (!Input.GetKey(KeyCode.Tab))
