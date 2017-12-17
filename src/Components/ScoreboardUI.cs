@@ -12,6 +12,7 @@ namespace Oxide.GettingOverItMP.Components
         private PlayerControl control;
         private ChatUI chat;
         private GameObject waterObject;
+        private float waterHeight;
 
         private static readonly Vector2 scoreboardSize = new Vector2(600, 400);
         private static readonly Color backgroundColor = new Color(0, 0, 0, 0.85f);
@@ -35,6 +36,7 @@ namespace Oxide.GettingOverItMP.Components
             players.Add(control.gameObject.GetComponent<LocalPlayer>() ?? throw new NotImplementedException("Could not find LocalPlayer"));
 
             waterObject = GameObject.Find("Splashes") ?? throw new NotImplementedException("Could not find Splashes");
+            waterHeight = waterObject.transform.position.y;
 
             client.PlayerJoined += (sender, args) => players.Add(args.Player);
             client.PlayerLeft += (sender, args) => players.Remove(args.Player);
@@ -152,19 +154,15 @@ namespace Oxide.GettingOverItMP.Components
 
         private void DrawRow(MPBasePlayer player, int index)
         {
-            var oldBackgroundColor = GUI.backgroundColor;
-
             float rgb = index % 2 == 0 ? 0.3f : 0.2f;
             GUI.backgroundColor = new Color(rgb, rgb, rgb, 0.2f);
 
             GUILayout.BeginHorizontal(rowStyle, GUILayout.Width(scoreboardSize.x - 41));
             {
                 GUILayout.Label(player.PlayerName, GUILayout.Width(scoreboardSize.x - 157));
-                GUILayout.Label($"{(player.transform.position.y - waterObject.transform.position.y):0}m", rightAlignedLabel, GUILayout.Width(100));
+                GUILayout.Label($"{(player.transform.position.y - waterHeight):0}m", rightAlignedLabel, GUILayout.Width(100));
             }
             GUILayout.EndHorizontal();
-
-            GUI.backgroundColor = oldBackgroundColor;
         }
     }
 }
