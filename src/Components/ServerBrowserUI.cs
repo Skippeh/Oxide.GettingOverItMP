@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components
 {
-    public class ServerBrowser : MonoBehaviour
+    public class ServerBrowserUI : MonoBehaviour
     {
         enum MenuState
         {
@@ -59,10 +59,6 @@ namespace Oxide.GettingOverItMP.Components
 
         private void Start()
         {
-            windowRect = new Rect(Screen.width / 2f - windowSize.x / 2f, Screen.height / 2f - windowSize.y / 2f, windowSize.x, windowSize.y);
-            ipWindowRect = new Rect(Screen.width / 2f - ipWindowSize.x / 2f, Screen.height / 2f - ipWindowSize.y / 2f, ipWindowSize.x, ipWindowSize.y);
-            hostWindowRect = new Rect(Screen.width / 2f - hostWindowSize.x / 2f, Screen.height / 2f - hostWindowSize.y / 2f, hostWindowSize.x, hostWindowSize.y);
-
             control = GameObject.Find("Player").GetComponent<PlayerControl>();
             chatUi = GetComponent<ChatUI>();
 
@@ -98,6 +94,10 @@ namespace Oxide.GettingOverItMP.Components
 
             if (Open)
             {
+                windowRect = new Rect(Screen.width / 2f - windowSize.x / 2f, Screen.height / 2f - windowSize.y / 2f, windowSize.x, windowSize.y);
+                ipWindowRect = new Rect(Screen.width / 2f - ipWindowSize.x / 2f, Screen.height / 2f - ipWindowSize.y / 2f, ipWindowSize.x, ipWindowSize.y);
+                hostWindowRect = new Rect(Screen.width / 2f - hostWindowSize.x / 2f, Screen.height / 2f - hostWindowSize.y / 2f, hostWindowSize.x, hostWindowSize.y);
+
                 // Draw background
                 Color oldBackground = GUI.backgroundColor;
                 GUI.backgroundColor = new Color(0, 0, 0, 0.9f);
