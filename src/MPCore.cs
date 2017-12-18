@@ -9,6 +9,8 @@ using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP.Components;
 using Oxide.GettingOverItMP.Networking;
+using ServerShared;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,6 +18,8 @@ namespace Oxide.GettingOverIt
 {
     public class MPCore : GOIPlugin
     {
+        public static Facepunch.Steamworks.Client SteamClient { get; private set; }
+
         private GameObject uiGameObject;
         private GameObject clientGameObject;
         private GameObject spectateGameObject;
@@ -38,6 +42,25 @@ namespace Oxide.GettingOverIt
         {
             Application.runInBackground = true;
             Physics2D.IgnoreLayerCollision((int) LayerType.Player, (int) LayerType.Layer31); // Use layer 31 for remote players
+
+            if (SteamClient == null)
+            {
+                Facepunch.Steamworks.Config.ForUnity(Application.platform.ToString());
+                SteamClient = new Facepunch.Steamworks.Client(SharedConstants.SteamAppId);
+
+                if (!SteamClient.IsValid)
+                {
+                    SteamClient.Dispose();
+                    SteamClient = null;
+                    Interface.Oxide.LogWarning("Steam is not running.");
+                }
+                else if (!SteamClient.IsSubscribed)
+                {
+                    SteamClient.Dispose();
+                    SteamClient = null;
+                    Interface.Oxide.LogWarning("The current steam account is not subscribed to the game.");
+                }
+            }
         }
 
         [HookMethod("OnSceneChanged")]
@@ -65,6 +88,12 @@ namespace Oxide.GettingOverIt
                 if (ListenServer.Running)
                     ListenServer.Stop();
             }
+        }
+
+        [HookMethod("OnGameQuit")]
+        private void OnGameQuit()
+        {
+            SteamClient?.Dispose();
         }
 
         protected override void Tick()

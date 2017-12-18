@@ -19,6 +19,7 @@ namespace ServerShared
         public const string MasterServerUrl = "https://master.gettingoverit.mp";
         public const int MaxServerNameLength = 40;
         public const int MaxPlayerLimit = 9999;
+        public const uint SteamAppId = 240720;
 
         static SharedConstants()
         {
