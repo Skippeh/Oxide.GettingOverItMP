@@ -1,3 +1,6 @@
 [submodule "lidgren-network-gen3"]
 	path = lidgren-network-gen3
 	url = git@github.com:Skippeh/lidgren-network-gen3.git
+[submodule "Facepunch.Steamworks"]
+	path = Facepunch.Steamworks
+	url = git@github.com:Facepunch/Facepunch.Steamworks.git
