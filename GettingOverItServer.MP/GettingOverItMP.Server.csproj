@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FBECFC5F-C68A-4176-B320-9B51E894CD06}</ProjectGuid>
+    <ProjectGuid>{45F81922-4A6D-4D25-8CCB-00EB3F372628}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>GettingOverItMP.Server</RootNamespace>
     <AssemblyName>GettingOverItMP.Server</AssemblyName>
@@ -38,13 +38,12 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\UnityEngine.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LaunchArguments.cs" />
@@ -56,14 +55,41 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Facepunch.Steamworks\Facepunch.Steamworks\Facepunch.Steamworks.csproj">
+      <Project>{1491d275-206e-4d9f-9836-426c21195ee0}</Project>
+      <Name>Facepunch.Steamworks</Name>
+    </ProjectReference>
     <ProjectReference Include="..\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj">
       <Project>{49ba1c69-6104-41ac-a5d8-b54fa9f696e8}</Project>
       <Name>Lidgren.Network</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServerShared\ServerShared.csproj">
-      <Project>{57B605F4-330E-4A75-9991-08D5789B5A5F}</Project>
+      <Project>{57b605f4-330e-4a75-9991-08d5789b5a5f}</Project>
       <Name>ServerShared</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="steam_api.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="steam_api64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="steam_appid.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tier0_s.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tier0_s64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="vstdlib_s.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="vstdlib_s64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

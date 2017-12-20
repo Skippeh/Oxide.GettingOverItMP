@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Threading;
 using CommandLineParser.Exceptions;
+using Facepunch.Steamworks;
+using GettingOverItMP.Server;
 using ServerShared;
 
-namespace GettingOverItMP.Server
+namespace Server
 {
-    public static class Program
+    class Program
     {
         private static GameServer server;
 
-        private static int Main(string[] args)
+        static int Main(string[] args)
         {
             var parser = new CommandLineParser.CommandLineParser();
             var launchArguments = new LaunchArguments();
-            
+
             try
             {
                 parser.ExtractArgumentAttributes(launchArguments);
@@ -53,13 +55,13 @@ namespace GettingOverItMP.Server
 
                 if (key.Modifiers == ConsoleModifiers.Control && key.Key == ConsoleKey.Q)
                     break;
-                
+
                 server.Update();
                 Thread.Sleep(1);
 
                 Console.Title = $"{server.Name} | {server.Players.Count}/{server.MaxPlayers}";
             }
-            
+
             server.Stop();
             return 0;
         }

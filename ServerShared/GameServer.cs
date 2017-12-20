@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Facepunch.Steamworks;
 using Lidgren.Network;
 using ServerShared.Networking;
 using ServerShared.Player;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace ServerShared
 {
@@ -28,6 +30,7 @@ namespace ServerShared
         public string Name;
         public int Port => server.Configuration.Port;
         public int MaxPlayers => server.Configuration.MaximumConnections;
+        public Facepunch.Steamworks.Server SteamServer { get; private set; }
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
@@ -80,6 +83,16 @@ namespace ServerShared
             {
                 MasterServer.Start(this);
             }
+
+            var serverInit = new ServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
+            {
+                GamePort = (ushort) Port,
+                Secure = false
+            };
+
+            SteamServer = new Server(SharedConstants.SteamAppId, serverInit);
+            SteamServer.ServerName = "Testy server";
+            SteamServer.LogOnAnonymous();
         }
 
         public void Stop()
@@ -90,6 +103,9 @@ namespace ServerShared
             {
                 MasterServer.Stop();
             }
+
+            SteamServer.Dispose();
+            SteamServer = null;
         }
 
         public void Update()

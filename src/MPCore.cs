@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP.Components;
 using Oxide.GettingOverItMP.Networking;
+using RootMotion.FinalIK;
 using ServerShared;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Client = Oxide.GettingOverItMP.Components.Client;
 
 namespace Oxide.GettingOverIt
 {
@@ -98,6 +101,8 @@ namespace Oxide.GettingOverIt
 
         protected override void Tick()
         {
+            SteamClient?.Update();
+
             if (ListenServer.Running)
                 ListenServer.Update();
         }
