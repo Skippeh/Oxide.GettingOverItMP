@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading;
 using Lidgren.Network;
 using Oxide.Core;
+using Oxide.GettingOverIt;
 using Oxide.GettingOverItMP.Networking;
 using ServerShared;
 using ServerShared.Networking;
@@ -163,7 +164,20 @@ namespace Oxide.GettingOverItMP.Components
                             var nameSize = GUI.skin.label.CalcSize(nameContent);
 
                             GUILayout.Label(nameContent, GUILayout.Width(nameSize.x));
-                            playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength);
+
+                            if (MPCore.SteamClient != null)
+                            {
+                                playerName = MPCore.SteamClient.Username;
+
+                                bool oldEnabled2 = GUI.enabled;
+                                GUI.enabled = false;
+                                GUILayout.TextField(playerName, SharedConstants.MaxNameLength);
+                                GUI.enabled = oldEnabled2;
+                            }
+                            else
+                            {
+                                playerName = GUILayout.TextField(playerName, SharedConstants.MaxNameLength);
+                            }
                         }
                         GUILayout.EndHorizontal();
 
