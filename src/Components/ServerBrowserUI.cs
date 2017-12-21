@@ -398,7 +398,7 @@ namespace Oxide.GettingOverItMP.Components
                         var port = ushort.Parse(strHostPort);
                         int maxPlayers = int.Parse(strMaxPlayers);
 
-                        ListenServer.Start(serverName, maxPlayers, port, hostPrivate, noSteam);
+                        ListenServer.Start(serverName, maxPlayers, port, hostPrivate, !noSteam);
                         client.Connect("127.0.0.1", port, playerName);
                         SavePlayerPrefs();
                     }
