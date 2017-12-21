@@ -9,6 +9,7 @@ namespace Oxide.GettingOverItMP.Components
     {
         public int Id;
         public abstract string PlayerName { get; set; }
+        public int Wins { get; set; }
 
         protected Animator dudeAnim;
         protected Transform handle;
@@ -18,6 +19,8 @@ namespace Oxide.GettingOverItMP.Components
         protected Transform tip;
 
         private bool renderersEnabled = true;
+        private ProceduralMaterial proceduralMaterial;
+        private float goldness;
 
         protected virtual void Start()
         {
@@ -32,6 +35,10 @@ namespace Oxide.GettingOverItMP.Components
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>() ?? throw new NotImplementedException("Could not find Client");
 
             gameObject.AddComponent<PlayerDebug>();
+
+            var potObject = transform.Find("Pot/Mesh");
+            var potRenderer = potObject.GetComponent<MeshRenderer>();
+            proceduralMaterial = potRenderer.material as ProceduralMaterial;
         }
 
         protected virtual void OnDestroy()
@@ -69,6 +76,25 @@ namespace Oxide.GettingOverItMP.Components
                 Position = transform.position,
                 Rotation = transform.rotation
             };
+        }
+
+        public void SetGoldness(float goldness)
+        {
+            goldness = Mathf.Clamp(goldness, 0f, 2f);
+
+            if (Math.Abs(goldness - (double) this.goldness) < 0.0001f)
+                return;
+
+            proceduralMaterial.SetProceduralFloat("Goldness", goldness);
+            proceduralMaterial.RebuildTextures();
+            Interface.Oxide.LogDebug($"Goldness set to {goldness}");
+        }
+
+        /// <summary>Sets the goldness based on the number of wins.</summary>
+        public void UpdateGoldness()
+        {
+            float goldness = Wins / 50f;
+            SetGoldness(goldness * goldness);
         }
 
         public void EnableRenderers()

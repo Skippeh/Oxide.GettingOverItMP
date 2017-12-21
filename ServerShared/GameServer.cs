@@ -7,7 +7,6 @@ using Facepunch.Steamworks;
 using Lidgren.Network;
 using ServerShared.Networking;
 using ServerShared.Player;
-using UnityEngine;
 using Color = UnityEngine.Color;
 
 namespace ServerShared
@@ -194,11 +193,14 @@ namespace ServerShared
             netMessage.Write(MessageType.HandshakeResponse);
             netMessage.Write(netPlayer.Id);
             netMessage.Write(netPlayer.Name);
+            netMessage.Write(netPlayer.Wins);
 
             var allPlayers = Players.Values.Where(plr => !plr.Spectating && plr.Peer != connection).ToList();
             var allNames = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Name);
+            var allWins = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Wins);
             var allPlayersDict = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Movement);
             netMessage.Write(allNames);
+            netMessage.Write(allWins);
             netMessage.Write(allPlayersDict);
 
             var serverInfo = GetServerInfo();
@@ -247,9 +249,11 @@ namespace ServerShared
         private void OnConnectionConnected(object sender, ConnectedEventArgs args)
         {
             Console.WriteLine($"Incoming from {args.Connection.RemoteEndPoint}");
-            
+
             try
             {
+                // Todo: check ip ban
+
                 NetIncomingMessage hailMessage = args.Connection.RemoteHailMessage;
                 int version = hailMessage.ReadInt32();
 
@@ -268,35 +272,36 @@ namespace ServerShared
                     return;
                 }
 
-                ulong handle = 0; // Unverified steam id
+                ulong steamId = 0; // Unverified steam id
                 byte[] sessionData = null;
                 bool hasAuth = hailMessage.ReadBoolean();
+                int numWins = hasAuth ? 0 : hailMessage.ReadInt32();
 
                 if (hasAuth)
                 {
                     int sessionLength = hailMessage.ReadInt32();
                     sessionData = hailMessage.ReadBytes(sessionLength);
-                    handle = hailMessage.ReadUInt64();
+                    steamId = hailMessage.ReadUInt64();
                 }
-                
+
                 if (RequireSteamAuth)
                 {
                     if (!hasAuth)
                         throw new Exception("No steam auth session ticket in hail message.");
 
-                    Console.WriteLine($"{handle} - {sessionData.Length}");
+                    Console.WriteLine($"{steamId} - {sessionData.Length}");
 
-                    if (!SteamServer.Auth.StartSession(sessionData, handle))
+                    if (!SteamServer.Auth.StartSession(sessionData, steamId))
                     {
                         throw new Exception("StartSession returned false");
                     }
 
-                    pendingConnections.Add(new PendingConnection(args.Connection, handle, playerName, movementData));
+                    pendingConnections.Add(new PendingConnection(args.Connection, steamId, playerName, movementData));
                     Console.WriteLine($"Connection from {args.Connection.RemoteEndPoint}, awaiting steam auth approval...");
                 }
                 else
                 {
-                    AcceptConnection(args.Connection, playerName, movementData, 0);
+                    AcceptConnection(args.Connection, playerName, movementData, 0, numWins);
                 }
             }
             catch (Exception ex)
@@ -322,9 +327,25 @@ namespace ServerShared
             {
                 if (pendingConnection != null)
                 {
+                    // Todo: check steamid ban
+
                     pendingConnections.Remove(pendingConnection);
                     Console.WriteLine($"Got valid steam auth from {connection.RemoteEndPoint}");
-                    AcceptConnection(connection, pendingConnection.PlayerName, pendingConnection.Movement, pendingConnection.SteamId);
+                    AcceptConnection(connection, pendingConnection.PlayerName, pendingConnection.Movement, pendingConnection.SteamId, 0);
+
+                    SteamServer.Stats.Refresh(ownerId, (ownerId2, success) =>
+                    {
+                        if (!success)
+                        {
+                            Console.WriteLine($"Failed to refresh stats for steamid {ownerId2}.");
+                            return;
+                        }
+
+                        int totalWins = SteamServer.Stats.GetInt(ownerId2, "wins");
+                        Players[connection].Wins = totalWins;
+                        float goldness = totalWins / 50f;
+                        Players[connection].SetGoldness(goldness * goldness);
+                    });
                 }
             }
             else
@@ -333,16 +354,18 @@ namespace ServerShared
             }
         }
 
-        private void AcceptConnection(NetConnection connection, string playerName, PlayerMove movementData, ulong steamId)
+        private void AcceptConnection(NetConnection connection, string playerName, PlayerMove movementData, ulong steamId, int wins)
         {
             var player = AddConnection(connection, playerName, steamId);
             player.Movement = movementData;
+            player.Wins = wins;
 
             var writer = server.CreateMessage();
             writer.Write(MessageType.CreatePlayer);
             writer.Write(player.Id);
             writer.Write(player.Name);
             writer.Write(player.Movement);
+            writer.Write(player.Wins);
             Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
 
             Console.WriteLine($"Client with id {player.Id} is now spawned");

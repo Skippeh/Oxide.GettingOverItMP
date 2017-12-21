@@ -151,16 +151,19 @@ namespace Oxide.GettingOverItMP.Components
                 {
                     Id = netMessage.ReadInt32();
                     PlayerName = netMessage.ReadString();
+                    localPlayer.Wins = netMessage.ReadInt32();
                     var names = netMessage.ReadNamesDictionary();
+                    var wins = netMessage.ReadWinsDictionary();
                     var remotePlayers = netMessage.ReadMovementDictionary();
                     ServerInfo = netMessage.ReadDiscoveryServerInfo();
 
                     localPlayer.PlayerName = PlayerName;
                     localPlayer.Id = Id;
-                    
+                    localPlayer.UpdateGoldness();
+
                     foreach (var kv in remotePlayers)
                     {
-                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key]));
+                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key], wins[kv.Key]));
                     }
 
                     handshakeResponseReceived = true;
@@ -182,7 +185,8 @@ namespace Oxide.GettingOverItMP.Components
                     }
 
                     PlayerMove move = netMessage.ReadPlayerMove();
-                    StartCoroutine(SpawnRemotePlayer(id, move, name));
+                    int wins = netMessage.ReadInt32();
+                    StartCoroutine(SpawnRemotePlayer(id, move, name, wins));
                     
                     break;
                 }
@@ -259,15 +263,26 @@ namespace Oxide.GettingOverItMP.Components
 
                     break;
                 }
+                case MessageType.PlayerGoldness:
+                {
+                    int targetId = netMessage.ReadInt32();
+                    float goldness = netMessage.ReadSingle();
+                    MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer) RemotePlayers[targetId] : localPlayer;
+                    targetPlayer.SetGoldness(goldness);
+                    break;
+                }
             }
         }
 
-        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName)
+        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName, int wins)
         {
             var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}", id);
             yield return new WaitForSeconds(0);
             remotePlayer.PlayerName = playerName;
             remotePlayer.ApplyMove(move, 0);
+            remotePlayer.Wins = wins;
+            remotePlayer.UpdateGoldness();
+
             RemotePlayers.Add(id, remotePlayer);
             PlayerJoined?.Invoke(this, new PlayerJoinedEventArgs {Player = remotePlayer});
             Interface.Oxide.LogDebug($"Added remote player with id {id} at {move.Position} ({remotePlayer.transform.position}");
@@ -334,6 +349,7 @@ namespace Oxide.GettingOverItMP.Components
             else
             {
                 hailMessage.Write(false);
+                hailMessage.Write(PlayerPrefs.GetInt("NumWins", 0));
             }
             
             client.Connect(ip, port, hailMessage);

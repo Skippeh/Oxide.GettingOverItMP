@@ -14,6 +14,7 @@ namespace ServerShared.Player
         public string Name;
         public NetPlayer SpectateTarget;
         public bool Spectating => SpectateTarget != null;
+        public int Wins = 0;
 
         private GameServer server;
 
@@ -80,6 +81,18 @@ namespace ServerShared.Player
                 netMessage.Write(Movement);
                 server.Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, Peer);
             }
+        }
+
+        public void SetGoldness(float goldness)
+        {
+            goldness = Mathf.Clamp(goldness, 0f, 2f);
+
+            var message = server.CreateMessage();
+            message.Write(MessageType.PlayerGoldness);
+            message.Write(Id);
+            message.Write(goldness);
+
+            server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
         }
     }
 }

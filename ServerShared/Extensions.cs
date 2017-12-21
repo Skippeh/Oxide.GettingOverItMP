@@ -71,6 +71,33 @@ namespace ServerShared
             return result;
         }
 
+        public static void Write(this NetOutgoingMessage message, IDictionary<int, int> wins)
+        {
+            message.Write(wins.Count);
+
+            foreach (var kv in wins)
+            {
+                int winCount = kv.Value;
+
+                message.Write(kv.Key); // The player ID
+                message.Write(winCount);
+            }
+        }
+
+        public static Dictionary<int, int> ReadWinsDictionary(this NetIncomingMessage message)
+        {
+            var result = new Dictionary<int, int>();
+
+            int count = message.ReadInt32();
+
+            for (int i = 0; i < count; ++i)
+            {
+                result.Add(message.ReadInt32(), message.ReadInt32());
+            }
+
+            return result;
+        }
+
         public static void Write(this NetOutgoingMessage message, PlayerMove move)
         {
             message.Write(move.Position);

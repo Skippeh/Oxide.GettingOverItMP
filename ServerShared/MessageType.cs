@@ -8,6 +8,7 @@
         SpectateTarget = 7,
         ClientStopSpectating = 8,
         MoveData = 10,
-        ChatMessage = 20
+        ChatMessage = 20,
+        PlayerGoldness = 21,
     }
 }
