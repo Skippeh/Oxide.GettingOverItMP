@@ -134,6 +134,9 @@ namespace Oxide.GettingOverItMP.Components
                 }
             }
 
+            if (args.AdditionalInfo != null)
+                LastDisconnectReason += $" ({args.AdditionalInfo})";
+
             if (args.ReasonString != "bye")
                 chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);
             else

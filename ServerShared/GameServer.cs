@@ -240,10 +240,9 @@ namespace ServerShared
                 server.SendMessage(message, sendTargets, method, sequenceChannel);
         }
 
-        private void KickConnection(NetConnection connection, DisconnectReason reason)
+        private void KickConnection(NetConnection connection, DisconnectReason reason, string additionalInfo = null)
         {
-            Console.WriteLine($"Disconnecting client from {connection.RemoteEndPoint}: {reason}");
-            connection.Disconnect(reason);
+            connection.Disconnect(reason, additionalInfo);
         }
 
         private void OnConnectionConnected(object sender, ConnectedEventArgs args)

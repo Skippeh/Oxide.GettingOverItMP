@@ -153,9 +153,10 @@ namespace ServerShared
             return info;
         }
 
-        public static void Disconnect(this NetConnection connection, DisconnectReason reason)
+        public static void Disconnect(this NetConnection connection, DisconnectReason reason, string additionalInfo = null)
         {
-            connection.Disconnect(((byte) reason).ToString());
+            string reasonStr = ((byte) reason).ToString();
+            connection.Disconnect(reasonStr + (additionalInfo != null ? $";{additionalInfo}" : ""));
         }
     }
 }

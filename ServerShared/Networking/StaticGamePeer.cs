@@ -16,7 +16,9 @@ namespace ServerShared
                         break;
                     case NetIncomingMessageType.StatusChanged:
                         var status = (NetConnectionStatus) message.ReadByte();
-                        string reason = message.ReadString();
+                        string fullReason = message.ReadString();
+                        string reason = fullReason.Contains(";") ? fullReason.Substring(0, fullReason.IndexOf(";")) : fullReason;
+                        string additionalInfo = fullReason.Contains(";") ? fullReason.Substring(fullReason.IndexOf(";") + 1) : null;
 
                         DisconnectReason? enumReason = null;
                         int enumReasonInt;
@@ -32,8 +34,8 @@ namespace ServerShared
                         }
                         else if (status == NetConnectionStatus.Disconnected)
                         {
-                            Console.WriteLine($"{message.SenderEndPoint} new status: {status} ({enumReason?.ToString() ?? reason})");
-                            peer.InvokeDisconnected(peer, new DisconnectedEventArgs {Connection = message.SenderConnection, Reason = enumReason ?? DisconnectReason.Invalid, ReasonString = reason});
+                            Console.WriteLine($"{message.SenderEndPoint} new status: {status} ({enumReason?.ToString() ?? reason})" + $" {additionalInfo}");
+                            peer.InvokeDisconnected(peer, new DisconnectedEventArgs {Connection = message.SenderConnection, Reason = enumReason ?? DisconnectReason.Invalid, ReasonString = reason, AdditionalInfo = additionalInfo});
                         }
 
                         break;
