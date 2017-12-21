@@ -292,7 +292,7 @@ namespace ServerShared
 
                     if (!SteamServer.Auth.StartSession(sessionData, steamId))
                     {
-                        throw new Exception("StartSession returned false");
+                        throw new Exception("Could not start steam session.");
                     }
 
                     pendingConnections.Add(new PendingConnection(args.Connection, steamId, playerName, movementData));
@@ -306,7 +306,7 @@ namespace ServerShared
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                KickConnection(args.Connection, DisconnectReason.InvalidSteamSession);
+                KickConnection(args.Connection, DisconnectReason.InvalidSteamSession, ex.Message);
                 return;
             }
         }
@@ -318,7 +318,7 @@ namespace ServerShared
 
             if (steamId != ownerId)
             {
-                KickConnection(connection, DisconnectReason.InvalidSteamSession);
+                KickConnection(connection, DisconnectReason.InvalidSteamSession, "Invalid steam id");
                 return;
             }
 
@@ -349,7 +349,7 @@ namespace ServerShared
             }
             else
             {
-                KickConnection(connection, DisconnectReason.InvalidSteamSession);
+                KickConnection(connection, DisconnectReason.InvalidSteamSession, status.ToString());
             }
         }
 
