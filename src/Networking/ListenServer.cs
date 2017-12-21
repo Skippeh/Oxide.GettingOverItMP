@@ -8,12 +8,12 @@ namespace Oxide.GettingOverItMP.Networking
         public static GameServer Server { get; private set; }
         public static bool Running => Server != null;
 
-        public static void Start(string name, int maxPlayers, int port, bool isPrivate)
+        public static void Start(string name, int maxPlayers, int port, bool isPrivate, bool requireSteamAuth)
         {
             if (Running)
                 throw new InvalidOperationException("The server is already running.");
 
-            Server = new GameServer(name, maxPlayers, port, true, isPrivate);
+            Server = new GameServer(name, maxPlayers, port, true, isPrivate, requireSteamAuth);
             Server.Start();
         }
 

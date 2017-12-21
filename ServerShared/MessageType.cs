@@ -2,7 +2,6 @@
 {
     public enum MessageType : byte
     {
-        ClientHandshake = 0,
         HandshakeResponse = 1,
         CreatePlayer = 5,
         RemovePlayer = 6,

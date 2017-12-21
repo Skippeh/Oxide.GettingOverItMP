@@ -8,6 +8,7 @@ namespace ServerShared.Player
     {
         public readonly int Id;
         public readonly NetConnection Peer;
+        public readonly ulong SteamId;
 
         public PlayerMove Movement;
         public string Name;
@@ -18,10 +19,11 @@ namespace ServerShared.Player
 
         private static int idCounter = 1;
 
-        public NetPlayer(NetConnection connection, string name, GameServer server)
+        public NetPlayer(NetConnection connection, string name, GameServer server, ulong steamId)
         {
             Peer = connection ?? throw new ArgumentNullException(nameof(connection));
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            SteamId = steamId;
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             Id = idCounter++;
         }

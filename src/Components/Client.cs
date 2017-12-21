@@ -3,15 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Lidgren.Network;
 using Oxide.Core;
 using Oxide.Core.Libraries;
+using Oxide.GettingOverIt;
 using Oxide.GettingOverItMP.EventArgs;
 using ServerShared;
 using ServerShared.Networking;
 using ServerShared.Player;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using DisconnectReason = ServerShared.DisconnectReason;
 using Time = UnityEngine.Time;
 
@@ -42,8 +45,8 @@ namespace Oxide.GettingOverItMP.Components
         
         private float nextSendTime = 0;
         private bool handshakeResponseReceived;
-
         private float lastReceiveTime = 0;
+        private Auth.Ticket authTicket;
 
         private void Start()
         {
@@ -70,13 +73,13 @@ namespace Oxide.GettingOverItMP.Components
         {
             server = args.Connection;
             LastDisconnectReason = null;
-            SendHandshake();
         }
 
         private void OnDisconnected(object sender, DisconnectedEventArgs args)
         {
             this.server = null;
             Id = 0;
+            authTicket?.Cancel();
 
             RemoveAllRemotePlayers();
             spectator.StopSpectating();
@@ -122,6 +125,11 @@ namespace Oxide.GettingOverItMP.Components
                 case DisconnectReason.VersionOlder:
                 {
                     LastDisconnectReason = "The server is running a newer version.";
+                    break;
+                }
+                case DisconnectReason.InvalidSteamSession:
+                {
+                    LastDisconnectReason = "Invalid steam session";
                     break;
                 }
             }
@@ -308,9 +316,28 @@ namespace Oxide.GettingOverItMP.Components
         {
             if (string.IsNullOrEmpty(playerName?.Trim())) throw new ArgumentException("playerName can't be null or empty", nameof(playerName));
             
-            Interface.Oxide.LogDebug($"Connecting to: {ip}:{port}...");
             PlayerName = playerName;
-            client.Connect(ip, port);
+
+            NetOutgoingMessage hailMessage = client.CreateMessage();
+            hailMessage.Write(SharedConstants.Version);
+            hailMessage.Write(PlayerName);
+            hailMessage.Write(localPlayer.CreateMove());
+
+            if (MPCore.SteamClient != null)
+            {
+                authTicket = MPCore.SteamClient.Auth.GetAuthSessionTicket();
+                hailMessage.Write(true);
+                hailMessage.Write(authTicket.Data.Length);
+                hailMessage.Write(authTicket.Data);
+                hailMessage.Write(MPCore.SteamClient.SteamId);
+            }
+            else
+            {
+                hailMessage.Write(false);
+            }
+            
+            client.Connect(ip, port, hailMessage);
+            Interface.Oxide.LogDebug($"Connecting to: {ip}:{port}...");
         }
 
         public void Disconnect()
@@ -337,19 +364,6 @@ namespace Oxide.GettingOverItMP.Components
 
             var writer = client.CreateMessage();
             writer.Write(MessageType.ClientStopSpectating);
-
-            server.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
-        }
-
-        private void SendHandshake()
-        {
-            Interface.Oxide.LogDebug("Sending handshake...");
-
-            var writer = client.CreateMessage();
-            writer.Write(MessageType.ClientHandshake);
-            writer.Write(SharedConstants.Version);
-            writer.Write(PlayerName);
-            writer.Write(localPlayer.CreateMove());
 
             server.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
         }

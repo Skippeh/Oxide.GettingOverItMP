@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using Facepunch.Steamworks;
 using Lidgren.Network;
 using ServerShared.Networking;
@@ -16,12 +17,16 @@ namespace ServerShared
         class PendingConnection
         {
             public readonly NetConnection Client;
-            public readonly DateTime JoinTime;
+            public readonly ulong SteamId;
+            public string PlayerName;
+            public PlayerMove Movement;
 
-            public PendingConnection(NetConnection client, DateTime joinTime)
+            public PendingConnection(NetConnection client, ulong steamId, string playerName, PlayerMove movement)
             {
                 Client = client;
-                JoinTime = joinTime;
+                SteamId = steamId;
+                PlayerName = playerName;
+                Movement = movement;
             }
         }
 
@@ -34,6 +39,7 @@ namespace ServerShared
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
+        public readonly bool RequireSteamAuth;
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
 
@@ -42,7 +48,7 @@ namespace ServerShared
         private double nextSendTime = 0;
         private readonly List<PendingConnection> pendingConnections = new List<PendingConnection>();
 
-        public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer)
+        public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer, bool requireSteamAuth)
         {
             if (maxConnections <= 0)
                 throw new ArgumentException("Max connections needs to be > 0.");
@@ -68,6 +74,7 @@ namespace ServerShared
             ListenServer = listenServer;
             PrivateServer = privateServer;
             Name = name;
+            RequireSteamAuth = requireSteamAuth;
 
             if (listenServer)
             {
@@ -90,37 +97,45 @@ namespace ServerShared
                 Secure = false
             };
 
-            SteamServer = new Server(SharedConstants.SteamAppId, serverInit);
-            SteamServer.ServerName = "Testy server";
-            SteamServer.LogOnAnonymous();
+            if (RequireSteamAuth)
+            {
+                SteamServer = new Server(SharedConstants.SteamAppId, serverInit);
+                SteamServer.Auth.OnAuthChange += OnSteamAuthChange;
+                SteamServer.ServerName = "Testy server";
+                SteamServer.AutomaticHeartbeats = false;
+                SteamServer.DedicatedServer = !ListenServer;
+                SteamServer.MaxPlayers = MaxPlayers;
+                SteamServer.LogOnAnonymous();
+
+                Console.WriteLine("Steam authentication enabled.");
+            }
         }
 
         public void Stop()
         {
+            if (RequireSteamAuth)
+            {
+                foreach (var player in Players.Values)
+                {
+                    SteamServer.Auth.EndSession(player.SteamId);
+                }
+
+                SteamServer?.Dispose();
+                SteamServer = null;
+            }
+
             server.Shutdown("bye");
 
             if (!PrivateServer)
             {
                 MasterServer.Stop();
             }
-
-            SteamServer.Dispose();
-            SteamServer = null;
         }
 
         public void Update()
         {
             server.Update();
-
-            // Disconnect timed out pending connections
-            foreach (var connection in pendingConnections.ToList())
-            {
-                if (DateTime.UtcNow - connection.JoinTime >= PendingConnectionTimeout)
-                {
-                    Console.WriteLine("Disconnecting pending connection (handshake timeout)");
-                    KickConnection(connection.Client, DisconnectReason.HandshakeTimeout);
-                }
-            }
+            SteamServer?.Update();
 
             double ms = DateTime.UtcNow.Ticks / 10_000d;
 
@@ -168,9 +183,9 @@ namespace ServerShared
             return server.CreateMessage();
         }
 
-        private NetPlayer AddConnection(NetConnection connection, string playerName)
+        private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)
         {
-            var netPlayer = new NetPlayer(connection, playerName, this);
+            var netPlayer = new NetPlayer(connection, playerName, this, steamId);
             Players[connection] = netPlayer;
 
             netPlayer.Name = $"[{netPlayer.Id}] {netPlayer.Name}"; // Prefix name with ID.
@@ -231,10 +246,107 @@ namespace ServerShared
 
         private void OnConnectionConnected(object sender, ConnectedEventArgs args)
         {
-            // Todo: protect against mass connections from the same ip.
+            Console.WriteLine($"Incoming from {args.Connection.RemoteEndPoint}");
+            
+            try
+            {
+                NetIncomingMessage hailMessage = args.Connection.RemoteHailMessage;
+                int version = hailMessage.ReadInt32();
 
-            Console.WriteLine($"Connection from {args.Connection.RemoteEndPoint}");
-            pendingConnections.Add(new PendingConnection(args.Connection, DateTime.UtcNow));
+                if (version != SharedConstants.Version)
+                {
+                    KickConnection(args.Connection, version < SharedConstants.Version ? DisconnectReason.VersionOlder : DisconnectReason.VersionNewer);
+                    return;
+                }
+
+                string playerName = hailMessage.ReadString().Trim();
+                PlayerMove movementData = hailMessage.ReadPlayerMove();
+
+                if (playerName.Length == 0 || playerName.Length > SharedConstants.MaxNameLength || !playerName.All(ch => SharedConstants.AllowedCharacters.Contains(ch)))
+                {
+                    KickConnection(args.Connection, DisconnectReason.InvalidName);
+                    return;
+                }
+
+                ulong handle = 0; // Unverified steam id
+                byte[] sessionData = null;
+                bool hasAuth = hailMessage.ReadBoolean();
+
+                if (hasAuth)
+                {
+                    int sessionLength = hailMessage.ReadInt32();
+                    sessionData = hailMessage.ReadBytes(sessionLength);
+                    handle = hailMessage.ReadUInt64();
+                }
+                
+                if (RequireSteamAuth)
+                {
+                    if (!hasAuth)
+                        throw new Exception("No steam auth session ticket in hail message.");
+
+                    Console.WriteLine($"{handle} - {sessionData.Length}");
+
+                    if (!SteamServer.Auth.StartSession(sessionData, handle))
+                    {
+                        throw new Exception("StartSession returned false");
+                    }
+
+                    pendingConnections.Add(new PendingConnection(args.Connection, handle, playerName, movementData));
+                    Console.WriteLine($"Connection from {args.Connection.RemoteEndPoint}, awaiting steam auth approval...");
+                }
+                else
+                {
+                    AcceptConnection(args.Connection, playerName, movementData, 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                KickConnection(args.Connection, DisconnectReason.InvalidSteamSession);
+                return;
+            }
+        }
+
+        private void OnSteamAuthChange(ulong steamId, ulong ownerId, ServerAuth.Status status)
+        {
+            var pendingConnection = pendingConnections.FirstOrDefault(conn => conn.SteamId == steamId);
+            var connection = pendingConnection?.Client ?? Players.FirstOrDefault(plr => plr.Value.SteamId == ownerId).Key;
+
+            if (steamId != ownerId)
+            {
+                KickConnection(connection, DisconnectReason.InvalidSteamSession);
+                return;
+            }
+
+            if (status == ServerAuth.Status.OK)
+            {
+                if (pendingConnection != null)
+                {
+                    pendingConnections.Remove(pendingConnection);
+                    Console.WriteLine($"Got valid steam auth from {connection.RemoteEndPoint}");
+                    AcceptConnection(connection, pendingConnection.PlayerName, pendingConnection.Movement, pendingConnection.SteamId);
+                }
+            }
+            else
+            {
+                KickConnection(connection, DisconnectReason.InvalidSteamSession);
+            }
+        }
+
+        private void AcceptConnection(NetConnection connection, string playerName, PlayerMove movementData, ulong steamId)
+        {
+            var player = AddConnection(connection, playerName, steamId);
+            player.Movement = movementData;
+
+            var writer = server.CreateMessage();
+            writer.Write(MessageType.CreatePlayer);
+            writer.Write(player.Id);
+            writer.Write(player.Name);
+            writer.Write(player.Movement);
+            Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
+
+            Console.WriteLine($"Client with id {player.Id} is now spawned");
+            BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, connection);
         }
 
         private void OnConnectionDisconnected(object sender, DisconnectedEventArgs args)
@@ -257,6 +369,11 @@ namespace ServerShared
                 }
             }
 
+            if (RequireSteamAuth)
+            {
+                SteamServer.Auth.EndSession(player.SteamId);
+            }
+
             RemoveConnection(connection);
             BroadcastChatMessage($"{player.Name} left the server.", SharedConstants.ColorBlue);
         }
@@ -269,7 +386,7 @@ namespace ServerShared
 
             try
             {
-                if (messageType != MessageType.ClientHandshake && pendingConnections.Any(conn => conn.Client == connection))
+                if (pendingConnections.Any(conn => conn.Client == connection))
                 {
                     KickConnection(connection, DisconnectReason.NotAccepted);
                     return;
@@ -280,48 +397,6 @@ namespace ServerShared
                 switch (messageType)
                 {
                     default: throw new UnexpectedMessageFromClientException(messageType);
-                    case MessageType.ClientHandshake:
-                    {
-                        if (Players.ContainsKey(connection))
-                        {
-                            KickConnection(connection, DisconnectReason.DuplicateHandshake);
-                            break;
-                        }
-
-                        int version = netMessage.ReadInt32();
-                        string playerName = netMessage.ReadString().Trim();
-                        PlayerMove movementData = netMessage.ReadPlayerMove();
-
-                        if (version != SharedConstants.Version)
-                        {
-                            KickConnection(connection, version < SharedConstants.Version ? DisconnectReason.VersionOlder : DisconnectReason.VersionNewer);
-                            break;
-                        }
-
-                        if (playerName.Length == 0 || playerName.Length > SharedConstants.MaxNameLength || !playerName.All(ch => SharedConstants.AllowedCharacters.Contains(ch)))
-                        {
-                            KickConnection(connection, DisconnectReason.InvalidName);
-                            break;
-                        }
-
-                        pendingConnections.RemoveAll(conn => conn.Client == connection);
-                        Console.WriteLine($"Got valid handshake from {connection.RemoteEndPoint}");
-
-                        var player = AddConnection(connection, playerName);
-                        player.Movement = movementData;
-
-                        var writer = server.CreateMessage();
-                        writer.Write(MessageType.CreatePlayer);
-                        writer.Write(player.Id);
-                        writer.Write(player.Name);
-                        writer.Write(player.Movement);
-                        Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
-
-                        Console.WriteLine($"Client with id {player.Id} is now spawned");
-                        BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, connection);
-
-                        break;
-                    }
                     case MessageType.MoveData:
                     {
                         peerPlayer.Movement = netMessage.ReadPlayerMove();

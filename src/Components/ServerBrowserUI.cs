@@ -54,6 +54,7 @@ namespace Oxide.GettingOverItMP.Components
         private bool hostPrivate;
         private string serverName;
         private string strMaxPlayers;
+        private bool noSteam;
 
         private readonly List<ServerInfo> servers = new List<ServerInfo>();
 
@@ -380,6 +381,7 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             hostPrivate = GUILayout.Toggle(hostPrivate, " Private server (don't show in server browser)");
+            noSteam = GUILayout.Toggle(noSteam, " No steam authentication (players can join without owning the game, but can't be banned etc)");
 
             GUI.enabled = true;
 
@@ -396,7 +398,7 @@ namespace Oxide.GettingOverItMP.Components
                         var port = ushort.Parse(strHostPort);
                         int maxPlayers = int.Parse(strMaxPlayers);
 
-                        ListenServer.Start(serverName, maxPlayers, port, hostPrivate);
+                        ListenServer.Start(serverName, maxPlayers, port, hostPrivate, noSteam);
                         client.Connect("127.0.0.1", port, playerName);
                         SavePlayerPrefs();
                     }

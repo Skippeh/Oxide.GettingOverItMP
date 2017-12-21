@@ -37,6 +37,11 @@
         /// <summary>
         /// Client tried to send any message other than ClientHandshake before having received a successful handshake response.
         /// </summary>
-        NotAccepted
+        NotAccepted,
+
+        /// <summary>
+        /// An error occured while trying to verify the user's steam session ticket.
+        /// </summary>
+        InvalidSteamSession
     }
 }

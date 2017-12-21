@@ -41,7 +41,7 @@ namespace Server
                 return 1;
             }
 
-            server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private);
+            server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private, !launchArguments.NoSteam);
             server.Start();
 
             Console.WriteLine("Press CTRL+Q to stop the server.");
