@@ -73,14 +73,14 @@ namespace ServerShared
                 MasterServer.Start(this);
             }
 
-            var serverInit = new ServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
-            {
-                GamePort = (ushort) Port,
-                Secure = false
-            };
-
             if (RequireSteamAuth)
             {
+                var serverInit = new ServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
+                {
+                    GamePort = (ushort)Port,
+                    Secure = false
+                };
+
                 SteamServer = new Server(SharedConstants.SteamAppId, serverInit);
                 SteamServer.Auth.OnAuthChange += OnSteamAuthChange;
                 SteamServer.ServerName = "Testy server";
