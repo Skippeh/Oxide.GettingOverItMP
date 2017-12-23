@@ -24,11 +24,11 @@ namespace ServerShared
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
         private readonly List<PlayerBan> bannedPlayers = new List<PlayerBan>();
+        private readonly List<PendingConnection> pendingConnections = new List<PendingConnection>();
 
         private readonly GameServerPeer server;
 
         private double nextSendTime = 0;
-        private readonly List<PendingConnection> pendingConnections = new List<PendingConnection>();
 
         public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer, bool requireSteamAuth)
         {
