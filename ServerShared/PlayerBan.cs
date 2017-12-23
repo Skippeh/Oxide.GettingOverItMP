@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace ServerShared
 {
@@ -36,12 +37,15 @@ namespace ServerShared
             ExpirationDate = expirationDate;
         }
 
-        public bool IsBanned()
+        [JsonConstructor]
+        private PlayerBan() { }
+        
+        public bool Expired()
         {
             if (ExpirationDate == null)
-                return true;
+                return false;
 
-            return DateTime.UtcNow < ExpirationDate;
+            return DateTime.UtcNow >= ExpirationDate;
         }
 
         public string GetReasonWithExpiration()

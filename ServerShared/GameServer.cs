@@ -21,6 +21,7 @@ namespace ServerShared
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
         public readonly bool RequireSteamAuth;
+        private readonly IServerConfig config;
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
         private readonly List<PlayerBan> bannedPlayers = new List<PlayerBan>();
@@ -30,12 +31,14 @@ namespace ServerShared
 
         private double nextSendTime = 0;
 
-        public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer, bool requireSteamAuth)
+        public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer, bool requireSteamAuth, IServerConfig config)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+
             if (maxConnections <= 0)
                 throw new ArgumentException("Max connections needs to be > 0.");
 
-            var config = new NetPeerConfiguration(SharedConstants.AppName)
+            var peerConfig = new NetPeerConfiguration(SharedConstants.AppName)
             {
                 MaximumConnections = maxConnections,
                 Port = port,
@@ -44,9 +47,9 @@ namespace ServerShared
                 EnableUPnP = true
             };
 
-            config.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
+            peerConfig.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
 
-            server = new GameServerPeer(config);
+            server = new GameServerPeer(peerConfig);
 
             server.Connected += OnConnectionConnected;
             server.Disconnected += OnConnectionDisconnected;
@@ -57,6 +60,7 @@ namespace ServerShared
             PrivateServer = privateServer;
             Name = name;
             RequireSteamAuth = requireSteamAuth;
+            this.config = config;
 
             if (listenServer)
             {
@@ -72,6 +76,15 @@ namespace ServerShared
             {
                 MasterServer.Start(this);
             }
+
+            if (config.LoadPlayerBans(out var loadedBans))
+            {
+                bannedPlayers.AddRange(loadedBans.Where(ban => !ban.Expired()));
+                Console.WriteLine($"Loaded {bannedPlayers.Count} ban(s).");
+            }
+
+            BanIp(IPAddress.Parse("127.0.0.1"), "Test reason", DateTime.UtcNow.AddHours(12));
+            BanSteamId(123, "Test reason for steam", DateTime.UtcNow.AddHours(1));
 
             if (RequireSteamAuth)
             {
@@ -191,12 +204,20 @@ namespace ServerShared
 
         public void BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null)
         {
+            if (IpBanned(ip, out var _))
+                return;
+
             bannedPlayers.Add(new PlayerBan(GetUintIp(ip), reason, expirationDate));
+            config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
         }
 
         public void BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null)
         {
+            if (SteamIdBanned(steamId, out var _))
+                return;
+            
             bannedPlayers.Add(new PlayerBan(steamId, reason, expirationDate));
+            config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
         }
         
         private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)
@@ -584,10 +605,10 @@ namespace ServerShared
         private static uint GetUintIp(IPAddress ipAddress)
         {
             byte[] ipBytes = ipAddress.GetAddressBytes();
-            uint ip = (uint)ipBytes[0] << 24;
-            ip += (uint)ipBytes[1] << 16;
-            ip += (uint)ipBytes[2] << 8;
-            ip += ipBytes[3];
+            uint ip = ipBytes[0];
+            ip += (uint)ipBytes[1] << 8;
+            ip += (uint)ipBytes[2] << 16;
+            ip += (uint) ipBytes[3] << 24;
             return ip;
         }
     }
