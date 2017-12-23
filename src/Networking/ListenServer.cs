@@ -13,7 +13,7 @@ namespace Oxide.GettingOverItMP.Networking
             if (Running)
                 throw new InvalidOperationException("The server is already running.");
 
-            Server = new GameServer(name, maxPlayers, port, true, isPrivate, requireSteamAuth);
+            Server = new GameServer(name, maxPlayers, port, true, isPrivate, requireSteamAuth, new ServerOxideConfig());
             Server.Start();
         }
 
