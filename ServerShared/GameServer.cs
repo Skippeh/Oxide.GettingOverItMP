@@ -23,6 +23,7 @@ namespace ServerShared
         public readonly bool RequireSteamAuth;
 
         public readonly Dictionary<NetConnection, NetPlayer> Players = new Dictionary<NetConnection, NetPlayer>();
+        private readonly List<PlayerBan> bannedPlayers = new List<PlayerBan>();
 
         private readonly GameServerPeer server;
 
@@ -164,6 +165,40 @@ namespace ServerShared
             return server.CreateMessage();
         }
 
+        public bool IpBanned(IPAddress ipAddress, out PlayerBan ban)
+        {
+            uint ip = GetUintIp(ipAddress);
+            ban = bannedPlayers.FirstOrDefault(_ban => _ban.Type == PlayerBan.BanType.Ip && _ban.Ip == ip);
+            return ban != null;
+        }
+
+        public bool SteamIdBanned(ulong steamId, out PlayerBan ban)
+        {
+            ban = bannedPlayers.FirstOrDefault(_ban => _ban.Type == PlayerBan.BanType.SteamId && _ban.SteamId == steamId);
+            return ban != null;
+        }
+
+        public bool BanPlayer(NetPlayer player, string reason = null, DateTime expirationDate = default(DateTime))
+        {
+            if (SteamServer != null)
+                BanSteamId(player.SteamId, reason, expirationDate);
+            else
+                BanIp(player.Peer.RemoteEndPoint.Address, reason, expirationDate);
+
+            KickConnection(player.Peer, DisconnectReason.Banned, reason);
+            return true;
+        }
+
+        public void BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null)
+        {
+            bannedPlayers.Add(new PlayerBan(GetUintIp(ip), reason, expirationDate));
+        }
+
+        public void BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null)
+        {
+            bannedPlayers.Add(new PlayerBan(steamId, reason, expirationDate));
+        }
+        
         private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)
         {
             var netPlayer = new NetPlayer(connection, playerName, this, steamId);
@@ -233,7 +268,11 @@ namespace ServerShared
 
             try
             {
-                // Todo: check ip ban
+                if (IpBanned(args.Connection.RemoteEndPoint.Address, out var playerBan))
+                {
+                    KickConnection(args.Connection, DisconnectReason.Banned, playerBan.GetReasonWithExpiration());
+                    return;
+                }
 
                 NetIncomingMessage hailMessage = args.Connection.RemoteHailMessage;
                 int version = hailMessage.ReadInt32();
@@ -308,7 +347,11 @@ namespace ServerShared
             {
                 if (pendingConnection != null)
                 {
-                    // Todo: check steamid ban
+                    if (SteamIdBanned(steamId, out var playerBan))
+                    {
+                        KickConnection(connection, DisconnectReason.Banned, playerBan.GetReasonWithExpiration());
+                        return;
+                    }
 
                     pendingConnections.Remove(pendingConnection);
                     Console.WriteLine($"Got valid steam auth from {connection.RemoteEndPoint}");
@@ -536,6 +579,16 @@ namespace ServerShared
                 Players = (ushort) Players.Count,
                 MaxPlayers = (ushort) server.Configuration.MaximumConnections
             };
+        }
+
+        private static uint GetUintIp(IPAddress ipAddress)
+        {
+            byte[] ipBytes = ipAddress.GetAddressBytes();
+            uint ip = (uint)ipBytes[0] << 24;
+            ip += (uint)ipBytes[1] << 16;
+            ip += (uint)ipBytes[2] << 8;
+            ip += ipBytes[3];
+            return ip;
         }
     }
 }

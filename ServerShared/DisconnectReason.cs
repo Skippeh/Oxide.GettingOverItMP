@@ -42,6 +42,11 @@
         /// <summary>
         /// An error occured while trying to verify the user's steam session ticket.
         /// </summary>
-        InvalidSteamSession
+        InvalidSteamSession,
+
+        /// <summary>
+        /// Client is banned from this server.
+        /// </summary>
+        Banned,
     }
 }
