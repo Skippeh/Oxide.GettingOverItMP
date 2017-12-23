@@ -85,9 +85,9 @@ namespace Oxide.GettingOverItMP.Components
             if (Math.Abs(goldness - (double) this.goldness) < 0.0001f)
                 return;
 
+            this.goldness = goldness;
             proceduralMaterial.SetProceduralFloat("Goldness", goldness);
             proceduralMaterial.RebuildTextures();
-            Interface.Oxide.LogDebug($"Goldness set to {goldness}");
         }
 
         /// <summary>Sets the goldness based on the number of wins.</summary>
