@@ -10,6 +10,8 @@ namespace Oxide.GettingOverItMP
 {
     public class ServerOxideConfig : IServerConfig
     {
+        private const int binaryVersion = 0;
+
         public bool LoadPlayerBans(out List<PlayerBan> bans)
         {
             string filePath = GetFilePath("goimp/bans.bin");
@@ -60,6 +62,7 @@ namespace Oxide.GettingOverItMP
             {
                 using (var writer = new BinaryWriter(memstream, Encoding.UTF8))
                 {
+                    writer.Write(binaryVersion);
                     writer.Write(bans.Count);
 
                     foreach (var ban in bans)
@@ -95,6 +98,7 @@ namespace Oxide.GettingOverItMP
             using (var memstream = new MemoryStream(bytes))
             {
                 var reader = new BinaryReader(memstream, Encoding.UTF8);
+                int version = reader.ReadInt32();
                 var count = reader.ReadInt32();
 
                 for (int i = 0; i < count; ++i)
