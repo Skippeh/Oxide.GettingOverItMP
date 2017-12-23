@@ -37,8 +37,9 @@ namespace ServerShared
             ExpirationDate = expirationDate;
         }
 
+        /// <summary>Do not use. Exclusively used for serialization/deserialization</summary>
         [JsonConstructor]
-        private PlayerBan() { }
+        public PlayerBan() { }
         
         public bool Expired()
         {

@@ -80,7 +80,7 @@ namespace ServerShared
             if (config.LoadPlayerBans(out var loadedBans))
             {
                 bannedPlayers.AddRange(loadedBans.Where(ban => !ban.Expired()));
-                Console.WriteLine($"Loaded {bannedPlayers.Count} ban(s).");
+                Console.WriteLine($"Loaded {bannedPlayers.Count} unexpired ban(s) ({loadedBans.Count} total).");
             }
             
             if (RequireSteamAuth)

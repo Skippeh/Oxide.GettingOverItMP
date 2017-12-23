@@ -38,8 +38,7 @@ namespace GettingOverItMP.Server
             if (!File.Exists(GetFilePath("bans.json")))
             {
                 bans = new List<PlayerBan>();
-                SavePlayerBans(bans);
-                return true;
+                return SavePlayerBans(bans);
             }
 
             try

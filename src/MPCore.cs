@@ -6,7 +6,6 @@ using System.Text;
 using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
-using Oxide.Core.Configuration;
 using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP.Components;
@@ -23,7 +22,6 @@ namespace Oxide.GettingOverIt
     public class MPCore : GOIPlugin
     {
         public static Facepunch.Steamworks.Client SteamClient { get; private set; }
-        public static DynamicConfigFile Config { get; private set; }
 
         private GameObject uiGameObject;
         private GameObject clientGameObject;
@@ -40,7 +38,6 @@ namespace Oxide.GettingOverIt
             Title = "Getting Over It with Bennett Foddy Multiplayer";
             Author = MPExtension.AssemblyAuthors;
             IsCorePlugin = true;
-            Config = base.Config;
         }
 
         [HookMethod("Init")]

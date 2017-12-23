@@ -1,44 +1,123 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Oxide.Core;
-using Oxide.Core.Configuration;
-using Oxide.GettingOverIt;
 using ServerShared;
 
 namespace Oxide.GettingOverItMP
 {
     public class ServerOxideConfig : IServerConfig
     {
-        private DynamicConfigFile config => MPCore.Config;
-        
         public bool LoadPlayerBans(out List<PlayerBan> bans)
         {
-            try
+            string filePath = GetFilePath("goimp/bans.bin");
+
+            if (!File.Exists(filePath))
             {
-                bans = config.ReadObject<List<PlayerBan>>("goimp/bans.json");
-                return true;
+                bans = new List<PlayerBan>();
+                return SavePlayerBans(bans);
             }
-            catch (Exception ex)
+
+            using (var reader = File.OpenRead(filePath))
             {
-                Interface.Oxide.LogDebug($"Failed to load player bans: {ex.Message}");
-                bans = null;
-                return false;
+                byte[] bytes = new byte[reader.Length];
+                reader.Read(bytes, 0, bytes.Length);
+                bans = Deserialize(bytes);
+                return true;
             }
         }
 
         public bool SavePlayerBans(IEnumerable<PlayerBan> bans)
         {
-            try
+            byte[] bytes = Serialize(bans);
+
+            using (var writer = File.Create(GetFilePath("goimp/bans.bin")))
             {
-                config.WriteObject(bans.ToList(), false, "goimp/bans.json");
-                return true;
+                writer.Write(bytes, 0, bytes.Length);
             }
-            catch (Exception ex)
+
+            return true;
+        }
+
+        private string GetFilePath(string fileName)
+        {
+            string fullPath = Path.Combine(Interface.Oxide.ConfigDirectory, fileName);
+            string directory = Path.GetDirectoryName(fullPath);
+
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            return Path.Combine(Interface.Oxide.ConfigDirectory, fileName);
+        }
+
+        private byte[] Serialize(IEnumerable<PlayerBan> bansEnumerable)
+        {
+            var bans = bansEnumerable.ToList();
+
+            using (var memstream = new MemoryStream())
             {
-                Interface.Oxide.LogError($"Failed to save player bans: {ex.Message}");
-                return false;
+                using (var writer = new BinaryWriter(memstream, Encoding.UTF8))
+                {
+                    writer.Write(bans.Count);
+
+                    foreach (var ban in bans)
+                    {
+                        writer.Write((byte) ban.Type);
+
+                        if (ban.Type == PlayerBan.BanType.Ip)
+                            writer.Write(ban.Ip);
+                        else if (ban.Type == PlayerBan.BanType.SteamId)
+                            writer.Write(ban.SteamId);
+
+                        writer.Write(ban.Reason != null);
+
+                        if (ban.Reason != null)
+                            writer.Write(ban.Reason);
+
+                        writer.Write(ban.ExpirationDate != null);
+
+                        if (ban.ExpirationDate != null)
+                            writer.Write(ban.ExpirationDate.Value.Ticks);
+                    }
+                }
+
+                memstream.Flush();
+                return memstream.ToArray();
             }
+        }
+
+        private List<PlayerBan> Deserialize(byte[] bytes)
+        {
+            var result = new List<PlayerBan>();
+
+            using (var memstream = new MemoryStream(bytes))
+            {
+                var reader = new BinaryReader(memstream, Encoding.UTF8);
+                var count = reader.ReadInt32();
+
+                for (int i = 0; i < count; ++i)
+                {
+                    var ban = new PlayerBan();
+                    ban.Type = (PlayerBan.BanType) reader.ReadByte();
+
+                    if (ban.Type == PlayerBan.BanType.Ip)
+                        ban.Ip = reader.ReadUInt32();
+                    else if (ban.Type == PlayerBan.BanType.SteamId)
+                        ban.SteamId = reader.ReadUInt64();
+
+                    if (reader.ReadBoolean())
+                        ban.Reason = reader.ReadString();
+
+                    if (reader.ReadBoolean())
+                        ban.ExpirationDate = new DateTime(reader.ReadInt64());
+
+                    result.Add(ban);
+                }
+            }
+
+            return result;
         }
     }
 }
