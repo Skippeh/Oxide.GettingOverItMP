@@ -75,6 +75,7 @@ namespace Oxide.GettingOverItMP.Components
             hostPrivate = PlayerPrefs.GetInt("GOIMP_HostPrivate", 0) != 0;
             serverName = PlayerPrefs.GetString("GOIMP_ServerName", "");
             strMaxPlayers = PlayerPrefs.GetString("GOIMP_MaxPlayers", "100");
+            noSteam = PlayerPrefs.GetInt("GOIMP_NoSteam", 0) != 0;
         }
 
         private void OnGUI()
@@ -555,6 +556,7 @@ namespace Oxide.GettingOverItMP.Components
             PlayerPrefs.SetInt("GOIMP_HostPrivate", hostPrivate ? 1 : 0);
             PlayerPrefs.SetString("GOIMP_ServerName", serverName);
             PlayerPrefs.SetString("GOIMP_MaxPlayers", strMaxPlayers);
+            PlayerPrefs.SetInt("GOIMP_NoSteam", noSteam ? 1 : 0);
         }
     }
 }
