@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net35</TargetFrameworks>
+    <TargetFramework>net35</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\newtonsoft.json\8.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\UnityEngine.dll</HintPath>
     </Reference>
