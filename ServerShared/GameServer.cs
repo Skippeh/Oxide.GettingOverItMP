@@ -82,10 +82,7 @@ namespace ServerShared
                 bannedPlayers.AddRange(loadedBans.Where(ban => !ban.Expired()));
                 Console.WriteLine($"Loaded {bannedPlayers.Count} ban(s).");
             }
-
-            BanIp(IPAddress.Parse("127.0.0.1"), "Test reason", DateTime.UtcNow.AddHours(12));
-            BanSteamId(123, "Test reason for steam", DateTime.UtcNow.AddHours(1));
-
+            
             if (RequireSteamAuth)
             {
                 var serverInit = new ServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
