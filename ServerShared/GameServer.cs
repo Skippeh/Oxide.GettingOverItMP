@@ -13,24 +13,6 @@ namespace ServerShared
 {
     public class GameServer
     {
-        class PendingConnection
-        {
-            public readonly NetConnection Client;
-            public readonly ulong SteamId;
-            public string PlayerName;
-            public PlayerMove Movement;
-
-            public PendingConnection(NetConnection client, ulong steamId, string playerName, PlayerMove movement)
-            {
-                Client = client;
-                SteamId = steamId;
-                PlayerName = playerName;
-                Movement = movement;
-            }
-        }
-
-        public static readonly TimeSpan PendingConnectionTimeout = new TimeSpan(0, 0, 0, 5); // 5 seconds
-
         public string Name;
         public int Port => server.Configuration.Port;
         public int MaxPlayers => server.Configuration.MaximumConnections;
