@@ -93,7 +93,7 @@ namespace ServerShared
 
                 SteamServer = new Server(SharedConstants.SteamAppId, serverInit);
                 SteamServer.Auth.OnAuthChange += OnSteamAuthChange;
-                SteamServer.ServerName = "Testy server";
+                SteamServer.ServerName = Name;
                 SteamServer.AutomaticHeartbeats = false;
                 SteamServer.DedicatedServer = !ListenServer;
                 SteamServer.MaxPlayers = MaxPlayers;
