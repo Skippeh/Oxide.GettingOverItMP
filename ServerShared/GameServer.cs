@@ -478,77 +478,74 @@ namespace ServerShared
                         if (message.Length > SharedConstants.MaxChatLength)
                             message = message.Substring(0, SharedConstants.MaxChatLength);
 
-                        // Todo: better handling of chat commands
-                        if (message.StartsWith("/"))
+                        if (Commands.HandleChatMessage(message))
+                            return;
+
+                        #region old
+                        /*if (message.StartsWith("/spectate "))
                         {
-                            Commands.HandleChatMessage(message.Substring(1));
-
-                            /*if (message.StartsWith("/spectate "))
+                            NetPlayer target;
+                            int targetId;
+                            if (!int.TryParse(message.Substring("/spectate ".Length), out targetId))
                             {
-                                NetPlayer target;
-                                int targetId;
-                                if (!int.TryParse(message.Substring("/spectate ".Length), out targetId))
+                                var players = Players.Values.Where(plr => !plr.Spectating && plr.Name.ToLower().StartsWith(message.Substring("/spectate ".Length).ToLower())).ToList();
+
+                                if (players.Count == 0)
                                 {
-                                    var players = Players.Values.Where(plr => !plr.Spectating && plr.Name.ToLower().StartsWith(message.Substring("/spectate ".Length).ToLower())).ToList();
-
-                                    if (players.Count == 0)
-                                    {
-                                        peerPlayer.SendChatMessage("There is no player with this name.", SharedConstants.ColorRed);
-                                        return;
-                                    }
-
-                                    if (players.Count > 1)
-                                    {
-                                        peerPlayer.SendChatMessage("Found more than 1 player with this name. Try be more specific or type their id instead.", SharedConstants.ColorRed);
-                                        return;
-                                    }
-
-                                    target = players.First();
-                                }
-                                else
-                                {
-                                    target = Players.Values.FirstOrDefault(plr => !plr.Spectating && plr.Id == targetId);
-
-                                    if (target == null)
-                                    {
-                                        peerPlayer.SendChatMessage("There is no player with this id.", SharedConstants.ColorRed);
-                                        return;
-                                    }
-                                }
-
-                                if (target == peerPlayer)
-                                {
-                                    peerPlayer.SendChatMessage("You can't spectate yourself dummy.", SharedConstants.ColorRed);
+                                    peerPlayer.SendChatMessage("There is no player with this name.", SharedConstants.ColorRed);
                                     return;
                                 }
 
-                                peerPlayer.Spectate(target);
+                                if (players.Count > 1)
+                                {
+                                    peerPlayer.SendChatMessage("Found more than 1 player with this name. Try be more specific or type their id instead.", SharedConstants.ColorRed);
+                                    return;
+                                }
+
+                                target = players.First();
                             }
-                            else if (message.StartsWith("/shrug"))
+                            else
                             {
-                                string prefix = "";
+                                target = Players.Values.FirstOrDefault(plr => !plr.Spectating && plr.Id == targetId);
 
-                                if (message.Length > "/shrug ".Length)
-                                    prefix = message.Substring("/shrug ".Length);
-
-                                prefix = prefix.Trim();
-
-                                BroadcastChatMessage($"{prefix} ¯\\_(ツ)_/¯", Color.white, peerPlayer);
+                                if (target == null)
+                                {
+                                    peerPlayer.SendChatMessage("There is no player with this id.", SharedConstants.ColorRed);
+                                    return;
+                                }
                             }
-                            else if (message.StartsWith("/tableflip"))
+
+                            if (target == peerPlayer)
                             {
-                                string prefix = "";
+                                peerPlayer.SendChatMessage("You can't spectate yourself dummy.", SharedConstants.ColorRed);
+                                return;
+                            }
 
-                                if (message.Length > "/tableflip ".Length)
-                                    prefix = message.Substring("/tableflip ".Length);
-
-                                prefix = prefix.Trim();
-
-                                BroadcastChatMessage($"{prefix} (╯°□°）╯︵ ┻━┻", Color.white, peerPlayer);
-                            }*/
-
-                            return;
+                            peerPlayer.Spectate(target);
                         }
+                        else if (message.StartsWith("/shrug"))
+                        {
+                            string prefix = "";
+
+                            if (message.Length > "/shrug ".Length)
+                                prefix = message.Substring("/shrug ".Length);
+
+                            prefix = prefix.Trim();
+
+                            BroadcastChatMessage($"{prefix} ¯\\_(ツ)_/¯", Color.white, peerPlayer);
+                        }
+                        else if (message.StartsWith("/tableflip"))
+                        {
+                            string prefix = "";
+
+                            if (message.Length > "/tableflip ".Length)
+                                prefix = message.Substring("/tableflip ".Length);
+
+                            prefix = prefix.Trim();
+
+                            BroadcastChatMessage($"{prefix} (╯°□°）╯︵ ┻━┻", Color.white, peerPlayer);
+                        }*/
+                        #endregion
 
                         Color color = Color.white;
                         BroadcastChatMessage(message, color, peerPlayer);
