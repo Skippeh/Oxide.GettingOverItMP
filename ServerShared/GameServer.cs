@@ -17,6 +17,7 @@ namespace ServerShared
         public int Port => server.Configuration.Port;
         public int MaxPlayers => server.Configuration.MaximumConnections;
         public Facepunch.Steamworks.Server SteamServer { get; private set; }
+        public readonly CommandManager Commands;
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
@@ -61,6 +62,7 @@ namespace ServerShared
             Name = name;
             RequireSteamAuth = requireSteamAuth;
             this.config = config;
+            Commands = new CommandManager(this);
 
             if (listenServer)
             {
@@ -479,7 +481,9 @@ namespace ServerShared
                         // Todo: better handling of chat commands
                         if (message.StartsWith("/"))
                         {
-                            if (message.StartsWith("/spectate "))
+                            Commands.HandleChatMessage(message.Substring(1));
+
+                            /*if (message.StartsWith("/spectate "))
                             {
                                 NetPlayer target;
                                 int targetId;
@@ -541,7 +545,7 @@ namespace ServerShared
                                 prefix = prefix.Trim();
 
                                 BroadcastChatMessage($"{prefix} (╯°□°）╯︵ ┻━┻", Color.white, peerPlayer);
-                            }
+                            }*/
 
                             return;
                         }
