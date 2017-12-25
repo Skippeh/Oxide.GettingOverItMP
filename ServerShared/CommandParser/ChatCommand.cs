@@ -8,6 +8,6 @@ namespace Pyratron.Frameworks.Commands.Parser
         public GameServer Server { get; set; }
         public CommandParser Parser { get; set; }
 
-        public abstract void Handle(NetPlayer caller);
+        public abstract void Handle(NetPlayer caller, string[] args);
     }
 }

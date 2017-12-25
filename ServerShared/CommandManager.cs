@@ -76,7 +76,7 @@ namespace ServerShared
                 command.AddArgument(ArgumentFromAttribute(type, property, argumentAttribute));
             }
 
-            command.SetAction((arguments, data) =>
+            command.SetAction((arguments, data, rawArgs) =>
             {
                 var netPlayer = (NetPlayer)data;
                 var instance = (ChatCommand) Activator.CreateInstance(type, true);
@@ -89,7 +89,7 @@ namespace ServerShared
                     return;
                 }
 
-                instance.Handle(netPlayer);
+                instance.Handle(netPlayer, rawArgs);
             });
 
             return command;

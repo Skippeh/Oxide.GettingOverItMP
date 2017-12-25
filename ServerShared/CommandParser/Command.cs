@@ -19,7 +19,7 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// <summary>
         /// An action to be executed when the command is ran with successful input.
         /// </summary>
-        public Action<Argument[], object> Action { get; set; }
+        public Action<Argument[], object, string[]> Action { get; set; }
 
         /// <summary>
         /// The strings that will call the command. The first alias is known as the default alias.
@@ -231,7 +231,7 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// Action to be ran, which takes a <c>Argument</c> array parameter representing the passed
         /// input, as well as any kind of optional data to be sent to the command.
         /// </param>
-        public Command SetAction(Action<Argument[], object> action)
+        public Command SetAction(Action<Argument[], object, string[]> action)
         {
             if (action == null) throw new ArgumentNullException("action");
 
@@ -244,15 +244,16 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// If CanExecute returns false, the command is not run.
         /// </summary>
         /// <param name="arguments">The parsed input</param>
+        /// <param name="rawArgs">The raw string arguments.</param>
         /// <param name="data">Optional data to be passed to the command.</param>
-        public Command Execute(Argument[] arguments, object data = null)
+        public Command Execute(Argument[] arguments, string[] rawArgs, object data = null)
         {
             if (Action == null)
                 throw new InvalidOperationException("The command's action must be defined before calling it.");
 
             if (string.IsNullOrEmpty(CanExecute(this)))
                 //Run the pre-condition, if it passes (returns no error), run the action
-                Action(arguments, data);
+                Action(arguments, data, rawArgs);
             return this;
         }
 
