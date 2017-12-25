@@ -478,7 +478,7 @@ namespace ServerShared
                         if (message.Length > SharedConstants.MaxChatLength)
                             message = message.Substring(0, SharedConstants.MaxChatLength);
 
-                        if (Commands.HandleChatMessage(message))
+                        if (Commands.HandleChatMessage(peerPlayer, message))
                             return;
 
                         #region old
