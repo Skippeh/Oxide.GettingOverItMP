@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ServerShared.ChatCommands
 {
-    [ChatCommand("Shrug", "shrug", "¯\\_(ツ)_/¯")]
+    [ChatCommand("Shrug", "shrug", "Writes an optional message followed by ¯\\_(ツ)_/¯.")]
     public class ShrugCommand : ChatCommand
     {
         public override void Handle(NetPlayer caller, string[] args)
@@ -16,7 +16,7 @@ namespace ServerShared.ChatCommands
         }
     }
 
-    [ChatCommand("Tableflip", "tableflip", "(╯°□°）╯︵ ┻━┻")]
+    [ChatCommand("Tableflip", "tableflip", "Writes an optional message followed by (╯°□°）╯︵ ┻━┻.")]
     public class TableflipCommand : ChatCommand
     {
         public override void Handle(NetPlayer caller, string[] args)
