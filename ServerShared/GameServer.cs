@@ -18,6 +18,7 @@ namespace ServerShared
         public int MaxPlayers => server.Configuration.MaximumConnections;
         public Facepunch.Steamworks.Server SteamServer { get; private set; }
         public readonly CommandManager Commands;
+        public List<PlayerBan> BannedPlayers => bannedPlayers;
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
@@ -164,6 +165,7 @@ namespace ServerShared
         {
             var netMessage = server.CreateMessage();
             netMessage.Write(MessageType.ChatMessage);
+            netMessage.Write(player?.Id ?? 0);
             netMessage.Write(player?.Name);
             netMessage.WriteRgbaColor(color);
             netMessage.Write(message);
@@ -193,30 +195,46 @@ namespace ServerShared
         public bool BanPlayer(NetPlayer player, string reason = null, DateTime expirationDate = default(DateTime))
         {
             if (SteamServer != null)
-                BanSteamId(player.SteamId, reason, expirationDate);
+                BanSteamId(player.SteamId, reason, expirationDate, player.Name);
             else
-                BanIp(player.Peer.RemoteEndPoint.Address, reason, expirationDate);
+                BanIp(player.Peer.RemoteEndPoint.Address, reason, expirationDate, player.Name);
 
             KickConnection(player.Peer, DisconnectReason.Banned, reason);
             return true;
         }
 
-        public void BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null)
+        public void BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null, string referenceName = null)
         {
             if (IpBanned(ip, out var _))
                 return;
 
-            bannedPlayers.Add(new PlayerBan(GetUintIp(ip), reason, expirationDate));
+            bannedPlayers.Add(new PlayerBan(GetUintIp(ip), reason, expirationDate, referenceName));
             config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
         }
 
-        public void BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null)
+        public void BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null, string referenceName = null)
         {
             if (SteamIdBanned(steamId, out var _))
                 return;
             
-            bannedPlayers.Add(new PlayerBan(steamId, reason, expirationDate));
+            bannedPlayers.Add(new PlayerBan(steamId, reason, expirationDate, referenceName));
             config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
+        }
+
+        public void UnbanIp(IPAddress ip)
+        {
+            var uintIp = GetUintIp(ip);
+            bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.Ip && ban.Ip == uintIp);
+        }
+
+        public void UnbanSteamId(ulong steamId)
+        {
+            bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.SteamId && ban.SteamId == steamId);
+        }
+
+        public bool UnbanByName(string name)
+        {
+            return bannedPlayers.RemoveAll(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower())) > 0;
         }
         
         private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)

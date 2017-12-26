@@ -16,25 +16,27 @@ namespace ServerShared
         public uint Ip;
         public DateTime? ExpirationDate;
         public string Reason;
+        public string ReferenceName;
 
         /// <param name="reason">Optional reason, null is allowed.</param>
-        public PlayerBan(ulong steamId, string reason, DateTime? expirationDate) : this(reason, expirationDate)
+        public PlayerBan(ulong steamId, string reason, DateTime? expirationDate, string referenceName) : this(reason, expirationDate, referenceName)
         {
             SteamId = steamId;
             Type = BanType.SteamId;
         }
 
         /// <param name="reason">Optional reason, null is allowed.</param>
-        public PlayerBan(uint ip, string reason, DateTime? expirationDate) : this(reason, expirationDate)
+        public PlayerBan(uint ip, string reason, DateTime? expirationDate, string referenceName) : this(reason, expirationDate, referenceName)
         {
             Ip = ip;
             Type = BanType.Ip;
         }
 
-        private PlayerBan(string reason, DateTime? expirationDate)
+        private PlayerBan(string reason, DateTime? expirationDate, string referenceName)
         {
             Reason = reason;
             ExpirationDate = expirationDate;
+            ReferenceName = referenceName;
         }
 
         /// <summary>Do not use. Exclusively used for serialization/deserialization</summary>

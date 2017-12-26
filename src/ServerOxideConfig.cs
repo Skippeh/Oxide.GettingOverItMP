@@ -83,6 +83,11 @@ namespace Oxide.GettingOverItMP
 
                         if (ban.ExpirationDate != null)
                             writer.Write(ban.ExpirationDate.Value.Ticks);
+
+                        writer.Write(ban.ReferenceName != null);
+
+                        if (ban.ReferenceName != null)
+                            writer.Write(ban.ReferenceName);
                     }
                 }
 
@@ -116,6 +121,9 @@ namespace Oxide.GettingOverItMP
 
                     if (reader.ReadBoolean())
                         ban.ExpirationDate = new DateTime(reader.ReadInt64());
+
+                    if (reader.ReadBoolean())
+                        ban.ReferenceName = reader.ReadString();
 
                     result.Add(ban);
                 }
