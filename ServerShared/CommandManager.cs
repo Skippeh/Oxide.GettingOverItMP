@@ -38,7 +38,7 @@ namespace ServerShared
 
         private void LoadCommands()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
             var types = assemblies.SelectMany(assembly => assembly.GetExportedTypes()).ToList();
             Type chatCommandBaseType = typeof(ChatCommand);
 
