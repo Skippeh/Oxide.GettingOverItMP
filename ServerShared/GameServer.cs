@@ -357,6 +357,9 @@ namespace ServerShared
             var pendingConnection = pendingConnections.FirstOrDefault(conn => conn.SteamId == steamId);
             var connection = pendingConnection?.Client ?? Players.FirstOrDefault(plr => plr.Value.SteamId == ownerId).Key;
 
+            if (connection == null || connection.Status != NetConnectionStatus.Connected) // Return if connection got kicked or disconnected between connecting and receiving steam auth status.
+                return;
+
             if (steamId != ownerId)
             {
                 KickConnection(connection, DisconnectReason.InvalidSteamSession, "Invalid steam id");
