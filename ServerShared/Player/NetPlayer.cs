@@ -29,12 +29,13 @@ namespace ServerShared.Player
             Id = idCounter++;
         }
         
-        public void SendChatMessage(string message, Color color)
+        /// <param name="color">If null then Color.white will be used.</param>
+        public void SendChatMessage(string message, Color? color = null)
         {
             var writer = server.CreateMessage();
             writer.Write(MessageType.ChatMessage);
             writer.Write((string) null);
-            writer.WriteRgbaColor(color);
+            writer.WriteRgbaColor(color ?? Color.white);
             writer.Write(message);
 
             Peer.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
