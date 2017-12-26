@@ -34,6 +34,7 @@ namespace ServerShared.Player
         {
             var writer = server.CreateMessage();
             writer.Write(MessageType.ChatMessage);
+            writer.Write(0); // player id (0 = equivalent of null)
             writer.Write((string) null);
             writer.WriteRgbaColor(color ?? Color.white);
             writer.Write(message);

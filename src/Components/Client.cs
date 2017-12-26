@@ -160,6 +160,8 @@ namespace Oxide.GettingOverItMP.Components
                     var remotePlayers = netMessage.ReadMovementDictionary();
                     ServerInfo = netMessage.ReadDiscoveryServerInfo();
 
+                    PlayerName = $"[{Id}] {PlayerName}"; // Prefix player name with id.
+
                     localPlayer.PlayerName = PlayerName;
                     localPlayer.Id = Id;
                     localPlayer.UpdateGoldness();
@@ -227,6 +229,7 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 case MessageType.ChatMessage:
                 {
+                    int playerId = netMessage.ReadInt32();
                     string name = netMessage.ReadString();
                     Color color = netMessage.ReadRgbaColor();
                     string message = netMessage.ReadString();
@@ -234,6 +237,7 @@ namespace Oxide.GettingOverItMP.Components
                     ChatMessageReceived?.Invoke(this, new ChatMessageReceivedEventArgs
                     {
                         PlayerName = name,
+                        PlayerId = playerId,
                         Message = message,
                         Color = color
                     });
@@ -281,7 +285,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}", id);
             yield return new WaitForSeconds(0);
-            remotePlayer.PlayerName = playerName;
+            remotePlayer.PlayerName = $"[{id}] {playerName}"; // Prefix name with ID.
             remotePlayer.ApplyMove(move, 0);
             remotePlayer.Wins = wins;
             remotePlayer.UpdateGoldness();

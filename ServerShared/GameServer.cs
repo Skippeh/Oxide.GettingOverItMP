@@ -223,9 +223,7 @@ namespace ServerShared
         {
             var netPlayer = new NetPlayer(connection, playerName, this, steamId);
             Players[connection] = netPlayer;
-
-            netPlayer.Name = $"[{netPlayer.Id}] {netPlayer.Name}"; // Prefix name with ID.
-
+            
             var netMessage = server.CreateMessage();
             netMessage.Write(MessageType.HandshakeResponse);
             netMessage.Write(netPlayer.Id);
