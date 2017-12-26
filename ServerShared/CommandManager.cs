@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Pyratron.Frameworks.Commands.Parser;
@@ -142,7 +143,7 @@ namespace ServerShared
 
                     try
                     {
-                        object convertedValue = Convert.ChangeType(argument.Value, targetType);
+                        object convertedValue = Convert.ChangeType(argument.Value, targetType, CultureInfo.InvariantCulture);
                         propertyAttribute.PropertyInfo.SetValue(instance, convertedValue, null);
                     }
                     catch
