@@ -44,6 +44,9 @@ namespace Oxide.GettingOverItMP.Components
 
         private void FixedUpdate()
         {
+            if (!Input.GetKey(KeyCode.Tab))
+                return;
+
             if (players.Count > 1)
                 players.Sort((pl1, pl2) => pl2.transform.position.y.CompareTo(pl1.transform.position.y));
         }
