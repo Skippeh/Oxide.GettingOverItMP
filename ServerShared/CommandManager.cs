@@ -23,17 +23,27 @@ namespace ServerShared
 
         private GameServer server;
         private CommandParser parser;
+        private NetPlayer currentCaller;
 
         public CommandManager(GameServer server)
         {
             this.server = server;
             parser = CommandParser.CreateNew(prefix: "/");
+            parser.OnError(OnParseError);
             LoadCommands();
+        }
+
+        private void OnParseError(object sender, string error)
+        {
+            currentCaller?.SendChatMessage(error, SharedConstants.ColorRed);
         }
 
         public bool HandleChatMessage(NetPlayer caller, string message)
         {
-            return parser.Parse(message, caller);
+            currentCaller = caller;
+            bool result = parser.Parse(message, caller);
+            currentCaller = null;
+            return result;
         }
 
         private void LoadCommands()
