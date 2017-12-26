@@ -43,7 +43,7 @@ namespace ServerShared.ChatCommands
     [ChatCommand("Spectate by id", "spectateid", "Start spectating another player by their id.")]
     public class SpectateIdCommand : ChatCommand
     {
-        [CommandArgument("Player name")]
+        [CommandArgument("Player id")]
         public int PlayerId { get; set; }
 
         public override void Handle(NetPlayer caller, string[] args)
