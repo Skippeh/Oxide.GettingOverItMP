@@ -41,8 +41,10 @@ namespace ServerShared.ChatCommands
 
             string suffix;
 
-            if (Minutes > 0)
-                suffix = $"for {Minutes} minute(s)";
+            if (Minutes == 1)
+                suffix = $"for {Minutes} minute";
+            else if (Minutes > 1)
+                suffix = $"for {Minutes} minutes";
             else
                 suffix = "permanently";
 
