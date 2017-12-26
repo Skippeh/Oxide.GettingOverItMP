@@ -198,7 +198,7 @@ namespace Pyratron.Frameworks.Commands.Parser
                 var alias = inputArgs.ElementAt(0).ToLower(); //Preserve the alias typed in.
                 inputArgs.RemoveAt(0); //Remove the command name.
                 if (!ParseArguments(false, alias, command, command, inputArgs, returnArgs))
-                    command.Execute(returnArgs.ToArray(), inputArgs.Skip(1).ToArray(), data); //Execute the command.
+                    command.Execute(returnArgs.ToArray(), inputArgs.ToArray(), data); //Execute the command.
 
                 //Return argument values back to default.
                 ResetArgs(command);
