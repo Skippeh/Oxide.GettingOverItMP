@@ -366,7 +366,7 @@ namespace Oxide.GettingOverItMP.Components
 
         public void SendChatMessage(string text)
         {
-            if (server == null)
+            if (server == null || !handshakeResponseReceived)
                 return;
 
             var message = client.CreateMessage();
