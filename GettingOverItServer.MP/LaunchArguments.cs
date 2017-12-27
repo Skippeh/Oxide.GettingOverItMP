@@ -17,7 +17,7 @@ namespace GettingOverItMP.Server
         [ValueArgument(typeof(int), "port", Description = "The port to listen on.", DefaultValue = 25050)]
         public int Port;
 
-        [SwitchArgument("nosteam", false, Description = "If enabled then steam authentication will be disabled. Players will not be identifiable (and bannable etc) but will not require ownership of the game.")]
+        [SwitchArgument("nosteam", false, Description = "If enabled then steam authentication will be disabled. Players won't need the game on steam but can't be made a moderator or admin (for now).")]
         public bool NoSteam;
 #pragma warning restore 649
     }
