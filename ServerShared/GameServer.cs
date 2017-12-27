@@ -513,7 +513,7 @@ namespace ServerShared
                     return;
                 }
 
-                NetPlayer peerPlayer = Players.ContainsKey(connection) ? Players[connection] : null;
+                NetPlayer peerPlayer = Players[connection];
 
                 switch (messageType)
                 {
