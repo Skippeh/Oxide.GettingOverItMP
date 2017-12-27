@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace ServerShared
 {
@@ -9,7 +8,6 @@ namespace ServerShared
         public const int MaxNameLength = 30;
         public const int DefaultPort = 25050;
         public const int Version = 7;
-        public static readonly char[] AllowedCharacters;
         public const int MaxChatLength = 100;
         public static readonly Color ColorGreen = new Color(0.48f, 0.74f, 0.45f);
         public static readonly Color ColorRed = new Color(0.74f, 0.48f, 0.45f);
@@ -20,21 +18,5 @@ namespace ServerShared
         public const int MaxServerNameLength = 40;
         public const int MaxPlayerLimit = 9999;
         public const uint SteamAppId = 240720;
-
-        static SharedConstants()
-        {
-            string allowedCharactersString = "abcdefghijklmnopqrstuvxyzåäö" +
-                                             "ABCDEFGHIJKLMNOPQRSTUVXYZÅÄÖ" +
-                                             "0123456789" +
-                                             "!\"#¤%&/()=?`´@£$€{[]}\\^ ";
-
-            List<char> allowedCharacters = new List<char>();
-            foreach (char ch in allowedCharactersString)
-            {
-                allowedCharacters.Add(ch);
-            }
-
-            AllowedCharacters = allowedCharacters.ToArray();
-        }
     }
 }

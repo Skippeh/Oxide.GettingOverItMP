@@ -322,7 +322,7 @@ namespace ServerShared
                 string playerName = hailMessage.ReadString().Trim();
                 PlayerMove movementData = hailMessage.ReadPlayerMove();
 
-                if (playerName.Length == 0 || playerName.Length > SharedConstants.MaxNameLength || !playerName.All(ch => SharedConstants.AllowedCharacters.Contains(ch)))
+                if (playerName.Length == 0 || playerName.Length > SharedConstants.MaxNameLength)
                 {
                     KickConnection(args.Connection, DisconnectReason.InvalidName);
                     return;
