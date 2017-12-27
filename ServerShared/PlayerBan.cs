@@ -56,7 +56,7 @@ namespace ServerShared
             string result = $"You have been banned from this server: \"{Reason}\".";
 
             if (ExpirationDate != null)
-                result += $" The ban will expire: {ExpirationDate.Value.ToLongDateString()}.";
+                result += $" The ban will expire: {ExpirationDate.Value.ToLongDateString()} {ExpirationDate.Value.ToShortTimeString()} UTC.";
 
             return result;
         }
