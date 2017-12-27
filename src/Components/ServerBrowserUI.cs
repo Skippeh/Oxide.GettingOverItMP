@@ -303,7 +303,6 @@ namespace Oxide.GettingOverItMP.Components
                 if (lastArea.Contains(UnityEngine.Event.current.mousePosition))
                 {
                     selectedServer = info;
-                    Interface.Oxide.LogDebug(UnityEngine.Event.current.clickCount.ToString());
 
                     if (UnityEngine.Event.current.clickCount > 0 && UnityEngine.Event.current.clickCount == 2)
                     {
