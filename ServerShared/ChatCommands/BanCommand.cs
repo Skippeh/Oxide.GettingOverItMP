@@ -48,7 +48,7 @@ namespace ServerShared.ChatCommands
             else
                 suffix = "permanently";
 
-            Server.BanPlayer(netPlayer, Reason, DateTime.UtcNow.AddMinutes(Minutes));
+            Server.BanPlayer(netPlayer, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
             Server.BroadcastChatMessage($"{netPlayer.Name} was banned {suffix}.", SharedConstants.ColorBlue);
         }
     }

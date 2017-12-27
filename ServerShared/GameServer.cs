@@ -192,7 +192,7 @@ namespace ServerShared
             return ban != null;
         }
 
-        public bool BanPlayer(NetPlayer player, string reason = null, DateTime expirationDate = default(DateTime))
+        public bool BanPlayer(NetPlayer player, string reason = null, DateTime? expirationDate = null)
         {
             if (SteamServer != null)
                 BanSteamId(player.SteamId, reason, expirationDate, player.Name);
