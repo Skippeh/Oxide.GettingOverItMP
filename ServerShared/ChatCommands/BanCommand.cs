@@ -40,6 +40,12 @@ namespace ServerShared.ChatCommands
                 return;
             }
 
+            if (netPlayer.AccessLevel > caller.AccessLevel)
+            {
+                caller.SendChatMessage("You can't ban someone with a higher access level than yourself.", SharedConstants.ColorRed);
+                return;
+            }
+
             string suffix;
 
             if (Minutes == 1)
