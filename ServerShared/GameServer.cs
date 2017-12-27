@@ -236,6 +236,39 @@ namespace ServerShared
         {
             return bannedPlayers.RemoveAll(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower())) > 0;
         }
+
+        public IEnumerable<NetPlayer> FindPlayers(string name, NameSearchOption searchOption)
+        {
+            string lowerName = name.ToLower();
+
+            return Players.Values.Where(plr =>
+            {
+                switch (searchOption)
+                {
+                    case NameSearchOption.StartsWith:
+                        return plr.Name.ToLower().StartsWith(lowerName);
+                    case NameSearchOption.Contains:
+                        return plr.Name.ToLower().Contains(lowerName);
+                }
+
+                throw new NotImplementedException($"NameSearchOption.{searchOption} not implemented.");
+            });
+        }
+
+        public NetPlayer FindPlayer(string name, NameSearchOption searchOption)
+        {
+            return FindPlayers(name, searchOption).FirstOrDefault();
+        }
+
+        public NetPlayer FindPlayer(ulong steamId)
+        {
+            return Players.Values.FirstOrDefault(plr => plr.SteamId == steamId);
+        }
+
+        public NetPlayer FindPlayer(int id)
+        {
+            return Players.Values.FirstOrDefault(plr => plr.Id == id);
+        }
         
         private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)
         {

@@ -20,7 +20,7 @@ namespace ServerShared.ChatCommands
 
         public override void Handle(NetPlayer caller, string[] args)
         {
-            var netPlayer = Server.Players.Values.FirstOrDefault(plr => plr.Id == PlayerId);
+            var netPlayer = Server.FindPlayer(PlayerId);
 
             if (netPlayer == null)
             {

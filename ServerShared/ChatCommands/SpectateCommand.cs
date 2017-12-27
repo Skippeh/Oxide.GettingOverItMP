@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Pyratron.Frameworks.Commands.Parser;
 using ServerShared.Player;
 
@@ -12,9 +13,9 @@ namespace ServerShared.ChatCommands
         
         public override void Handle(NetPlayer caller, string[] args)
         {
+            string lowerName = PlayerName.ToLower();
             NetPlayer target;
-
-            var players = Server.Players.Values.Where(plr => !plr.Spectating && plr.Name.ToLower().Contains(PlayerName.ToLower())).ToList();
+            List<NetPlayer> players = Server.FindPlayers(lowerName, NameSearchOption.Contains).Where(plr => !plr.Spectating).ToList();
 
             if (players.Count == 0)
             {
@@ -48,7 +49,7 @@ namespace ServerShared.ChatCommands
 
         public override void Handle(NetPlayer caller, string[] args)
         {
-            NetPlayer target = Server.Players.Values.FirstOrDefault(player => !player.Spectating && player.Id == PlayerId);
+            NetPlayer target = Server.FindPlayer(PlayerId);
 
             if (target == null)
             {
