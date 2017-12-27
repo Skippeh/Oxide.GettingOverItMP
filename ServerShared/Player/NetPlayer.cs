@@ -88,7 +88,7 @@ namespace ServerShared.Player
 
         public void SetGoldness(float goldness)
         {
-            goldness = Mathf.Clamp(goldness, 0f, 2f);
+            goldness = Mathf.Clamp01(goldness);
 
             var message = server.CreateMessage();
             message.Write(MessageType.PlayerGoldness);

@@ -80,7 +80,7 @@ namespace Oxide.GettingOverItMP.Components
 
         public void SetGoldness(float goldness)
         {
-            goldness = Mathf.Clamp(goldness, 0f, 2f);
+            goldness = Mathf.Clamp01(goldness);
 
             if (Math.Abs(goldness - (double) this.goldness) < 0.0001f)
                 return;
