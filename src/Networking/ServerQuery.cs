@@ -80,7 +80,7 @@ namespace Oxide.GettingOverItMP.Networking
                         });
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     doneCallback(new QueryDoneEventArgs
                     {

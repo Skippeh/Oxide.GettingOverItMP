@@ -4,6 +4,7 @@ namespace GettingOverItMP.Server
 {
     internal class LaunchArguments
     {
+#pragma warning disable 649 // Field is never assigned
         [ValueArgument(typeof(string), "hostname", Description = "The server name that should be shown in the server browser.", Optional = false)]
         public string ServerName;
 
@@ -18,5 +19,6 @@ namespace GettingOverItMP.Server
 
         [SwitchArgument("nosteam", false, Description = "If enabled then steam authentication will be disabled. Players will not be identifiable (and bannable etc) but will not require ownership of the game.")]
         public bool NoSteam;
+#pragma warning restore 649
     }
 }
