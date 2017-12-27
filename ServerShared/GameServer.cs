@@ -423,6 +423,8 @@ namespace ServerShared
             player.Movement = movementData;
             player.Wins = wins;
 
+            // Todo: set access level based on steam id.
+
             var writer = server.CreateMessage();
             writer.Write(MessageType.CreatePlayer);
             writer.Write(player.Id);

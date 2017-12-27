@@ -1,4 +1,5 @@
 ﻿using System;
+using ServerShared.Player;
 
 namespace Pyratron.Frameworks.Commands.Parser
 {
@@ -29,6 +30,20 @@ namespace Pyratron.Frameworks.Commands.Parser
             Name = name;
             Optional = optional;
             DefaultValue = defaultValue;
+        }
+    }
+
+    /// <summary>
+    /// Specifies that the chat command requires the specified access level or higher to use.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class RequireAuthAttribute : Attribute
+    {
+        public readonly AccessLevel AccessLevel;
+
+        public RequireAuthAttribute(AccessLevel accessLevel)
+        {
+            AccessLevel = accessLevel;
         }
     }
 }

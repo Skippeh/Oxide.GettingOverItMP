@@ -6,6 +6,7 @@ using ServerShared.Player;
 namespace ServerShared.ChatCommands
 {
     [ChatCommand("Ban", "ban", "Ban the specified player for an optional amount of time in minutes.")]
+    [RequireAuth(AccessLevel.Moderator)]
     public class BanCommand : ChatCommand
     {
         [CommandArgument("Player name")]

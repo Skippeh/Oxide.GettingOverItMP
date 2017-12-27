@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 using Pyratron.Frameworks.Commands.Parser;
 using ServerShared.Player;
 
@@ -42,7 +43,7 @@ namespace ServerShared
         public bool HandleChatMessage(NetPlayer caller, string message)
         {
             currentCaller = caller;
-            bool result = parser.Parse(message, caller);
+            bool result = parser.Parse(message, caller, (int) caller.AccessLevel);
             currentCaller = null;
             return result;
         }
@@ -56,6 +57,7 @@ namespace ServerShared
             foreach (Type type in types)
             {
                 var attribute = type.GetCustomAttributes(typeof(ChatCommandAttribute), true).FirstOrDefault() as ChatCommandAttribute;
+                var authAttribute = type.GetCustomAttributes(typeof(RequireAuthAttribute), true).FirstOrDefault() as RequireAuthAttribute;
 
                 if (attribute == null)
                     continue;
@@ -63,13 +65,16 @@ namespace ServerShared
                 if (!chatCommandBaseType.IsAssignableFrom(type))
                     continue;
 
-                parser.AddCommand(CommandFromAttribute(type, attribute));
+                parser.AddCommand(CommandFromAttribute(type, attribute, authAttribute));
             }
         }
 
-        private Command CommandFromAttribute(Type type, ChatCommandAttribute attribute)
+        private Command CommandFromAttribute(Type type, ChatCommandAttribute attribute, RequireAuthAttribute authAttribute)
         {
             var command = new Command(attribute.FriendlyName, attribute.CommandName, attribute.Description);
+
+            if (authAttribute != null)
+                command.AccessLevel = (int) authAttribute.AccessLevel;
 
             foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {

@@ -15,6 +15,7 @@ namespace ServerShared.Player
         public NetPlayer SpectateTarget;
         public bool Spectating => SpectateTarget != null;
         public int Wins = 0;
+        public AccessLevel AccessLevel { get; private set; } = AccessLevel.Player;
 
         private GameServer server;
 
