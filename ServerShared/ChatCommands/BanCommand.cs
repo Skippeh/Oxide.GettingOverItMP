@@ -9,22 +9,22 @@ namespace ServerShared.ChatCommands
     [RequireAuth(AccessLevel.Moderator)]
     public class BanCommand : ChatCommand
     {
-        [CommandArgument("Player name")]
-        public string PlayerName { get; set; }
+        [CommandArgument("Player id")]
+        public int PlayerId { get; set; }
 
         [CommandArgument("Reason")]
         public string Reason { get; set; }
 
-        [CommandArgument("Ban length", true, defaultValue: "0")]
+        [CommandArgument("Ban length", optional: true, defaultValue: "0")]
         public int Minutes { get; set; }
 
         public override void Handle(NetPlayer caller, string[] args)
         {
-            var netPlayer = Server.Players.Values.FirstOrDefault(plr => plr.Name.ToLower().StartsWith(PlayerName.ToLower()));
+            var netPlayer = Server.Players.Values.FirstOrDefault(plr => plr.Id == PlayerId);
 
             if (netPlayer == null)
             {
-                caller.SendChatMessage($"Could not find a player with a name starting with '{PlayerName}'.", SharedConstants.ColorRed);
+                caller.SendChatMessage($"Could not find a player with the id {PlayerId}.", SharedConstants.ColorRed);
                 return;
             }
 
