@@ -395,7 +395,14 @@ namespace Oxide.GettingOverItMP.Components
             }
 
             hostPrivate = GUILayout.Toggle(hostPrivate, " Private server (don't show in server browser)");
+
+            GUI.enabled = !ListenServer.Running && MPCore.SteamClient != null;
             noSteam = GUILayout.Toggle(noSteam, " No steam authentication (players can join without owning the game, but can't be banned etc)");
+
+            if (MPCore.SteamClient == null)
+                noSteam = true;
+
+            GUI.enabled = !ListenServer.Running;
 
             GUI.enabled = true;
 
