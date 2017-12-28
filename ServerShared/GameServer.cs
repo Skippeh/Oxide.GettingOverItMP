@@ -377,9 +377,7 @@ namespace ServerShared
                 {
                     if (!hasAuth)
                         throw new Exception("No steam auth session ticket in hail message.");
-
-                    Console.WriteLine($"{steamId} - {sessionData.Length}");
-
+                    
                     if (!SteamServer.Auth.StartSession(sessionData, steamId))
                     {
                         throw new Exception("Could not start steam session.");
