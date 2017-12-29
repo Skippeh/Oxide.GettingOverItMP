@@ -18,6 +18,9 @@ namespace ServerShared.ChatCommands
             {
                 var command = Parser.Commands[i];
 
+                if (command.AccessLevel > (int) caller.AccessLevel)
+                    continue;
+
                 builder.Append($"{command.Name} [{string.Join(", ", command.Aliases.ToArray())}]: {command.Description}");
 
                 if (i < Parser.Commands.Count - 1)
