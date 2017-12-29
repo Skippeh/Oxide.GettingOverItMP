@@ -45,21 +45,7 @@ namespace ServerShared.ChatCommands
             }
 
             Server.BanPlayer(banTarget, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
-            AnnounceBan(banTarget);
-        }
-
-        private void AnnounceBan(NetPlayer banTarget)
-        {
-            string suffix;
-
-            if (Minutes == 1)
-                suffix = $"for {Minutes} minute";
-            else if (Minutes > 1)
-                suffix = $"for {Minutes} minutes";
-            else
-                suffix = "permanently";
-
-            Server.BroadcastChatMessage($"{banTarget.Name} was banned {suffix}.", SharedConstants.ColorBlue);
+            AnnounceBan(banTarget, Minutes);
         }
     }
 
@@ -90,6 +76,13 @@ namespace ServerShared.ChatCommands
             // Todo: Check if steam id has higher access level than caller.
 
             Server.BanSteamId(SteamId, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
+            var player = Server.FindPlayer(SteamId);
+
+            if (player != null)
+            {
+                Server.KickConnection(player.Peer, DisconnectReason.Banned, Reason);
+                AnnounceBan(player, Minutes);
+            }
         }
     }
 
@@ -118,6 +111,13 @@ namespace ServerShared.ChatCommands
             }
 
             Server.BanIp(ipAddress, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
+            var player = Server.FindPlayer(ipAddress);
+
+            if (player != null)
+            {
+                Server.KickConnection(player.Peer, DisconnectReason.Banned, Reason);
+                AnnounceBan(player, Minutes);
+            }
         }
     }
 
@@ -132,6 +132,20 @@ namespace ServerShared.ChatCommands
             }
 
             return true;
+        }
+
+        protected void AnnounceBan(NetPlayer banTarget, int minutes)
+        {
+            string suffix;
+
+            if (minutes == 1)
+                suffix = $"for {minutes} minute";
+            else if (minutes > 1)
+                suffix = $"for {minutes} minutes";
+            else
+                suffix = "permanently";
+
+            Server.BroadcastChatMessage($"{banTarget.Name} was banned {suffix}.", SharedConstants.ColorBlue);
         }
     }
 }
