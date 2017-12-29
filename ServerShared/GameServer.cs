@@ -357,7 +357,7 @@ namespace ServerShared
                 server.SendMessage(message, sendTargets, method, sequenceChannel);
         }
 
-        private void KickConnection(NetConnection connection, DisconnectReason reason, string additionalInfo = null)
+        public void KickConnection(NetConnection connection, DisconnectReason reason, string additionalInfo = null)
         {
             connection.Disconnect(reason, additionalInfo);
         }
