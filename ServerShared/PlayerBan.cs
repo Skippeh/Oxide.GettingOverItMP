@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace ServerShared
@@ -60,6 +61,20 @@ namespace ServerShared
                 result += $" The ban will expire: {ExpirationDate.Value.ToLongDateString()} {ExpirationDate.Value.ToShortTimeString()} UTC.";
 
             return result;
+        }
+
+        /// <summary>Returns a user friendly string representing the ban type and the identifier of the ban (ip/steamid).</summary>
+        public string GetIdentifier()
+        {
+            switch (Type)
+            {
+                case BanType.Ip:
+                    return $"IP: {new IPAddress(Ip)}";
+                case BanType.SteamId:
+                    return $"SteamID64: {SteamId}";
+            }
+
+            throw new NotImplementedException($"BanType not implemented: {Type}");
         }
     }
 }
