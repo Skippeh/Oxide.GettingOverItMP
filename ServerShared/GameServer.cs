@@ -221,15 +221,15 @@ namespace ServerShared
             config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
         }
 
-        public void UnbanIp(IPAddress ip)
+        public bool UnbanIp(IPAddress ip)
         {
             var uintIp = GetUintIp(ip);
-            bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.Ip && ban.Ip == uintIp);
+            return bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.Ip && ban.Ip == uintIp) > 0;
         }
 
-        public void UnbanSteamId(ulong steamId)
+        public bool UnbanSteamId(ulong steamId)
         {
-            bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.SteamId && ban.SteamId == steamId);
+            return bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.SteamId && ban.SteamId == steamId) > 0;
         }
 
         public bool UnbanByName(string name)
