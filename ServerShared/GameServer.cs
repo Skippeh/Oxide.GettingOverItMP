@@ -295,6 +295,11 @@ namespace ServerShared
         {
             return Players.Values.FirstOrDefault(plr => plr.Id == id);
         }
+
+        public NetPlayer FindPlayer(IPAddress ipAddress)
+        {
+            return Players.Values.FirstOrDefault(plr => plr.Peer.RemoteEndPoint.Address == ipAddress);
+        }
         
         private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)
         {
