@@ -224,22 +224,38 @@ namespace ServerShared
         public bool UnbanIp(IPAddress ip)
         {
             var uintIp = GetUintIp(ip);
-            return bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.Ip && ban.Ip == uintIp) > 0;
+            bool success = bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.Ip && ban.Ip == uintIp) > 0;
+
+            if (success)
+                config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
+
+            return success;
         }
 
         public bool UnbanSteamId(ulong steamId)
         {
-            return bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.SteamId && ban.SteamId == steamId) > 0;
+            bool success = bannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.SteamId && ban.SteamId == steamId) > 0;
+
+            if (success)
+                config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
+
+            return success;
         }
 
         public bool UnbanByName(string name)
         {
-            return bannedPlayers.RemoveAll(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower())) > 0;
+            bool success = bannedPlayers.RemoveAll(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower())) > 0;
+
+            if (success)
+                config.SavePlayerBans(bannedPlayers.Where(ban => !ban.Expired()));
+
+            return success;
         }
         
         public void RemoveBan(PlayerBan ban)
         {
             bannedPlayers.Remove(ban);
+            config.SavePlayerBans(bannedPlayers.Where(_ban => !_ban.Expired()));
         }
 
         public IEnumerable<PlayerBan> FindBansByName(string name)
