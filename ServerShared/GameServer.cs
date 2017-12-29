@@ -236,6 +236,11 @@ namespace ServerShared
         {
             return bannedPlayers.RemoveAll(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower())) > 0;
         }
+        
+        public void RemoveBan(PlayerBan ban)
+        {
+            bannedPlayers.Remove(ban);
+        }
 
         public IEnumerable<NetPlayer> FindPlayers(string name, NameSearchOption searchOption)
         {
