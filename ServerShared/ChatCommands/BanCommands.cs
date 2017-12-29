@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using Pyratron.Frameworks.Commands.Parser;
 using ServerShared.Player;
 
@@ -43,7 +44,7 @@ namespace ServerShared.ChatCommands
                 return;
             }
 
-            Server.BanPlayer(banTarget, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?)null);
+            Server.BanPlayer(banTarget, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
             AnnounceBan(banTarget);
         }
 
@@ -59,6 +60,64 @@ namespace ServerShared.ChatCommands
                 suffix = "permanently";
 
             Server.BroadcastChatMessage($"{banTarget.Name} was banned {suffix}.", SharedConstants.ColorBlue);
+        }
+    }
+
+    [ChatCommand("Ban by steam id", "bansteamid", "Ban the specified steam id for an optional amount of time in minutes.")]
+    [RequireAuth(AccessLevel.Moderator)]
+    public class BanSteamIdCommand : BaseBanCommand
+    {
+        [CommandArgument("Steam id")]
+        public ulong SteamId { get; set; }
+
+        [CommandArgument("Ban length", optional: true, defaultValue: "0")]
+        public int Minutes { get; set; }
+
+        [CommandArgument("Reason", optional: true, defaultValue: null)]
+        public string Reason { get; set; }
+
+        public override void Handle(NetPlayer caller, string[] args)
+        {
+            if (!VerifyArgs(caller, Reason, Minutes))
+                return;
+
+            if (SteamId  == caller.SteamId)
+            {
+                caller.SendChatMessage("You can't ban yourself.", SharedConstants.ColorRed);
+                return;
+            }
+            
+            // Todo: Check if steam id has higher access level than caller.
+
+            Server.BanSteamId(SteamId, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
+        }
+    }
+
+    [ChatCommand("Ban by IP", "banip", "Ban the specified ip for an optional amount of time in minutes.")]
+    [RequireAuth(AccessLevel.Admin)]
+    public class BanIpCommand : BaseBanCommand
+    {
+        [CommandArgument("Steam id")]
+        public string IP { get; set; }
+
+        [CommandArgument("Ban length", optional: true, defaultValue: "0")]
+        public int Minutes { get; set; }
+
+        [CommandArgument("Reason", optional: true, defaultValue: null)]
+        public string Reason { get; set; }
+
+        public override void Handle(NetPlayer caller, string[] args)
+        {
+            if (!VerifyArgs(caller, Reason, Minutes))
+                return;
+
+            if (!IPAddress.TryParse(IP, out var ipAddress))
+            {
+                caller.SendChatMessage("Invalid ip specified.", SharedConstants.ColorRed);
+                return;
+            }
+
+            Server.BanIp(ipAddress, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
         }
     }
 
