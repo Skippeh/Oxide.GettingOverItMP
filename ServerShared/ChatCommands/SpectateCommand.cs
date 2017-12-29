@@ -51,7 +51,7 @@ namespace ServerShared.ChatCommands
         {
             NetPlayer target = Server.FindPlayer(PlayerId);
 
-            if (target == null)
+            if (target == null || target.Spectating)
             {
                 caller.SendChatMessage("There is no player with this id.", SharedConstants.ColorRed);
                 return;
