@@ -242,6 +242,11 @@ namespace ServerShared
             bannedPlayers.Remove(ban);
         }
 
+        public IEnumerable<PlayerBan> FindBansByName(string name)
+        {
+            return bannedPlayers.Where(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower()));
+        }
+
         public IEnumerable<NetPlayer> FindPlayers(string name, NameSearchOption searchOption)
         {
             string lowerName = name.ToLower();
