@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Net;
 using Newtonsoft.Json;
+using ServerShared.Player;
 
 namespace ServerShared
 {
     public class PlayerBan
     {
-        public enum BanType
-        {
-            SteamId,
-            Ip
-        }
+        public uint Ip => Identity.Ip;
+        public ulong SteamId => Identity.SteamId;
+        public IdentityType BanType => Identity.Type;
 
-        public BanType Type;
-        public ulong SteamId;
-        public uint Ip;
+        public PlayerIdentity Identity;
         public DateTime? ExpirationDate;
         public string Reason;
         public string ReferenceName;
@@ -23,16 +20,14 @@ namespace ServerShared
         /// <param name="referenceName">Optional name reference, null is allowed.</param>
         public PlayerBan(ulong steamId, string reason, DateTime? expirationDate, string referenceName) : this(reason, expirationDate, referenceName)
         {
-            SteamId = steamId;
-            Type = BanType.SteamId;
+            Identity = new PlayerIdentity(steamId);
         }
 
         /// <param name="reason">Optional reason, null is allowed.</param>
         /// <param name="referenceName">Optional name reference, null is allowed.</param>
         public PlayerBan(uint ip, string reason, DateTime? expirationDate, string referenceName) : this(reason, expirationDate, referenceName)
         {
-            Ip = ip;
-            Type = BanType.Ip;
+            Identity = new PlayerIdentity(ip);
         }
 
         private PlayerBan(string reason, DateTime? expirationDate, string referenceName)
@@ -68,15 +63,15 @@ namespace ServerShared
         /// <summary>Returns a user friendly string representing the ban type and the identifier of the ban (ip/steamid).</summary>
         public string GetIdentifier()
         {
-            switch (Type)
+            switch (BanType)
             {
-                case BanType.Ip:
+                case IdentityType.Ip:
                     return $"IP: {new IPAddress(Ip)}";
-                case BanType.SteamId:
+                case IdentityType.SteamId:
                     return $"SteamID64: {SteamId}";
             }
 
-            throw new NotImplementedException($"BanType not implemented: {Type}");
+            throw new NotImplementedException($"IdentityType not implemented: {BanType}");
         }
     }
 }

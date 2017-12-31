@@ -182,13 +182,13 @@ namespace ServerShared
         public bool IpBanned(IPAddress ipAddress, out PlayerBan ban)
         {
             uint ip = GetUintIp(ipAddress);
-            ban = BannedPlayers.FirstOrDefault(_ban => _ban.Type == PlayerBan.BanType.Ip && _ban.Ip == ip);
+            ban = BannedPlayers.FirstOrDefault(_ban => _ban.BanType == IdentityType.Ip && _ban.Ip == ip);
             return ban != null;
         }
 
         public bool SteamIdBanned(ulong steamId, out PlayerBan ban)
         {
-            ban = BannedPlayers.FirstOrDefault(_ban => _ban.Type == PlayerBan.BanType.SteamId && _ban.SteamId == steamId);
+            ban = BannedPlayers.FirstOrDefault(_ban => _ban.BanType == IdentityType.SteamId && _ban.SteamId == steamId);
             return ban != null;
         }
 
@@ -224,7 +224,7 @@ namespace ServerShared
         public bool UnbanIp(IPAddress ip)
         {
             var uintIp = GetUintIp(ip);
-            bool success = BannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.Ip && ban.Ip == uintIp) > 0;
+            bool success = BannedPlayers.RemoveAll(ban => ban.BanType == IdentityType.Ip && ban.Ip == uintIp) > 0;
 
             if (success)
                 Config.Save();
@@ -234,7 +234,7 @@ namespace ServerShared
 
         public bool UnbanSteamId(ulong steamId)
         {
-            bool success = BannedPlayers.RemoveAll(ban => ban.Type == PlayerBan.BanType.SteamId && ban.SteamId == steamId) > 0;
+            bool success = BannedPlayers.RemoveAll(ban => ban.BanType == IdentityType.SteamId && ban.SteamId == steamId) > 0;
 
             if (success)
                 Config.Save();
