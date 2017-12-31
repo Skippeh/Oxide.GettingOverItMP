@@ -20,6 +20,7 @@ namespace ServerShared
         public string ReferenceName;
 
         /// <param name="reason">Optional reason, null is allowed.</param>
+        /// <param name="referenceName">Optional name reference, null is allowed.</param>
         public PlayerBan(ulong steamId, string reason, DateTime? expirationDate, string referenceName) : this(reason, expirationDate, referenceName)
         {
             SteamId = steamId;
@@ -27,6 +28,7 @@ namespace ServerShared
         }
 
         /// <param name="reason">Optional reason, null is allowed.</param>
+        /// <param name="referenceName">Optional name reference, null is allowed.</param>
         public PlayerBan(uint ip, string reason, DateTime? expirationDate, string referenceName) : this(reason, expirationDate, referenceName)
         {
             Ip = ip;
