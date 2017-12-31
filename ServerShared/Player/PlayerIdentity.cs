@@ -24,4 +24,19 @@
             Ip = ip;
         }
     }
+
+    public class PlayerAccessLevelIdentity : PlayerIdentity
+    {
+        public AccessLevel AccessLevel;
+
+        public PlayerAccessLevelIdentity(ulong steamId, AccessLevel accessLevel) : base(steamId)
+        {
+            AccessLevel = accessLevel;
+        }
+
+        public PlayerAccessLevelIdentity(uint ip, AccessLevel accessLevel) : base(ip)
+        {
+            AccessLevel = accessLevel;
+        }
+    }
 }

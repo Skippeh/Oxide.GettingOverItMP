@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using ServerShared.Player;
 
 namespace ServerShared
 {
@@ -18,7 +19,7 @@ namespace ServerShared
         public string Directory { get; private set; }
 
         public List<PlayerBan> Bans { get; private set; } = new List<PlayerBan>();
-        public List<ulong> AccessLevels { get; private set; } = new List<ulong>();
+        public List<PlayerAccessLevelIdentity> AccessLevels { get; private set; } = new List<PlayerAccessLevelIdentity>();
         
         private ServerConfig(string directory)
         {

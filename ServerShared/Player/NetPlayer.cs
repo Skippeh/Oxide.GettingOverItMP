@@ -97,5 +97,11 @@ namespace ServerShared.Player
 
             server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
         }
+
+        public void SetAccessLevel(AccessLevel accessLevel)
+        {
+            AccessLevel = accessLevel;
+            Console.WriteLine($"{Name} access level set to {AccessLevel}.");
+        }
     }
 }

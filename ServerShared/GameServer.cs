@@ -484,8 +484,12 @@ namespace ServerShared
             var player = AddConnection(connection, playerName, steamId);
             player.Movement = movementData;
             player.Wins = wins;
+            
+            uint uintIp = GetUintIp(connection.RemoteEndPoint.Address);
+            var accessLevelIdentity = Config.AccessLevels.FirstOrDefault(identity => (identity.Type == IdentityType.Ip && identity.Ip == uintIp) || (identity.Type == IdentityType.SteamId && identity.SteamId == steamId));
 
-            // Todo: set access level based on steam id.
+            if (accessLevelIdentity != null)
+                player.SetAccessLevel(accessLevelIdentity.AccessLevel);
 
             var writer = server.CreateMessage();
             writer.Write(MessageType.CreatePlayer);
