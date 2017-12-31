@@ -80,6 +80,7 @@
       <CoreFiles Include="$(TargetDir)\Lidgren.Network.dll" />
       <CoreFiles Include="$(TargetDir)\ServerShared.dll" />
       <CoreFiles Include="$(TargetDir)Facepunch.Steamworks.dll" />
+      <CoreFiles Include="$(TargetDir)Newtonsoft.Json.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>

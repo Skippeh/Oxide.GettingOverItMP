@@ -42,7 +42,7 @@ namespace ServerShared
 
         /// <summary>Do not use. Exclusively used for serialization/deserialization</summary>
         [JsonConstructor]
-        public PlayerBan() { }
+        private PlayerBan() { }
         
         public bool Expired()
         {
