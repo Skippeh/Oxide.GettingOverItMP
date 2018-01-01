@@ -20,7 +20,6 @@ namespace ServerShared
         /// <summary>Max retries before giving up until the next heartbeat.</summary>
         private const int MaxRetries = 2;
 
-
         /// <summary>How often to send heartbeat to master server in minutes.</summary>
         private const int BeatInterval = 1;
 
