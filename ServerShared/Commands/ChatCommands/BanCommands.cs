@@ -32,6 +32,8 @@ namespace ServerShared.ChatCommands
 
             if (!VerifyArgs(Reason, Minutes))
                 return;
+            
+            Reason = Reason?.Trim('\"'); // Temporary workaround for quote tags being included in argument string.
 
             if (Caller != null && banTarget == Caller)
             {
@@ -67,6 +69,8 @@ namespace ServerShared.ChatCommands
         {
             if (!VerifyArgs(Reason, Minutes))
                 return;
+
+            Reason = Reason?.Trim('\"'); // Temporary workaround for quote tags being included in argument string.
 
             if (Caller != null && SteamId  == Caller.SteamId)
             {
@@ -104,6 +108,8 @@ namespace ServerShared.ChatCommands
         {
             if (!VerifyArgs(Reason, Minutes))
                 return;
+
+            Reason = Reason?.Trim('\"'); // Temporary workaround for quote tags being included in argument string.
 
             if (!IPAddress.TryParse(IP, out var ipAddress))
             {
