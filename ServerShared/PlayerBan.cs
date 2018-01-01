@@ -55,7 +55,21 @@ namespace ServerShared
             string result = $"You have been banned from this server: \"{reason}\".";
 
             if (ExpirationDate != null)
-                result += $" The ban will expire: {ExpirationDate.Value.ToLongDateString()} {ExpirationDate.Value.ToShortTimeString()} UTC.";
+            {
+                TimeSpan timeLeft = ExpirationDate.Value - DateTime.UtcNow;
+                int hours = timeLeft.Hours;
+                int minutes = timeLeft.Minutes;
+                int seconds = timeLeft.Seconds;
+
+                string daysString = "";
+
+                if (timeLeft.TotalDays >= 1)
+                {
+                    daysString = $"{(int) timeLeft.TotalDays} days, ";
+                }
+
+                result += $" The ban will expire in {daysString}{hours.ToString().PadLeft(2, '0')}h {minutes.ToString().PadLeft(2, '0')}m {seconds.ToString().PadLeft(2, '0')}s.";
+            }
 
             return result;
         }
