@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using Pyratron.Frameworks.Commands.Parser;
 using ServerShared.Logging;
 
@@ -15,15 +16,12 @@ namespace ServerShared.Commands.ConsoleCommands
             builder.AppendLine($"Server name: {Server.Name}");
             builder.AppendLine($"Connected players: {Server.Players.Count}/{Server.MaxPlayers}");
 
-            if (Server.Players.Count > 0)
+            foreach (var player in Server.Players.Values)
             {
-                foreach (var player in Server.Players.Values)
-                {
-                    builder.AppendLine($"- {player.Name} ({player.Identity})");
-                }
+                builder.AppendLine($"- {player.Name} ({player.Identity})");
             }
 
-            SendMessage(builder.ToString(), LogMessageType.Info);
+            SendMessage(builder.ToString().Trim(), LogMessageType.Info);
         }
     }
 }
