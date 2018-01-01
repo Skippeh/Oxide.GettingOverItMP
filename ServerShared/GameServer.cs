@@ -223,15 +223,20 @@ namespace ServerShared
 
         public void BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null, string referenceName = null)
         {
+            Config.RemoveExpiredBans();
+
+            uint uintIp = GetUintIp(ip);
             if (IpBanned(ip, out var _))
                 return;
 
-            BannedPlayers.Add(new PlayerBan(GetUintIp(ip), reason, expirationDate, referenceName));
+            BannedPlayers.Add(new PlayerBan(uintIp, reason, expirationDate, referenceName));
             Config.Save();
         }
 
         public void BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null, string referenceName = null)
         {
+            Config.RemoveExpiredBans();
+
             if (SteamIdBanned(steamId, out var _))
                 return;
             

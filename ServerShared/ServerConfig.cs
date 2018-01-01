@@ -64,7 +64,7 @@ namespace ServerShared
                 config.Directory = directory;
 
                 // Remove expired bans and save config.
-                if (config.Bans.RemoveAll(ban => ban.Expired()) > 0)
+                if (config.RemoveExpiredBans() > 0)
                     config.Save();
 
                 return true;
@@ -102,6 +102,12 @@ namespace ServerShared
         {
             if (!System.IO.Directory.Exists(directory))
                 System.IO.Directory.CreateDirectory(directory);
+        }
+
+        /// <summary>Removes all expired bans and returns the amount of bans removed.</summary>
+        public int RemoveExpiredBans()
+        {
+            return Bans.RemoveAll(ban => ban.Expired());
         }
     }
 }
