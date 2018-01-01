@@ -52,7 +52,10 @@ namespace Pyratron.Frameworks.Commands.Parser
 
         private void SendMessageConsole(object msg, LogMessageType type)
         {
-            Logger.Log(msg, type);
+            if (Caller != null)
+                Caller.SendConsoleMessage(msg.ToString(), type);
+            else
+                Logger.Log(msg, type);
         }
     }
 

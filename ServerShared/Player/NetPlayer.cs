@@ -1,5 +1,6 @@
 ﻿using System;
 using Lidgren.Network;
+using ServerShared.Logging;
 using UnityEngine;
 using Logger = ServerShared.Logging.Logger;
 
@@ -44,7 +45,7 @@ namespace ServerShared.Player
             Peer.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
-        public void SendConsoleMessage(string message, Color color)
+        public void SendConsoleMessage(string message, LogMessageType type)
         {
             // Todo: implement client console
         }

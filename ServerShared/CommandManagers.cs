@@ -25,7 +25,7 @@ namespace ServerShared
         protected override void OnParseError(object sender, string error)
         {
             if (CurrentCaller != null)
-                CurrentCaller.SendConsoleMessage(error, SharedConstants.ColorRed);
+                CurrentCaller.SendConsoleMessage(error, LogMessageType.Error);
             else
                 Logger.LogError(error);
         }
