@@ -41,21 +41,12 @@ namespace Server
                 return 1;
             }
 
+            ConsoleManager.Initialize();
             server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private, !launchArguments.NoSteam, "config");
             server.Start();
-
-            Console.WriteLine("Press CTRL+Q to stop the server.");
-
-            while (true)
+            
+            while (server.Running)
             {
-                ConsoleKeyInfo key = default(ConsoleKeyInfo);
-
-                if (Console.KeyAvailable)
-                    key = Console.ReadKey(true);
-
-                if (key.Modifiers == ConsoleModifiers.Control && key.Key == ConsoleKey.Q)
-                    break;
-
                 server.Update();
                 Thread.Sleep(1);
 
@@ -63,6 +54,7 @@ namespace Server
             }
 
             server.Stop();
+            ConsoleManager.Destroy();
             return 0;
         }
     }

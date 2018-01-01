@@ -21,6 +21,7 @@ namespace ServerShared
         public readonly CommandManager Commands;
         public List<PlayerBan> BannedPlayers => Config.Bans;
         public ServerConfig Config { get; private set; }
+        public bool Running => server.Status != NetPeerStatus.NotRunning;
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
