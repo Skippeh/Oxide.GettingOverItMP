@@ -88,6 +88,8 @@ namespace ServerShared.ChatCommands
                 Server.KickConnection(player.Peer, DisconnectReason.Banned, Reason);
                 AnnounceBan(player, Minutes);
             }
+
+            SendMessage("The steam id was banned successfully.", LogMessageType.Info);
         }
     }
 
@@ -125,6 +127,8 @@ namespace ServerShared.ChatCommands
                 Server.KickConnection(player.Peer, DisconnectReason.Banned, Reason);
                 AnnounceBan(player, Minutes);
             }
+
+            SendMessage("The specified IP was banned successfully.", LogMessageType.Info);
         }
     }
 
