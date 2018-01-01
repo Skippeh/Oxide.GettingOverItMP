@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Resources;
 using Pyratron.Frameworks.Commands.Parser;
 using ServerShared.Logging;
 using ServerShared.Player;
 
 namespace ServerShared
 {
-    public class CommandManager
+    public abstract class BaseCommandManager<T> where T : BaseCommand
     {
         class PropertyAttribute
         {
@@ -24,58 +23,57 @@ namespace ServerShared
             }
         }
 
-        private GameServer server;
-        private CommandParser parser;
-        private NetPlayer currentCaller;
-
-        public CommandManager(GameServer server)
+        protected readonly GameServer Server;
+        protected readonly CommandParser Parser;
+        protected NetPlayer CurrentCaller { get; private set; }
+        
+        public BaseCommandManager(GameServer server, string prefix, params Assembly[] searchAssemblies)
         {
-            this.server = server;
-            parser = CommandParser.CreateNew(prefix: "/");
-            parser.OnError(OnParseError);
-            LoadCommands();
+            Server = server;
+            Parser = CommandParser.CreateNew(prefix);
+            Parser.OnError(OnParseError);
+            LoadCommands(searchAssemblies.Concat(new[] {Assembly.GetExecutingAssembly()}));
         }
-
-        private void OnParseError(object sender, string error)
+        
+        public bool HandleMessage(NetPlayer caller, string message)
         {
-            currentCaller?.SendChatMessage(error, SharedConstants.ColorRed);
-        }
-
-        public bool HandleChatMessage(NetPlayer caller, string message)
-        {
-            currentCaller = caller;
-            bool result = parser.Parse(message, caller, (int) caller.AccessLevel);
-            currentCaller = null;
+            CurrentCaller = caller;
+            bool result = Parser.Parse(message, caller, (int) (caller?.AccessLevel ?? AccessLevel.Console));
+            CurrentCaller = null;
             return result;
         }
 
-        private void LoadCommands()
+        private void LoadCommands(IEnumerable<Assembly> assemblies)
         {
-            var assemblies = new[] { Assembly.GetExecutingAssembly() };
             var types = assemblies.SelectMany(assembly => assembly.GetExportedTypes()).ToList();
-            Type chatCommandBaseType = typeof(ChatCommand);
+            Type commandBaseType = typeof(T);
 
             foreach (Type type in types)
             {
-                var attribute = type.GetCustomAttributes(typeof(ChatCommandAttribute), true).FirstOrDefault() as ChatCommandAttribute;
+                var attribute = type.GetCustomAttributes(typeof(CommandAttribute), true).FirstOrDefault() as CommandAttribute;
                 var authAttribute = type.GetCustomAttributes(typeof(RequireAuthAttribute), true).FirstOrDefault() as RequireAuthAttribute;
+                var requireCallerAttribute = type.GetCustomAttributes(typeof(RequireCallerAttribute), true).FirstOrDefault() as RequireCallerAttribute;
 
                 if (attribute == null)
                     continue;
 
-                if (!chatCommandBaseType.IsAssignableFrom(type))
+                if (!commandBaseType.IsAssignableFrom(type))
                     continue;
 
-                parser.AddCommand(CommandFromAttribute(type, attribute, authAttribute));
+                Parser.AddCommand(CommandFromAttribute(type, attribute, authAttribute, requireCallerAttribute != null));
             }
         }
 
-        private Command CommandFromAttribute(Type type, ChatCommandAttribute attribute, RequireAuthAttribute authAttribute)
+        private Command CommandFromAttribute(Type type, CommandAttribute attribute, RequireAuthAttribute authAttribute, bool requireCaller)
         {
-            var command = new Command(attribute.FriendlyName, attribute.CommandName, attribute.Description);
+            var command = new Command(Parser, attribute.FriendlyName, attribute.CommandNames.First(), attribute.Description);
+            command.RequireCaller = requireCaller;
+
+            if (attribute.CommandNames.Length > 1)
+                command.AddAlias(attribute.CommandNames.Skip(1).ToArray());
 
             if (authAttribute != null)
-                command.AccessLevel = (int) authAttribute.AccessLevel;
+                command.AccessLevel = (int)authAttribute.AccessLevel;
 
             foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -95,18 +93,20 @@ namespace ServerShared
 
             command.SetAction((arguments, data, rawArgs) =>
             {
-                var netPlayer = (NetPlayer)data;
-                var instance = (ChatCommand) Activator.CreateInstance(type, true);
-                instance.Server = server;
-                instance.Parser = parser;
-
+                var netPlayer = (NetPlayer) data;
+                var instance = (BaseCommand) Activator.CreateInstance(type, true);
+                instance.Server = Server;
+                instance.Parser = Parser;
+                instance.Context = (this is ChatCommandManager) ? CommandContext.Chat : CommandContext.Console;
+                instance.Caller = netPlayer;
+                
                 if (!PrepareInstance(instance, arguments, out string error))
                 {
-                    netPlayer?.SendChatMessage(error, SharedConstants.ColorRed);
+                    OnParseError(this, error);
                     return;
                 }
 
-                instance.Handle(netPlayer, rawArgs);
+                instance.Handle(rawArgs);
             });
 
             return command;
@@ -118,11 +118,11 @@ namespace ServerShared
 
             if (attribute.Optional)
                 argument.SetDefault(attribute.DefaultValue);
-            
+
             return argument;
         }
 
-        private bool PrepareInstance(ChatCommand instance, Argument[] arguments, out string error)
+        private bool PrepareInstance(BaseCommand instance, Argument[] arguments, out string error)
         {
             List<PropertyAttribute> propertyAttributes = new List<PropertyAttribute>();
 
@@ -165,5 +165,7 @@ namespace ServerShared
             error = null;
             return true;
         }
+
+        protected abstract void OnParseError(object sender, string error);
     }
 }

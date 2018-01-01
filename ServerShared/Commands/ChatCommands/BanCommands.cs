@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Net;
 using Pyratron.Frameworks.Commands.Parser;
+using ServerShared.Logging;
 using ServerShared.Player;
 
 namespace ServerShared.ChatCommands
 {
-    [ChatCommand("Ban by player id", "banid", "Ban the player with the specified id for an optional amount of time in minutes.")]
+    [Command("Ban by player id", "banid", "Ban the player with the specified id for an optional amount of time in minutes.")]
     [RequireAuth(AccessLevel.Moderator)]
     public class BanIdCommand : BaseBanCommand
     {
@@ -19,28 +20,28 @@ namespace ServerShared.ChatCommands
         [CommandArgument("Reason", optional: true, defaultValue: null)]
         public string Reason { get; set; }
 
-        public override void Handle(NetPlayer caller, string[] args)
+        public override void Handle(string[] args)
         {
             var banTarget = Server.FindPlayer(PlayerId);
 
             if (banTarget == null)
             {
-                caller.SendChatMessage($"Could not find a player with the id {PlayerId}.", SharedConstants.ColorRed);
+                SendMessage($"Could not find a player with the id {PlayerId}.", LogMessageType.Error);
                 return;
             }
 
-            if (!VerifyArgs(caller, Reason, Minutes))
+            if (!VerifyArgs(Reason, Minutes))
                 return;
 
-            if (banTarget == caller)
+            if (Caller != null && banTarget == Caller)
             {
-                caller.SendChatMessage("You can't ban yourself.", SharedConstants.ColorRed);
+                SendMessage("You can't ban yourself.", LogMessageType.Error);
                 return;
             }
 
-            if (banTarget.AccessLevel > caller.AccessLevel)
+            if (banTarget.AccessLevel > Caller.AccessLevel)
             {
-                caller.SendChatMessage("You can't ban someone with a higher access level than yourself.", SharedConstants.ColorRed);
+                Caller.SendChatMessage("You can't ban someone with a higher access level than yourself.", SharedConstants.ColorRed);
                 return;
             }
 
@@ -49,7 +50,7 @@ namespace ServerShared.ChatCommands
         }
     }
 
-    [ChatCommand("Ban by steam id", "bansteamid", "Ban the specified steam id for an optional amount of time in minutes.")]
+    [Command("Ban by steam id", "bansteamid", "Ban the specified steam id for an optional amount of time in minutes.")]
     [RequireAuth(AccessLevel.Moderator)]
     public class BanSteamIdCommand : BaseBanCommand
     {
@@ -62,14 +63,14 @@ namespace ServerShared.ChatCommands
         [CommandArgument("Reason", optional: true, defaultValue: null)]
         public string Reason { get; set; }
 
-        public override void Handle(NetPlayer caller, string[] args)
+        public override void Handle(string[] args)
         {
-            if (!VerifyArgs(caller, Reason, Minutes))
+            if (!VerifyArgs(Reason, Minutes))
                 return;
 
-            if (SteamId  == caller.SteamId)
+            if (Caller != null && SteamId  == Caller.SteamId)
             {
-                caller.SendChatMessage("You can't ban yourself.", SharedConstants.ColorRed);
+                SendMessage("You can't ban yourself.", LogMessageType.Error);
                 return;
             }
             
@@ -86,7 +87,7 @@ namespace ServerShared.ChatCommands
         }
     }
 
-    [ChatCommand("Ban by IP", "banip", "Ban the specified ip for an optional amount of time in minutes.")]
+    [Command("Ban by IP", "banip", "Ban the specified ip for an optional amount of time in minutes.")]
     [RequireAuth(AccessLevel.Admin)]
     public class BanIpCommand : BaseBanCommand
     {
@@ -99,14 +100,14 @@ namespace ServerShared.ChatCommands
         [CommandArgument("Reason", optional: true, defaultValue: null)]
         public string Reason { get; set; }
 
-        public override void Handle(NetPlayer caller, string[] args)
+        public override void Handle(string[] args)
         {
-            if (!VerifyArgs(caller, Reason, Minutes))
+            if (!VerifyArgs(Reason, Minutes))
                 return;
 
             if (!IPAddress.TryParse(IP, out var ipAddress))
             {
-                caller.SendChatMessage("Invalid ip specified.", SharedConstants.ColorRed);
+                SendMessage("Invalid ip specified.", LogMessageType.Error);
                 return;
             }
 
@@ -123,11 +124,11 @@ namespace ServerShared.ChatCommands
 
     public abstract class BaseBanCommand : ChatCommand
     {
-        protected bool VerifyArgs(NetPlayer caller, string reason, int minutes)
+        protected bool VerifyArgs(string reason, int minutes)
         {
             if (minutes < 0)
             {
-                caller.SendChatMessage("Invalid time specified (needs to be 0 or higher).", SharedConstants.ColorRed);
+                SendMessage("Invalid time specified (needs to be 0 or higher).", LogMessageType.Error);
                 return false;
             }
 

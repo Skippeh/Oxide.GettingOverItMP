@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleCommands\ClearCommand.cs" />
     <Compile Include="ConsoleManager.cs" />
     <Compile Include="LaunchArguments.cs" />
     <Compile Include="Program.cs" />

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using Facepunch.Steamworks;
 using Lidgren.Network;
@@ -18,10 +19,11 @@ namespace ServerShared
         public int Port => server.Configuration.Port;
         public int MaxPlayers => server.Configuration.MaximumConnections;
         public Facepunch.Steamworks.Server SteamServer { get; private set; }
-        public readonly CommandManager Commands;
+        public readonly ChatCommandManager ChatCommands;
+        public readonly ConsoleCommandManager ConsoleCommands;
         public List<PlayerBan> BannedPlayers => Config.Bans;
         public ServerConfig Config { get; private set; }
-        public bool Running => server.Status != NetPeerStatus.NotRunning;
+        public bool Running { get; private set; }
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
@@ -62,7 +64,9 @@ namespace ServerShared
             PrivateServer = privateServer;
             Name = name;
             RequireSteamAuth = requireSteamAuth;
-            Commands = new CommandManager(this);
+            var callingAssembly = Assembly.GetCallingAssembly();
+            ChatCommands = new ChatCommandManager(this, callingAssembly);
+            ConsoleCommands = new ConsoleCommandManager(this, callingAssembly);
             ConfigDirectory = configDirectory;
 
             if (listenServer)
@@ -106,6 +110,8 @@ namespace ServerShared
 
                 Logger.LogDebug("Steam authentication enabled.");
             }
+
+            Running = true;
         }
 
         public void Stop()
@@ -116,7 +122,7 @@ namespace ServerShared
                 {
                     SteamServer.Auth.EndSession(player.SteamId);
                 }
-
+                
                 SteamServer?.Dispose();
                 SteamServer = null;
             }
@@ -127,6 +133,8 @@ namespace ServerShared
             {
                 MasterServer.Stop();
             }
+
+            Running = false;
         }
 
         public void Update()
@@ -165,15 +173,23 @@ namespace ServerShared
 
         public void BroadcastChatMessage(string message, Color color, NetPlayer player, NetConnection except = null)
         {
+            BroadcastChatMessage(message, color, player?.Id ?? 0, player?.Name, except);
+        }
+
+        public void BroadcastChatMessage(string message, Color color, int playerId, string playerName, NetConnection except = null)
+        {
             var netMessage = server.CreateMessage();
             netMessage.Write(MessageType.ChatMessage);
-            netMessage.Write(player?.Id ?? 0);
-            netMessage.Write(player?.Name);
+            netMessage.Write(playerId);
+            netMessage.Write(playerName);
             netMessage.WriteRgbaColor(color);
             netMessage.Write(message);
             netMessage.Write(netMessage);
 
             Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, except);
+
+            string prefix = playerName == null ? "" : $"{playerName}: ";
+            Logger.LogInfo($"[CHAT] {prefix}{message}");
         }
 
         public NetOutgoingMessage CreateMessage()
@@ -567,7 +583,7 @@ namespace ServerShared
                         if (message.Length > SharedConstants.MaxChatLength)
                             message = message.Substring(0, SharedConstants.MaxChatLength);
 
-                        if (Commands.HandleChatMessage(peerPlayer, message))
+                        if (ChatCommands.HandleMessage(peerPlayer, message))
                             return;
                         
                         Color color = Color.white;

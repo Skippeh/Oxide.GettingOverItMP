@@ -9,6 +9,7 @@ namespace ServerShared.Player
     {
         Player,
         Moderator,
-        Admin
+        Admin,
+        Console
     }
 }

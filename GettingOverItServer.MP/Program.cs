@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using CommandLineParser.Exceptions;
 using Facepunch.Steamworks;
@@ -9,7 +10,9 @@ namespace Server
 {
     class Program
     {
-        private static GameServer server;
+        public static GameServer Server { get; private set; }
+
+        private static Queue<string> queuedCommandInputs = new Queue<string>();
 
         static int Main(string[] args)
         {
@@ -42,18 +45,25 @@ namespace Server
             }
 
             ConsoleManager.Initialize();
-            server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private, !launchArguments.NoSteam, "config");
-            server.Start();
+            ConsoleManager.OnInput += cmd => queuedCommandInputs.Enqueue(cmd);
+
+            Server = new GameServer(launchArguments.ServerName, launchArguments.MaxPlayers, launchArguments.Port, false, launchArguments.Private, !launchArguments.NoSteam, "config");
+            Server.Start();
             
-            while (server.Running)
+            while (Server.Running)
             {
-                server.Update();
+                while (queuedCommandInputs.Count > 0)
+                    Server.ConsoleCommands.HandleMessage(null, queuedCommandInputs.Dequeue());
+
+                if (!Server.Running)
+                    continue;
+
+                Server.Update();
+                
+                Console.Title = $"{Server.Name} | {Server.Players.Count}/{Server.MaxPlayers}";
                 Thread.Sleep(1);
-
-                Console.Title = $"{server.Name} | {server.Players.Count}/{server.MaxPlayers}";
             }
-
-            server.Stop();
+            
             ConsoleManager.Destroy();
             return 0;
         }

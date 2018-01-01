@@ -28,7 +28,8 @@ namespace ServerShared
         }
 
         /// <summary>Do not use. Used for deserialization.</summary>
-        public ServerConfig() { }
+        [JsonConstructor]
+        private ServerConfig() { }
 
         public bool Save()
         {
@@ -60,6 +61,7 @@ namespace ServerShared
             {
                 string json = File.ReadAllText(savePath);
                 config = JsonConvert.DeserializeObject<ServerConfig>(json, serializerSettings);
+                config.Directory = directory;
                 return true;
             }
             catch (Exception ex) when (ex is IOException || ex is JsonException)

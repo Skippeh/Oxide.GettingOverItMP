@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ServerShared.Player;
 
 namespace Pyratron.Frameworks.Commands.Parser
 {
@@ -49,12 +50,19 @@ namespace Pyratron.Frameworks.Commands.Parser
         public string Name { get; set; }
 
         /// <summary>
+        /// Specifies that the command requires a player to call this command.
+        /// </summary>
+        public bool RequireCaller { get; set; }
+
+        private readonly CommandParser parser;
+
+        /// <summary>
         /// Creates a command with a human friendly name and a command alias.
         /// </summary>
         /// <param name="name">Human friendly name.</param>
         /// <param name="alias">Alias to use when sending the command. (Ex: "help", "exit")</param>
         /// <param name="description">A description that provides basic information about the command.</param>
-        public Command(string name, string alias, string description) : this(name, alias)
+        public Command(CommandParser parser, string name, string alias, string description) : this(parser, name, alias)
         {
             SetDescription(description);
         }
@@ -64,7 +72,7 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// </summary>
         /// <param name="name">Human friendly name.</param>
         /// <param name="alias">Alias to use when sending the command. (Ex: "help", "exit")</param>
-        public Command(string name, string alias) : this(name)
+        public Command(CommandParser parser, string name, string alias) : this(parser, name)
         {
             AddAlias(alias);
         }
@@ -73,12 +81,17 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// Creates a command with the specified name.
         /// </summary>
         /// <param name="name">Human friendly name</param>
-        public Command(string name)
+        public Command(CommandParser parser, string name) : this(parser)
         {
             Arguments = new List<Argument>();
             Aliases = new List<string>();
             SetName(name);
             CanExecute = command => string.Empty; //Can execute always by default
+        }
+
+        public Command(CommandParser parser)
+        {
+            this.parser = parser;
         }
 
         #region IArguable Members
@@ -93,9 +106,9 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// <param name="name">Human friendly name.</param>
         /// <param name="alias">Alias to use when sending the command. (Ex: "help", "exit")</param>
         /// <param name="description">A description that provides basic information about the command.</param>
-        public static Command Create(string name, string alias, string description)
+        public static Command Create(CommandParser parser, string name, string alias, string description)
         {
-            return new Command(name, alias, description);
+            return new Command(parser, name, alias, description);
         }
 
         /// <summary>
@@ -103,18 +116,18 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// </summary>
         /// <param name="name">Human friendly name.</param>
         /// <param name="alias">Alias to use when sending the command. (Ex: "help", "exit")</param>
-        public static Command Create(string name, string alias)
+        public static Command Create(CommandParser parser, string name, string alias)
         {
-            return new Command(name, alias);
+            return new Command(parser, name, alias);
         }
 
         /// <summary>
         /// Creates a command with the specified name.
         /// </summary>
         /// <param name="name">Human friendly name.</param>
-        public static Command Create(string name)
+        public static Command Create(CommandParser parser, string name)
         {
-            return new Command(name);
+            return new Command(parser, name);
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Text.RegularExpressions;
+using ServerShared.Player;
 
 namespace Pyratron.Frameworks.Commands.Parser
 {
@@ -170,10 +171,17 @@ namespace Pyratron.Frameworks.Commands.Parser
             var commands = Commands.Where(cmd => cmd.Aliases.Any(alias => alias.Equals(inputArgs[0]))).ToList();
 
             if (commands.Count == 0) //If no commands found found.
-                NoCommandsFound(inputArgs);
+                NoCommandsFound(inputArgs, data as NetPlayer);
             else
             {
                 var command = commands.First(); //Find command.
+
+                // Verify that the command can be executed in the current context.
+                if (command.RequireCaller && !(data is NetPlayer))
+                {
+                    OnParseError(this, $"Command '{command.Name}' can not be executed in the current context.");
+                    return true;
+                }
 
                 //Verify that the sender/user has permission to run this command.
                 if (command.AccessLevel > accessLevel)
@@ -209,12 +217,12 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// <summary>
         /// Ran when no commands are found. Will create an error detailing what went wrong.
         /// </summary>
-        private void NoCommandsFound(List<string> inputArgs)
+        private void NoCommandsFound(List<string> inputArgs, NetPlayer caller)
         {
             OnParseError(this, string.Format("Command '{0}' not found.", inputArgs[0]));
 
             //Find related commands (Did you mean?)
-            var related = FindRelatedCommands(inputArgs[0]);
+            var related = FindRelatedCommands(inputArgs[0], caller);
 
             if (related.Count > 0)
             {
@@ -247,11 +255,17 @@ namespace Pyratron.Frameworks.Commands.Parser
         /// <summary>
         /// Finds command aliases related to the input command that may have been spelled incorrectly.
         /// </summary>
-        private List<string> FindRelatedCommands(string input)
+        private List<string> FindRelatedCommands(string input, NetPlayer caller)
         {
             var related = new List<string>();
             foreach (var command in Commands)
             {
+                if (caller == null && command.RequireCaller)
+                    continue;
+
+                if (caller != null && (int) caller.AccessLevel < command.AccessLevel)
+                    continue;
+
                 foreach (var alias in command.Aliases)
                 {
                     if ((alias.StartsWith(input)) //If the user did not complete the command.

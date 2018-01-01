@@ -4,16 +4,20 @@ using ServerShared.Player;
 namespace Pyratron.Frameworks.Commands.Parser
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class ChatCommandAttribute : Attribute
+    public class CommandAttribute : Attribute
     {
         public readonly string FriendlyName;
-        public readonly string CommandName;
+        public readonly string[] CommandNames;
         public readonly string Description;
 
-        public ChatCommandAttribute(string friendlyName, string commandName, string description)
+        public CommandAttribute(string friendlyName, string commandName, string description) : this(friendlyName, new[] {commandName}, description)
+        {
+        }
+
+        public CommandAttribute(string friendlyName, string[] commandNames, string description)
         {
             FriendlyName = friendlyName;
-            CommandName = commandName;
+            CommandNames = commandNames;
             Description = description;
         }
     }
@@ -34,7 +38,7 @@ namespace Pyratron.Frameworks.Commands.Parser
     }
 
     /// <summary>
-    /// Specifies that the chat command requires the specified access level or higher to use.
+    /// Specifies that the command requires the specified access level or higher to use.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class RequireAuthAttribute : Attribute
@@ -45,5 +49,13 @@ namespace Pyratron.Frameworks.Commands.Parser
         {
             AccessLevel = accessLevel;
         }
+    }
+
+    /// <summary>
+    /// Specifies that the command requires that a player called the command. This would not be the case if the command was called from the server console.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class RequireCallerAttribute : Attribute
+    {
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using ServerShared.Logging;
 
@@ -8,19 +7,25 @@ namespace Server
 {
     public static class ConsoleManager
     {
+        public static Action<string> OnInput;
+
         private static Thread inputThread;
         private static string currentInput = string.Empty;
 
         private static readonly Stack<ConsoleColor> foregroundColorStack = new Stack<ConsoleColor>();
         private static readonly Stack<ConsoleColor> backgroundColorStack = new Stack<ConsoleColor>();
-        
+        private static readonly List<string> history = new List<string>();
+        private static int historyPosition = 0; // 0 = oldest, higher = newer
+
+        private static readonly object consoleLock = new object();
+
         public static void Initialize()
         {
             Logger.LogMessageReceived += OnLogMessageReceived;
             inputThread = new Thread(DoInputThread);
             inputThread.Start();
 
-            PushForegroundColor(ConsoleColor.DarkGreen);
+            PushForegroundColor(ConsoleColor.DarkGreen); // Set default color to dark green
         }
 
         public static void Destroy()
@@ -28,40 +33,55 @@ namespace Server
             Logger.LogMessageReceived -= OnLogMessageReceived;
             inputThread.Abort();
             PopForegroundColor();
+
+            foregroundColorStack.Clear();
+            backgroundColorStack.Clear();
+            history.Clear();
+        }
+
+        public static void Clear()
+        {
+            Console.Clear();
+            RedrawInput();
         }
 
         private static void OnLogMessageReceived(LogMessageReceivedEventArgs args)
         {
-            switch (args.Type)
+            lock (consoleLock)
             {
-                case LogMessageType.Info:
-                    WriteLine(args.Message);
-                    break;
-                case LogMessageType.Debug:
-                    PushForegroundColor(ConsoleColor.Yellow);
-                    WriteLine(args.Message);
-                    PopForegroundColor();
-                    break;
-                case LogMessageType.Warning:
-                    PushForegroundColor(ConsoleColor.DarkYellow);
-                    WriteLine(args.Message);
-                    PopForegroundColor();
-                    break;
-                case LogMessageType.Error:
-                    PushForegroundColor(ConsoleColor.Red);
-                    WriteLine(args.Message);
-                    PopForegroundColor();
-                    break;
-                case LogMessageType.Exception:
-                    PushForegroundColor(ConsoleColor.Red);
-
-                    if (args.Message != null)
+                switch (args.Type)
+                {
+                    case LogMessageType.Info:
+                        PushForegroundColor(ConsoleColor.Gray);
                         WriteLine(args.Message);
+                        PopForegroundColor();
+                        break;
+                    case LogMessageType.Debug:
+                        PushForegroundColor(ConsoleColor.Yellow);
+                        WriteLine(args.Message);
+                        PopForegroundColor();
+                        break;
+                    case LogMessageType.Warning:
+                        PushForegroundColor(ConsoleColor.DarkYellow);
+                        WriteLine(args.Message);
+                        PopForegroundColor();
+                        break;
+                    case LogMessageType.Error:
+                        PushForegroundColor(ConsoleColor.Red);
+                        WriteLine(args.Message);
+                        PopForegroundColor();
+                        break;
+                    case LogMessageType.Exception:
+                        PushForegroundColor(ConsoleColor.Red);
 
-                    WriteException(args.Exception);
+                        if (args.Message != null)
+                            WriteLine(args.Message);
 
-                    PopForegroundColor();
-                    break;
+                        WriteException(args.Exception);
+
+                        PopForegroundColor();
+                        break;
+                }
             }
         }
 
@@ -69,7 +89,7 @@ namespace Server
         {
             ClearLines(1);
             Console.WriteLine(msg);
-            
+
             RedrawInput();
         }
 
@@ -85,7 +105,7 @@ namespace Server
                 PopForegroundColor();
                 WriteException(exception.InnerException);
             }
-            
+
             RedrawInput();
         }
 
@@ -93,7 +113,11 @@ namespace Server
         {
             while (true)
             {
-                var keyInfo = Console.ReadKey(true);
+                if (!WaitForKey(100, out var keyInfo))
+                    continue;
+
+                if (keyInfo == null)
+                    continue;
 
                 if (keyInfo.Key == ConsoleKey.Backspace)
                 {
@@ -103,13 +127,64 @@ namespace Server
                 {
                     OnEnter();
                 }
+                else if (keyInfo.Key == ConsoleKey.Escape)
+                {
+                    currentInput = "";
+                }
+                else if (keyInfo.Key == ConsoleKey.UpArrow)
+                {
+                    if (history.Count > 0)
+                    {
+                        historyPosition -= 1;
+
+                        if (historyPosition < 0)
+                            historyPosition = 0;
+
+                        currentInput = history[historyPosition];
+                    }
+                }
+                else if (keyInfo.Key == ConsoleKey.DownArrow)
+                {
+                    if (history.Count > 0)
+                    {
+                        historyPosition += 1;
+
+                        if (historyPosition >= history.Count)
+                        {
+                            historyPosition = history.Count;
+                            currentInput = "";
+                        }
+                        else
+                        {
+                            currentInput = history[historyPosition];
+                        }
+                    }
+                }
                 else if (keyInfo.KeyChar != 0)
                 {
                     currentInput += keyInfo.KeyChar;
                 }
-                
+
                 RedrawInput();
             }
+        }
+
+        private static bool WaitForKey(int ms, out ConsoleKeyInfo keyInfo)
+        {
+            int delay = 0;
+            while (delay < ms)
+            {
+                if (Console.KeyAvailable)
+                {
+                    keyInfo = Console.ReadKey(true);
+                    return true;
+                }
+                Thread.Sleep(15);
+                delay += 15;
+            }
+
+            keyInfo = default(ConsoleKeyInfo);
+            return false;
         }
 
         private static void OnBackspace()
@@ -129,29 +204,36 @@ namespace Server
             WriteLine($"{currentInput}");
             PopForegroundColor();
 
-            // Todo: process input
-            OnLogMessageReceived(new LogMessageReceivedEventArgs(LogMessageType.Warning, "Unknown command."));
+            OnInput?.Invoke(currentInput);
 
+            if (history.Count > 1000)
+                history.RemoveAt(0); // Remove oldest entry.
+
+            history.Add(currentInput);
+            historyPosition = history.Count;
             currentInput = string.Empty;
         }
 
         private static void RedrawInput()
         {
-            Console.CursorVisible = false; // Prevent flickering cursor
-            ClearLines(2);
-
-            string input = currentInput;
-
-            // Negate 2 to account for the > at the start and leaving 1 empty cell at the end of the line.
-            if (input.Length > Console.BufferWidth - 1)
+            lock (consoleLock)
             {
-                input = input.Substring(input.Length - (Console.BufferWidth - 1));
-            }
+                Console.CursorVisible = false; // Prevent flickering cursor
+                ClearLines(2);
 
-            PushForegroundColor(ConsoleColor.Green);
-            Console.Write($"{input}");
-            PopForegroundColor();
-            Console.CursorVisible = true;
+                string input = currentInput;
+
+                // Negate 2 to account for the > at the start and leaving 1 empty cell at the end of the line.
+                if (input.Length > Console.BufferWidth - 1)
+                {
+                    input = input.Substring(input.Length - (Console.BufferWidth - 1));
+                }
+
+                PushForegroundColor(ConsoleColor.Green);
+                Console.Write($"{input}");
+                PopForegroundColor();
+                Console.CursorVisible = true;
+            }
         }
 
         private static void ClearLines(int numLines)

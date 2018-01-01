@@ -1,14 +1,13 @@
 ﻿using System.Text;
 using Pyratron.Frameworks.Commands.Parser;
-using ServerShared.Player;
-using UnityEngine;
+using ServerShared.Logging;
 
 namespace ServerShared.ChatCommands
 {
-    [ChatCommand("Help", "help", "Shows all available commands and their descriptions.")]
+    [Command("Help", "help", "Shows all available commands and their descriptions.")]
     public class HelpCommand : ChatCommand
     {
-        public override void Handle(NetPlayer caller, string[] args)
+        public override void Handle(string[] args)
         {
             var builder = new StringBuilder();
 
@@ -18,7 +17,10 @@ namespace ServerShared.ChatCommands
             {
                 var command = Parser.Commands[i];
 
-                if (command.AccessLevel > (int) caller.AccessLevel)
+                if (Caller != null && command.AccessLevel > (int) Caller.AccessLevel)
+                    continue;
+
+                if (Caller == null && command.RequireCaller)
                     continue;
 
                 builder.Append($"{command.Name} [{string.Join(", ", command.Aliases.ToArray())}]: {command.Description}");
@@ -27,7 +29,7 @@ namespace ServerShared.ChatCommands
                     builder.AppendLine();
             }
 
-            caller.SendChatMessage(builder.ToString());
+            SendMessage(builder.ToString(), LogMessageType.Info);
         }
     }
 }
