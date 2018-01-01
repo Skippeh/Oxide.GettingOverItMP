@@ -39,9 +39,9 @@ namespace ServerShared.ChatCommands
                 return;
             }
 
-            if (banTarget.AccessLevel > Caller.AccessLevel)
+            if (Caller != null && banTarget.AccessLevel > Caller.AccessLevel)
             {
-                Caller.SendChatMessage("You can't ban someone with a higher access level than yourself.", SharedConstants.ColorRed);
+                SendMessage("You can't ban someone with a higher access level than yourself.", LogMessageType.Error);
                 return;
             }
 
