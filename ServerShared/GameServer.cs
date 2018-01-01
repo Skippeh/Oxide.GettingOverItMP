@@ -278,7 +278,7 @@ namespace ServerShared
 
         public IEnumerable<PlayerBan> FindBansByName(string name)
         {
-            return BannedPlayers.Where(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower()));
+            return BannedPlayers.Where(ban => ban.ReferenceName?.ToLower().StartsWith(name.ToLower()) == true);
         }
 
         public IEnumerable<NetPlayer> FindPlayers(string name, NameSearchOption searchOption)
