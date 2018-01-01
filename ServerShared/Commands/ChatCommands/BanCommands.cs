@@ -77,8 +77,18 @@ namespace ServerShared.ChatCommands
                 SendMessage("You can't ban yourself.", LogMessageType.Error);
                 return;
             }
-            
-            // Todo: Check if steam id has higher access level than caller.
+
+            if (Caller != null)
+            {
+                // Check if steam id has higher access level than caller.
+                var existingUser = Server.Config.AccessLevels.FirstOrDefault(identity => identity.Type == IdentityType.SteamId && identity.SteamId == SteamId);
+
+                if (existingUser != null && existingUser.AccessLevel > Caller.AccessLevel)
+                {
+                    SendMessage("You can't ban someone with a higher access level than yourself.", LogMessageType.Error);
+                    return;
+                }
+            }
 
             Server.BanSteamId(SteamId, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
             var player = Server.FindPlayer(SteamId);
