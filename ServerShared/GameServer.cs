@@ -573,12 +573,7 @@ namespace ServerShared
             var player = AddConnection(connection, playerName, steamId);
             player.Movement = movementData;
             player.Wins = wins;
-
-            uint uintIp = connection.RemoteEndPoint.Address.ToUint32();
-            var accessLevelIdentity = Config.AccessLevels.FirstOrDefault(identity => (identity.Type == IdentityType.Ip && identity.Ip == uintIp) || (identity.Type == IdentityType.SteamId && identity.SteamId == steamId));
-
-            if (accessLevelIdentity != null)
-                player.SetAccessLevel(accessLevelIdentity.AccessLevel);
+            UpdateAccessLevel(player);
 
             var writer = server.CreateMessage();
             writer.Write(MessageType.CreatePlayer);
