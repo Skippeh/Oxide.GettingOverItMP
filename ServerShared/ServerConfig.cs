@@ -62,6 +62,11 @@ namespace ServerShared
                 string json = File.ReadAllText(savePath);
                 config = JsonConvert.DeserializeObject<ServerConfig>(json, serializerSettings);
                 config.Directory = directory;
+
+                // Remove expired bans and save config.
+                if (config.Bans.RemoveAll(ban => ban.Expired()) > 0)
+                    config.Save();
+
                 return true;
             }
             catch (Exception ex) when (ex is IOException || ex is JsonException)
