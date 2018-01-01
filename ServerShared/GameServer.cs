@@ -24,6 +24,7 @@ namespace ServerShared
         public List<PlayerBan> BannedPlayers => Config.Bans;
         public ServerConfig Config { get; private set; }
         public bool Running { get; private set; }
+        public GameServerPeer Peer => server;
 
         public readonly bool ListenServer;
         public readonly bool PrivateServer;
@@ -264,16 +265,6 @@ namespace ServerShared
         public bool UnbanSteamId(ulong steamId)
         {
             bool success = BannedPlayers.RemoveAll(ban => ban.BanType == IdentityType.SteamId && ban.SteamId == steamId) > 0;
-
-            if (success)
-                Config.Save();
-
-            return success;
-        }
-
-        public bool UnbanByName(string name)
-        {
-            bool success = BannedPlayers.RemoveAll(ban => ban.ReferenceName.ToLower().StartsWith(name.ToLower())) > 0;
 
             if (success)
                 Config.Save();
