@@ -210,38 +210,44 @@ namespace ServerShared
             return ban != null && !ban.Expired();
         }
 
-        public bool BanPlayer(NetPlayer player, string reason = null, DateTime? expirationDate = null)
+        public PlayerBan BanPlayer(NetPlayer player, string reason = null, DateTime? expirationDate = null)
         {
-            if (SteamServer != null)
-                BanSteamId(player.SteamId, reason, expirationDate, player.Name);
-            else
-                BanIp(player.Peer.RemoteEndPoint.Address, reason, expirationDate, player.Name);
+            PlayerBan ban;
 
-            KickConnection(player.Peer, DisconnectReason.Banned, reason);
-            return true;
+            if (SteamServer != null)
+                ban = BanSteamId(player.SteamId, reason, expirationDate, player.Name);
+            else
+                ban = BanIp(player.Peer.RemoteEndPoint.Address, reason, expirationDate, player.Name);
+
+            KickConnection(player.Peer, DisconnectReason.Banned, ban.GetReasonWithExpiration());
+            return ban;
         }
 
-        public void BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null, string referenceName = null)
+        public PlayerBan BanIp(IPAddress ip, string reason = null, DateTime? expirationDate = null, string referenceName = null)
         {
             Config.RemoveExpiredBans();
 
             uint uintIp = GetUintIp(ip);
-            if (IpBanned(ip, out var _))
-                return;
+            if (IpBanned(ip, out var existingBan))
+                return existingBan;
 
-            BannedPlayers.Add(new PlayerBan(uintIp, reason, expirationDate, referenceName));
+            PlayerBan ban = new PlayerBan(uintIp, reason, expirationDate, referenceName);
+            BannedPlayers.Add(ban);
             Config.Save();
+            return ban;
         }
 
-        public void BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null, string referenceName = null)
+        public PlayerBan BanSteamId(ulong steamId, string reason = null, DateTime? expirationDate = null, string referenceName = null)
         {
             Config.RemoveExpiredBans();
 
-            if (SteamIdBanned(steamId, out var _))
-                return;
-            
-            BannedPlayers.Add(new PlayerBan(steamId, reason, expirationDate, referenceName));
+            if (SteamIdBanned(steamId, out var existingBan))
+                return existingBan;
+
+            PlayerBan ban = new PlayerBan(steamId, reason, expirationDate, referenceName);
+            BannedPlayers.Add(ban);
             Config.Save();
+            return ban;
         }
 
         public bool UnbanIp(IPAddress ip)

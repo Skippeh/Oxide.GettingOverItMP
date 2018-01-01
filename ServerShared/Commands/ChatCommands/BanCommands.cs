@@ -90,12 +90,12 @@ namespace ServerShared.ChatCommands
                 }
             }
 
-            Server.BanSteamId(SteamId, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
+            var ban = Server.BanSteamId(SteamId, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
             var player = Server.FindPlayer(SteamId);
 
             if (player != null)
             {
-                Server.KickConnection(player.Peer, DisconnectReason.Banned, Reason);
+                Server.KickConnection(player.Peer, DisconnectReason.Banned, ban.GetReasonWithExpiration());
                 AnnounceBan(player, Minutes);
             }
 
@@ -129,12 +129,12 @@ namespace ServerShared.ChatCommands
                 return;
             }
 
-            Server.BanIp(ipAddress, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
+            var ban = Server.BanIp(ipAddress, Reason, Minutes != 0 ? DateTime.UtcNow.AddMinutes(Minutes) : (DateTime?) null);
             var player = Server.FindPlayer(ipAddress);
 
             if (player != null)
             {
-                Server.KickConnection(player.Peer, DisconnectReason.Banned, Reason);
+                Server.KickConnection(player.Peer, DisconnectReason.Banned, ban.GetReasonWithExpiration());
                 AnnounceBan(player, Minutes);
             }
 
