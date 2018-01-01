@@ -201,13 +201,13 @@ namespace ServerShared
         {
             uint ip = GetUintIp(ipAddress);
             ban = BannedPlayers.FirstOrDefault(_ban => _ban.BanType == IdentityType.Ip && _ban.Ip == ip);
-            return ban != null;
+            return ban != null && !ban.Expired();
         }
 
         public bool SteamIdBanned(ulong steamId, out PlayerBan ban)
         {
             ban = BannedPlayers.FirstOrDefault(_ban => _ban.BanType == IdentityType.SteamId && _ban.SteamId == steamId);
-            return ban != null;
+            return ban != null && !ban.Expired();
         }
 
         public bool BanPlayer(NetPlayer player, string reason = null, DateTime? expirationDate = null)
