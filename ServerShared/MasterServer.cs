@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Net;
 using System.Threading;
+using ServerShared.Logging;
 
 namespace ServerShared
 {
@@ -37,7 +38,7 @@ namespace ServerShared
             updateThread = new Thread(DoUpdateThread);
             updateThread.Start();
 
-            Console.WriteLine("Started beating to master server.");
+            Logger.LogDebug("Started beating to master server.");
         }
 
         public static void Stop()
@@ -65,7 +66,7 @@ namespace ServerShared
                             // Give up this time, try again at the next beat interval.
                             nextBeat = DateTime.UtcNow.AddMinutes(BeatInterval);
                             failedAttempts = 0;
-                            Console.WriteLine($"Failed to send heartbeat to master server: {lastException.Message}");
+                            Logger.LogException("Failed to send heartbeat to master server.", lastException);
                         }
                         else
                         {

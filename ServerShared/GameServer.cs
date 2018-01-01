@@ -5,6 +5,7 @@ using System.Net;
 using System.Security.Cryptography;
 using Facepunch.Steamworks;
 using Lidgren.Network;
+using ServerShared.Logging;
 using ServerShared.Networking;
 using ServerShared.Player;
 using Color = UnityEngine.Color;
@@ -81,12 +82,12 @@ namespace ServerShared
             if (ServerConfig.LoadConfig(ConfigDirectory, out var config))
             {
                 Config = config;
-                Console.WriteLine($"Loaded {Config.Bans.Count} bans.");
+                Logger.LogDebug($"Loaded {Config.Bans.Count} bans.");
             }
             
             if (RequireSteamAuth)
             {
-                Console.WriteLine("Enabling steam authentication...");
+                Logger.LogDebug("Enabling steam authentication...");
 
                 var serverInit = new ServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
                 {
@@ -102,7 +103,7 @@ namespace ServerShared
                 SteamServer.MaxPlayers = MaxPlayers;
                 SteamServer.LogOnAnonymous();
 
-                Console.WriteLine("Steam authentication enabled.");
+                Logger.LogDebug("Steam authentication enabled.");
             }
         }
 
@@ -325,7 +326,7 @@ namespace ServerShared
 
             connection.SendMessage(netMessage, NetDeliveryMethod.ReliableOrdered, 0);
 
-            Console.WriteLine($"Added client from {connection.RemoteEndPoint} with id {netPlayer.Id} (total: {Players.Count})");
+            Logger.LogDebug($"Added client from {connection.RemoteEndPoint} with id {netPlayer.Id} (total: {Players.Count})");
             return netPlayer;
         }
 
@@ -343,7 +344,7 @@ namespace ServerShared
             writer.Write(playerId);
             Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0);
 
-            Console.WriteLine($"Removed client from {connection.RemoteEndPoint} with id {playerId} (total: {Players.Count})");
+            Logger.LogDebug($"Removed client from {connection.RemoteEndPoint} with id {playerId} (total: {Players.Count})");
         }
 
         /// <summary>
@@ -364,7 +365,7 @@ namespace ServerShared
 
         private void OnConnectionConnected(object sender, ConnectedEventArgs args)
         {
-            Console.WriteLine($"Incoming from {args.Connection.RemoteEndPoint}");
+            Logger.LogDebug($"Incoming from {args.Connection.RemoteEndPoint}");
 
             try
             {
@@ -415,7 +416,7 @@ namespace ServerShared
                     }
 
                     pendingConnections.Add(new PendingConnection(args.Connection, steamId, playerName, movementData));
-                    Console.WriteLine($"Connection from {args.Connection.RemoteEndPoint}, awaiting steam auth approval...");
+                    Logger.LogDebug($"Connection from {args.Connection.RemoteEndPoint}, awaiting steam auth approval...");
                 }
                 else
                 {
@@ -424,7 +425,7 @@ namespace ServerShared
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogException(ex);
                 KickConnection(args.Connection, DisconnectReason.InvalidSteamSession, ex.Message);
                 return;
             }
@@ -455,14 +456,14 @@ namespace ServerShared
                     }
 
                     pendingConnections.Remove(pendingConnection);
-                    Console.WriteLine($"Got valid steam auth from {connection.RemoteEndPoint}");
+                    Logger.LogDebug($"Got valid steam auth from {connection.RemoteEndPoint}");
                     AcceptConnection(connection, pendingConnection.PlayerName, pendingConnection.Movement, pendingConnection.SteamId, 0);
 
                     SteamServer.Stats.Refresh(ownerId, (ownerId2, success) =>
                     {
                         if (!success)
                         {
-                            Console.WriteLine($"Failed to refresh stats for steamid {ownerId2}.");
+                            Logger.LogError($"Failed to refresh stats for steamid {ownerId2}.");
                             return;
                         }
 
@@ -499,7 +500,7 @@ namespace ServerShared
             writer.Write(player.Wins);
             Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
 
-            Console.WriteLine($"Client with id {player.Id} is now spawned");
+            Logger.LogDebug($"Client with id {player.Id} is now spawned");
             BroadcastChatMessage($"{player.Name} joined the server.", SharedConstants.ColorBlue, connection);
         }
 
@@ -592,12 +593,12 @@ namespace ServerShared
             }
             catch (UnexpectedMessageFromClientException ex)
             {
-                Console.WriteLine($"Client sent unexpected message type: {ex.MessageType}");
+                Logger.LogWarning($"Client sent unexpected message type: {ex.MessageType}");
                 KickConnection(connection, DisconnectReason.InvalidMessage);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("OnReceiveData errored:\n" + ex);
+                Logger.LogException("OnReceiveData threw an exception", ex);
                 KickConnection(connection, DisconnectReason.InvalidMessage);
             }
         }

@@ -2,6 +2,7 @@
 using System.IO;
 using Oxide.Core;
 using ServerShared;
+using ServerShared.Logging;
 
 namespace Oxide.GettingOverItMP.Networking
 {
@@ -15,8 +16,32 @@ namespace Oxide.GettingOverItMP.Networking
             if (Running)
                 throw new InvalidOperationException("The server is already running.");
 
+            Logger.LogMessageReceived += OnLogMessageReceived;
+
             Server = new GameServer(name, maxPlayers, port, true, isPrivate, requireSteamAuth, Path.Combine(Interface.Oxide.ConfigDirectory, "goimp"));
             Server.Start();
+        }
+
+        private static void OnLogMessageReceived(LogMessageReceivedEventArgs args)
+        {
+            switch (args.Type)
+            {
+                case LogMessageType.Info:
+                    Interface.Oxide.LogInfo(args.Message.ToString());
+                    break;
+                case LogMessageType.Debug:
+                    Interface.Oxide.LogDebug(args.Message.ToString());
+                    break;
+                case LogMessageType.Warning:
+                    Interface.Oxide.LogWarning(args.Message.ToString());
+                    break;
+                case LogMessageType.Error:
+                    Interface.Oxide.LogError(args.Message.ToString());
+                    break;
+                case LogMessageType.Exception:
+                    Interface.Oxide.LogException(args.Message.ToString(), args.Exception);
+                    break;
+            }
         }
 
         public static void Stop()
@@ -26,6 +51,7 @@ namespace Oxide.GettingOverItMP.Networking
 
             Server.Stop();
             Server = null;
+            Logger.LogMessageReceived -= OnLogMessageReceived;
         }
 
         public static void Update()

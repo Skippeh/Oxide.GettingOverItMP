@@ -1,6 +1,6 @@
 ﻿using System;
 using Lidgren.Network;
-using UnityEngine;
+using ServerShared.Logging;
 
 namespace ServerShared.Player
 {
@@ -31,13 +31,13 @@ namespace ServerShared.Player
         }
         
         /// <param name="color">If null then Color.white will be used.</param>
-        public void SendChatMessage(string message, Color? color = null)
+        public void SendChatMessage(string message, UnityEngine.Color? color = null)
         {
             var writer = server.CreateMessage();
             writer.Write(MessageType.ChatMessage);
             writer.Write(0); // player id (0 = equivalent of null)
             writer.Write((string) null);
-            writer.WriteRgbaColor(color ?? Color.white);
+            writer.WriteRgbaColor(color ?? UnityEngine.Color.white);
             writer.Write(message);
 
             Peer.SendMessage(writer, NetDeliveryMethod.ReliableOrdered, 0);
@@ -88,7 +88,7 @@ namespace ServerShared.Player
 
         public void SetGoldness(float goldness)
         {
-            goldness = Mathf.Clamp01(goldness);
+            goldness = UnityEngine.Mathf.Clamp01(goldness);
 
             var message = server.CreateMessage();
             message.Write(MessageType.PlayerGoldness);
@@ -101,7 +101,7 @@ namespace ServerShared.Player
         public void SetAccessLevel(AccessLevel accessLevel)
         {
             AccessLevel = accessLevel;
-            Console.WriteLine($"{Name} access level set to {AccessLevel}.");
+            Logger.LogInfo($"{Name} access level set to {AccessLevel}.");
         }
     }
 }

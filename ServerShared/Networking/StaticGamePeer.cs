@@ -1,5 +1,6 @@
 using System;
 using Lidgren.Network;
+using ServerShared.Logging;
 
 namespace ServerShared
 {
@@ -34,7 +35,7 @@ namespace ServerShared
                         }
                         else if (status == NetConnectionStatus.Disconnected)
                         {
-                            Console.WriteLine($"{message.SenderEndPoint} new status: {status} ({enumReason?.ToString() ?? reason})" + $" {additionalInfo}");
+                            Logger.LogDebug($"{message.SenderEndPoint} new status: {status} ({enumReason?.ToString() ?? reason})" + $" {additionalInfo}");
                             peer.InvokeDisconnected(peer, new DisconnectedEventArgs {Connection = message.SenderConnection, Reason = enumReason ?? DisconnectReason.Invalid, ReasonString = reason, AdditionalInfo = additionalInfo});
                         }
 

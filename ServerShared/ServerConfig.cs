@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using ServerShared.Logging;
 using ServerShared.Player;
 
 namespace ServerShared
@@ -40,7 +41,7 @@ namespace ServerShared
 
             string savePath = Path.Combine(directory, "config.json");
 
-            Console.WriteLine($"Loading config from {savePath}");
+            Logger.LogDebug($"Loading config from {savePath}");
 
             if (!File.Exists(savePath))
             {
@@ -48,9 +49,9 @@ namespace ServerShared
                 bool saveSuccessful = config.Save();
 
                 if (saveSuccessful)
-                    Console.WriteLine($"Created new config at {savePath}");
+                    Logger.LogWarning($"Created new config at {savePath}");
                 else
-                    Console.WriteLine($"Failed to create new config at {savePath}");
+                    Logger.LogError($"Failed to create new config at {savePath}");
 
                 return saveSuccessful;
             }
@@ -63,7 +64,7 @@ namespace ServerShared
             }
             catch (Exception ex) when (ex is IOException || ex is JsonException)
             {
-                Console.WriteLine($"Failed to load player bans: {ex}");
+                Logger.LogException("Failed to load player bans.", ex);
                 config = null;
                 return false;
             }
@@ -85,7 +86,7 @@ namespace ServerShared
             }
             catch (Exception ex) when (ex is IOException || ex is JsonException || ex is Exception)
             {
-                Console.WriteLine($"Failed to save player bans: {ex}\nInner: {ex.InnerException}");
+                Logger.LogException("Failed to save player bans.", ex);
                 return false;
             }
         }

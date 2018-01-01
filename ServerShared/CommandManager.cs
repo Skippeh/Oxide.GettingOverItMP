@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using Pyratron.Frameworks.Commands.Parser;
+using ServerShared.Logging;
 using ServerShared.Player;
 
 namespace ServerShared
@@ -85,7 +86,7 @@ namespace ServerShared
 
                 if (!property.CanWrite)
                 {
-                    Console.WriteLine($"Argument property not writable: {type.Name}.{property.Name}");
+                    Logger.LogError($"Argument property not writable: {type.Name}.{property.Name}");
                     continue;
                 }
 
