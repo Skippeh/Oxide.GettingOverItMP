@@ -17,7 +17,8 @@ namespace ServerShared.Player
         public NetPlayer SpectateTarget;
         public bool Spectating => SpectateTarget != null;
         public int Wins = 0;
-        public AccessLevel AccessLevel { get; private set; } = AccessLevel.Player;
+        public PlayerAccessLevelIdentity Identity { get; private set; }
+        public AccessLevel AccessLevel => Identity.AccessLevel;
 
         private GameServer server;
 
@@ -30,6 +31,10 @@ namespace ServerShared.Player
             SteamId = steamId;
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             Id = idCounter++;
+
+            Identity = server.RequireSteamAuth
+                ? new PlayerAccessLevelIdentity(steamId, AccessLevel.Player)
+                : new PlayerAccessLevelIdentity(connection.RemoteEndPoint.Address.ToUint32(), AccessLevel.Player);
         }
         
         /// <param name="color">If null then Color.white will be used.</param>
@@ -107,7 +112,7 @@ namespace ServerShared.Player
 
         public void SetAccessLevel(AccessLevel accessLevel)
         {
-            AccessLevel = accessLevel;
+            Identity.AccessLevel = accessLevel;
             Logger.LogInfo($"{Name} access level set to {AccessLevel}.");
         }
     }
