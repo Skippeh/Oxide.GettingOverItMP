@@ -1,4 +1,6 @@
-﻿namespace ServerShared.Player
+﻿using Newtonsoft.Json;
+
+namespace ServerShared.Player
 {
     public enum IdentityType
     {
@@ -23,6 +25,9 @@
             Type = IdentityType.Ip;
             Ip = ip;
         }
+
+        [JsonConstructor]
+        protected PlayerIdentity() { }
     }
 
     public class PlayerAccessLevelIdentity : PlayerIdentity
@@ -38,5 +43,8 @@
         {
             AccessLevel = accessLevel;
         }
+
+        [JsonConstructor]
+        private PlayerAccessLevelIdentity() { }
     }
 }
