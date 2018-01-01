@@ -129,18 +129,34 @@ namespace Oxide.GettingOverItMP.Components
                 }
                 case DisconnectReason.InvalidSteamSession:
                 {
-                    LastDisconnectReason = "Invalid steam session";
+                    LastDisconnectReason = "Invalid steam session.";
+                    break;
+                }
+                case DisconnectReason.Banned:
+                {
+                    LastDisconnectReason = $"You have been banned from this server.";
                     break;
                 }
             }
 
             if (args.AdditionalInfo != null)
-                LastDisconnectReason += $" ({args.AdditionalInfo})";
+                LastDisconnectReason += $"\n{args.AdditionalInfo}";
+
+            string chatMessage = "Disconnected from the server";
 
             if (args.ReasonString != "bye")
-                chatUi.AddMessage($"Disconnected from the server. ({LastDisconnectReason})", null, SharedConstants.ColorRed);
+            {
+                chatMessage = $"{chatMessage}:\n{LastDisconnectReason}";
+            }
             else
-                chatUi.AddMessage("Disconnected from the server.", null, SharedConstants.ColorRed);
+            {
+                chatMessage = $"{chatMessage}.";
+            }
+
+            if (args.ReasonString != "bye")
+                chatUi.AddMessage(chatMessage, null, SharedConstants.ColorRed);
+            else
+                chatUi.AddMessage(chatMessage, null, SharedConstants.ColorRed);
         }
 
         private void OnReceiveData(object sender, DataReceivedEventArgs args)

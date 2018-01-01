@@ -52,7 +52,7 @@ namespace ServerShared
         public string GetReasonWithExpiration()
         {
             string reason = Reason ?? "No reason given";
-            string result = $"You have been banned from this server: \"{reason}\".";
+            string result = $"Reason: {reason}.";
 
             if (ExpirationDate != null)
             {
@@ -68,7 +68,7 @@ namespace ServerShared
                     daysString = $"{(int) timeLeft.TotalDays} days, ";
                 }
 
-                result += $" The ban will expire in {daysString}{hours.ToString().PadLeft(2, '0')}h {minutes.ToString().PadLeft(2, '0')}m {seconds.ToString().PadLeft(2, '0')}s.";
+                result += $"\nExpires in: {daysString}{hours.ToString().PadLeft(2, '0')}h {minutes.ToString().PadLeft(2, '0')}m {seconds.ToString().PadLeft(2, '0')}s.";
             }
 
             return result;
