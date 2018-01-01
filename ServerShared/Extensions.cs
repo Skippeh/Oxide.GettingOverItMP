@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using Lidgren.Network;
 using ServerShared.Networking;
 using ServerShared.Player;
@@ -157,6 +158,16 @@ namespace ServerShared
         {
             string reasonStr = ((byte) reason).ToString();
             connection.Disconnect(reasonStr + (additionalInfo != null ? $";{additionalInfo}" : ""));
+        }
+
+        public static uint ToUint32(this IPAddress ipAddress)
+        {
+            byte[] ipBytes = ipAddress.GetAddressBytes();
+            uint ip = ipBytes[0];
+            ip += (uint)ipBytes[1] << 8;
+            ip += (uint)ipBytes[2] << 16;
+            ip += (uint)ipBytes[3] << 24;
+            return ip;
         }
     }
 }

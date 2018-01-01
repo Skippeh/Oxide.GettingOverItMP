@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace ServerShared.Player
 {
@@ -28,6 +29,19 @@ namespace ServerShared.Player
 
         [JsonConstructor]
         protected PlayerIdentity() { }
+
+        public bool Matches(NetPlayer player)
+        {
+            switch (Type)
+            {
+                case IdentityType.Ip:
+                    return player.Peer.RemoteEndPoint.Address.ToUint32() == Ip;
+                case IdentityType.SteamId:
+                    return player.SteamId == SteamId;
+            }
+
+            throw new NotImplementedException("Unimplemented IdentityType");
+        }
     }
 
     public class PlayerAccessLevelIdentity : PlayerIdentity

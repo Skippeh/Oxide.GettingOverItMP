@@ -149,7 +149,17 @@ namespace ServerShared
 
                     try
                     {
-                        object convertedValue = Convert.ChangeType(argument.Value, targetType, CultureInfo.InvariantCulture);
+                        object convertedValue;
+
+                        if (targetType.IsEnum)
+                        {
+                            convertedValue = Enum.Parse(targetType, argument.Value, true);
+                        }
+                        else
+                        {
+                            convertedValue = Convert.ChangeType(argument.Value, targetType, CultureInfo.InvariantCulture);
+                        }
+
                         propertyAttribute.PropertyInfo.SetValue(instance, convertedValue, null);
                     }
                     catch

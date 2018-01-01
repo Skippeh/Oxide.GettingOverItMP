@@ -199,7 +199,7 @@ namespace ServerShared
 
         public bool IpBanned(IPAddress ipAddress, out PlayerBan ban)
         {
-            uint ip = GetUintIp(ipAddress);
+            uint ip = ipAddress.ToUint32();
             ban = BannedPlayers.FirstOrDefault(_ban => _ban.BanType == IdentityType.Ip && _ban.Ip == ip);
             return ban != null && !ban.Expired();
         }
@@ -227,7 +227,7 @@ namespace ServerShared
         {
             Config.RemoveExpiredBans();
 
-            uint uintIp = GetUintIp(ip);
+            uint uintIp = ip.ToUint32();
             if (IpBanned(ip, out var existingBan))
                 return existingBan;
 
@@ -252,7 +252,7 @@ namespace ServerShared
 
         public bool UnbanIp(IPAddress ip)
         {
-            var uintIp = GetUintIp(ip);
+            var uintIp = ip.ToUint32();
             bool success = BannedPlayers.RemoveAll(ban => ban.BanType == IdentityType.Ip && ban.Ip == uintIp) > 0;
 
             if (success)
@@ -391,6 +391,66 @@ namespace ServerShared
             connection.Disconnect(reason, additionalInfo);
         }
 
+        public void SetAccessLevel(ulong steamId, AccessLevel accessLevel)
+        {
+            if (accessLevel == AccessLevel.Player)
+            {
+                Config.AccessLevels.RemoveAll(id => id.Type == IdentityType.SteamId && id.SteamId == steamId);
+                Config.Save();
+                return;
+            }
+
+            var identity = Config.AccessLevels.FirstOrDefault(id => id.Type == IdentityType.SteamId && id.SteamId == steamId) ?? new PlayerAccessLevelIdentity(steamId, accessLevel);
+            identity.AccessLevel = accessLevel;
+
+            if (!Config.AccessLevels.Contains(identity))
+            {
+                Config.AccessLevels.Add(identity);
+            }
+
+            Config.Save();
+            NetPlayer player = FindPlayer(steamId);
+
+            if (player != null)
+                UpdateAccessLevel(player);
+        }
+
+        public void SetAccessLevel(IPAddress ipAddress, AccessLevel accessLevel)
+        {
+            uint uintIp = ipAddress.ToUint32();
+
+            if (accessLevel == AccessLevel.Player)
+            {
+                Config.AccessLevels.RemoveAll(id => id.Type == IdentityType.Ip && id.Ip == uintIp);
+                Config.Save();
+                return;
+            }
+
+            var identity = Config.AccessLevels.FirstOrDefault(id => id.Type == IdentityType.Ip && id.Ip == uintIp) ?? new PlayerAccessLevelIdentity(uintIp, accessLevel);
+            identity.AccessLevel = accessLevel;
+
+            if (!Config.AccessLevels.Contains(identity))
+            {
+                Config.AccessLevels.Add(identity);
+            }
+
+            Config.Save();
+            NetPlayer player = FindPlayer(ipAddress);
+
+            if (player != null)
+                UpdateAccessLevel(player);
+        }
+
+        private void UpdateAccessLevel(NetPlayer player)
+        {
+            var identity = Config.AccessLevels.FirstOrDefault(id => id.Matches(player));
+
+            if (identity == null)
+                player.SetAccessLevel(AccessLevel.Player);
+            else
+                player.SetAccessLevel(identity.AccessLevel);
+        }
+
         private void OnConnectionConnected(object sender, ConnectedEventArgs args)
         {
             Logger.LogDebug($"Incoming from {args.Connection.RemoteEndPoint}");
@@ -513,8 +573,8 @@ namespace ServerShared
             var player = AddConnection(connection, playerName, steamId);
             player.Movement = movementData;
             player.Wins = wins;
-            
-            uint uintIp = GetUintIp(connection.RemoteEndPoint.Address);
+
+            uint uintIp = connection.RemoteEndPoint.Address.ToUint32();
             var accessLevelIdentity = Config.AccessLevels.FirstOrDefault(identity => (identity.Type == IdentityType.Ip && identity.Ip == uintIp) || (identity.Type == IdentityType.SteamId && identity.SteamId == steamId));
 
             if (accessLevelIdentity != null)
@@ -648,16 +708,6 @@ namespace ServerShared
                 Players = (ushort) Players.Count,
                 MaxPlayers = (ushort) server.Configuration.MaximumConnections
             };
-        }
-
-        private static uint GetUintIp(IPAddress ipAddress)
-        {
-            byte[] ipBytes = ipAddress.GetAddressBytes();
-            uint ip = ipBytes[0];
-            ip += (uint) ipBytes[1] << 8;
-            ip += (uint) ipBytes[2] << 16;
-            ip += (uint) ipBytes[3] << 24;
-            return ip;
         }
     }
 }
