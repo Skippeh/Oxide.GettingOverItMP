@@ -77,15 +77,7 @@ namespace ServerShared
         /// <summary>Returns a user friendly string representing the ban type and the identifier of the ban (ip/steamid).</summary>
         public string GetIdentifier()
         {
-            switch (BanType)
-            {
-                case IdentityType.Ip:
-                    return $"IP: {new IPAddress(Ip)}";
-                case IdentityType.SteamId:
-                    return $"SteamID64: {SteamId}";
-            }
-
-            throw new NotImplementedException($"IdentityType not implemented: {BanType}");
+            return Identity.ToString();
         }
     }
 }

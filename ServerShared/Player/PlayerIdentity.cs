@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace ServerShared.Player
@@ -41,6 +42,19 @@ namespace ServerShared.Player
             }
 
             throw new NotImplementedException("Unimplemented IdentityType");
+        }
+
+        public override string ToString()
+        {
+            switch (Type)
+            {
+                case IdentityType.Ip:
+                    return $"IP: {new IPAddress(Ip)}";
+                case IdentityType.SteamId:
+                    return $"SteamID64: {SteamId}";
+            }
+
+            throw new NotImplementedException($"IdentityType not implemented: {Type}");
         }
     }
 
