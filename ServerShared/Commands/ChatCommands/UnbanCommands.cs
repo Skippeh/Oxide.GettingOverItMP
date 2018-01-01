@@ -31,7 +31,7 @@ namespace ServerShared.ChatCommands
 
             PlayerBan ban = bans.First();
             Server.RemoveBan(ban);
-            SendMessage($"Unbanned {ban.ReferenceName} ({ban.GetIdentifier()}.", LogMessageType.Info);
+            SendMessage($"Unbanned {ban.ReferenceName} ({ban.GetIdentifier()}).", LogMessageType.Info);
         }
     }
 
