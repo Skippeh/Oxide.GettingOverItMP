@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using UnityEngine;
 
 namespace Oxide.GettingOverItMP
 {
@@ -10,6 +11,19 @@ namespace Oxide.GettingOverItMP
             if (control == null) throw new ArgumentNullException(nameof(control));
             var fieldInfo = typeof(PlayerControl).GetField("menuPause", BindingFlags.NonPublic | BindingFlags.Instance);
             return (bool) fieldInfo.GetValue(control);
+        }
+
+        public static void SetLayerRecursively(this GameObject gameObject, int layer)
+        {
+            gameObject.layer = layer;
+
+            foreach (Transform transform in gameObject.transform)
+            {
+                if (transform == null)
+                    continue;
+
+                SetLayerRecursively(transform.gameObject, layer);
+            }
         }
     }
 }

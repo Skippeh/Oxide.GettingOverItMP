@@ -35,6 +35,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             PlayerPrefab = Instantiate(GameObject.FindObjectsOfType<GameObject>().Single(obj => obj.name == "Player") ?? throw new NotImplementedException("Could not find Player object"), Vector3.zero, Quaternion.identity);
             PlayerPrefab.SetActive(false);
+            PlayerPrefab.SetLayerRecursively((int) LayerType.Layer31);
             PlayerPrefab.AddComponent<RemotePlayer>();
 
             DestroyImmediate(PlayerPrefab.GetComponent<Saviour>());
@@ -48,6 +49,10 @@ namespace Oxide.GettingOverItMP.Components
             DestroyImmediate(PlayerPrefab.GetComponentInChildren<HammerCollisions>());
             DestroyImmediate(PlayerPrefab.GetComponentInChildren<PlayerSounds>());
             DestroyImmediate(PlayerPrefab.transform.Find("PotCollider/Sensor").gameObject);
+
+            var cameras = PlayerPrefab.GetComponentsInChildren<Camera>();
+            foreach (var camera in cameras)
+                DestroyImmediate(camera);
 
             PlayerPrefab.name = "RemotePlayer_Prefab";
             
