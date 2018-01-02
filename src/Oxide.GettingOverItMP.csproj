@@ -15,6 +15,7 @@
     <TargetFramework>net35</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <ManagedDir>GettingOverIt_Data\Managed</ManagedDir>
+    <StreamingAssetsDir>GettingOverIt_Data\StreamingAssets</StreamingAssetsDir>
     <SteamAppId>240720</SteamAppId>
     <SteamBranch>public</SteamBranch>
     <SteamLogin>anonymous</SteamLogin>
@@ -82,7 +83,11 @@
       <CoreFiles Include="$(TargetDir)Facepunch.Steamworks.dll" />
       <CoreFiles Include="$(TargetDir)Newtonsoft.Json.dll" />
     </ItemGroup>
+    <ItemGroup>
+        <AssetFiles Include="$(SolutionDir)GOIMP_Content\Assets\AssetBundles\goimp_content" />
+    </ItemGroup>
     <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(StreamingAssetsDir)\%(Filename)%(Extension)')" />
   </Target>
   <Target Name="LocalDeploy" AfterTargets="AfterBuild" Condition="Exists('$(SolutionDir)\.deploy')">
     <Exec Command="start /b /wait taskkill /f /im GettingOverIt.exe /fi &quot;memusage gt 2&quot;" Condition="'$(OS)' == 'Windows_NT'" />
