@@ -137,11 +137,6 @@ namespace Oxide.GettingOverItMP.Components
                 ApplyMoveInterp(ref targetMove, t);
             }
 
-            if (Time.time - lastReceiveMoveTime > 2f)
-            {
-                Interface.Oxide.LogDebug($"Peer with id {Id} has not received update in over 2 seconds");
-            }
-
             lookTarget.position = Vector3.Lerp(lookTarget.position, tip.position, 7 * Time.deltaTime);
         }
 
