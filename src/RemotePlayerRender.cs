@@ -69,7 +69,7 @@ namespace Oxide.GettingOverIt
                 }
             };
 
-            material = new Material(MPContent.AlphaBlacklistShader);
+            material = new Material(MPContent.AlphaMaskShader);
         }
 
         private void OnEnable()
