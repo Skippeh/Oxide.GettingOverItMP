@@ -3,12 +3,15 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_MaskTex ("Texure", 2D) = "white" {}
+		_MaskTex ("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
 		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
+
+		Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+		Blend SrcAlpha OneMinusSrcAlpha
 
 		Pass
 		{
@@ -51,7 +54,7 @@
 
 				return col;
 			}
-			
+
 			ENDCG
 		}
 	}
