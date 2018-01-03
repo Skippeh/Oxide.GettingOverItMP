@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Oxide.Core;
 using Oxide.GettingOverIt.Types;
+using Oxide.GettingOverItMP;
 using UnityEngine;
 using UnityEngine.PostProcessing;
 
@@ -13,6 +14,7 @@ namespace Oxide.GettingOverIt
 
         public Camera Camera => camera;
         private Camera camera;
+        private Material material;
 
         public static void Setup()
         {
@@ -66,6 +68,8 @@ namespace Oxide.GettingOverIt
                     fxaaSettings = AntialiasingModel.FxaaSettings.defaultSettings
                 }
             };
+
+            material = new Material(MPContent.AlphaBlacklistShader);
         }
 
         private void OnEnable()
@@ -89,7 +93,8 @@ namespace Oxide.GettingOverIt
 
         private void OnRenderImage(RenderTexture source, RenderTexture destination)
         {
-            Graphics.Blit(source, destination);
+            //material.SetTexture("_BlacklistTex", Texture2D.blackTexture);
+            Graphics.Blit(source, destination, material);
         }
     }
 }

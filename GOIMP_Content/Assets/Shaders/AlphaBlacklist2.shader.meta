@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 985d2a2360c0210448bbaa84e76616b5
-timeCreated: 1514937670
+guid: 75c73dfcf37c58844aaddb04711c1c2d
+timeCreated: 1514983873
 licenseType: Free
-NativeFormatImporter:
+ShaderImporter:
   externalObjects: {}
-  mainObjectFileID: 2100000
+  defaultTextures: []
   userData: 
   assetBundleName: goimp_content
   assetBundleVariant: 

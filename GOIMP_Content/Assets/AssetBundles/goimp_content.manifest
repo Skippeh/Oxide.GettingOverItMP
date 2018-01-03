@@ -1,19 +1,16 @@
 ManifestFileVersion: 0
-CRC: 4065485648
+CRC: 2315942536
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 6ed96d32a7121b2bf62e496f6fad9f68
+    Hash: 28ee0ceb6c266b13e960edb61f9c0032
   TypeTreeHash:
     serializedVersion: 2
-    Hash: c2bdabd68c118aabc18c59eaf5951821
+    Hash: bf45a693cba34bf6690ae7a121f21f9c
 HashAppended: 0
 ClassTypes:
-- Class: 21
-  Script: {instanceID: 0}
 - Class: 48
   Script: {instanceID: 0}
 Assets:
-- Assets/Shaders/AlphaBlacklist.shader
-- Assets/Materials/RemotePlayersMaterial.mat
+- Assets/Shaders/AlphaBlacklist2.shader
 Dependencies: []
