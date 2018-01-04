@@ -35,7 +35,6 @@ namespace Oxide.GettingOverItMP.Components
         {
             PlayerPrefab = Instantiate(GameObject.FindObjectsOfType<GameObject>().Single(obj => obj.name == "Player") ?? throw new NotImplementedException("Could not find Player object"), Vector3.zero, Quaternion.identity);
             PlayerPrefab.SetActive(false);
-            PlayerPrefab.SetLayerRecursively((int) LayerType.Layer31);
             PlayerPrefab.AddComponent<RemotePlayer>();
 
             DestroyImmediate(PlayerPrefab.GetComponent<Saviour>());
