@@ -8,7 +8,6 @@ namespace Oxide.GettingOverItMP
     public static class MPContent
     {
         public static AssetBundle Assets { get; private set; }
-        public static Shader AlphaMaskShader { get; private set; }
 
         public static void LoadAssetBundle()
         {
@@ -26,8 +25,6 @@ namespace Oxide.GettingOverItMP
             }
 
             Interface.Oxide.LogDebug("Loaded assets:\n- " + string.Join("\n- ", Assets.GetAllAssetNames()));
-
-            AlphaMaskShader = Assets.LoadAsset<Shader>("assets/shaders/alphamask.shader");
         }
     }
 }

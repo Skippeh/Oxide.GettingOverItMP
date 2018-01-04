@@ -8,6 +8,7 @@ using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
+using Oxide.GettingOverItMP;
 using Oxide.GettingOverItMP.Components;
 using Oxide.GettingOverItMP.Networking;
 using RootMotion.FinalIK;
@@ -43,6 +44,9 @@ namespace Oxide.GettingOverIt
         [HookMethod("Init")]
         private void Init()
         {
+            Interface.Oxide.LogDebug($"Unity version: {Application.unityVersion}");
+            MPContent.LoadAssetBundle();
+
             Application.runInBackground = true;
             Physics2D.IgnoreLayerCollision((int) LayerType.Player, (int) LayerType.Layer31); // Use layer 31 for remote players
 
