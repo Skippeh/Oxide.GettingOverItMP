@@ -321,9 +321,10 @@ namespace ServerShared
             return Players.Values.FirstOrDefault(plr => plr.Peer.RemoteEndPoint.Address == ipAddress);
         }
         
-        private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId)
+        private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId, int wins)
         {
             var netPlayer = new NetPlayer(connection, playerName, this, steamId);
+            netPlayer.Wins = wins;
             Players[connection] = netPlayer;
             
             var netMessage = server.CreateMessage();
@@ -561,9 +562,8 @@ namespace ServerShared
 
         private void AcceptConnection(NetConnection connection, string playerName, PlayerMove movementData, ulong steamId, int wins)
         {
-            var player = AddConnection(connection, playerName, steamId);
+            var player = AddConnection(connection, playerName, steamId, wins);
             player.Movement = movementData;
-            player.Wins = wins;
             UpdateAccessLevel(player);
 
             var writer = server.CreateMessage();
