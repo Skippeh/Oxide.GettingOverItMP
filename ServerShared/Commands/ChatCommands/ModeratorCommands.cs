@@ -32,7 +32,7 @@ namespace ServerShared.Commands.ChatCommands
     [RequireAuth(AccessLevel.Admin)]
     public class SetAccessLevelByIp : ChatCommand
     {
-        [CommandArgument("Steam id")]
+        [CommandArgument("IP")]
         public string IP { get; set; }
 
         [CommandArgument("Access level")]
