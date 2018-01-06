@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using Oxide.Core;
+using Oxide.GettingOverIt;
 using ServerShared;
 using ServerShared.Logging;
+using ServerShared.Player;
 
 namespace Oxide.GettingOverItMP.Networking
 {
@@ -20,6 +23,11 @@ namespace Oxide.GettingOverItMP.Networking
 
             Server = new GameServer(name, maxPlayers, port, true, isPrivate, requireSteamAuth, Path.Combine(Interface.Oxide.ConfigDirectory, "goimp"));
             Server.Start();
+
+            if (MPCore.SteamClient != null)
+                Server.SetAccessLevel(MPCore.SteamClient.SteamId, AccessLevel.Admin);
+            else
+                Server.SetAccessLevel(IPAddress.Parse("127.0.0.1"), AccessLevel.Admin);
         }
 
         private static void OnLogMessageReceived(LogMessageReceivedEventArgs args)
