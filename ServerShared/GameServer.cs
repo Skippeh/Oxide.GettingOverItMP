@@ -324,7 +324,8 @@ namespace ServerShared
         private NetPlayer AddConnection(NetConnection connection, string playerName, ulong steamId, int wins)
         {
             var netPlayer = new NetPlayer(connection, playerName, this, steamId);
-            netPlayer.Wins = wins;
+            netPlayer.SetWins(wins, false);
+            netPlayer.SetGoldness(wins / 50f, false);
             Players[connection] = netPlayer;
             
             var netMessage = server.CreateMessage();
@@ -336,9 +337,11 @@ namespace ServerShared
             var allPlayers = Players.Values.Where(plr => !plr.Spectating && plr.Peer != connection).ToList();
             var allNames = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Name);
             var allWins = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Wins);
+            var allGoldness = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Goldness);
             var allPlayersDict = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Movement);
             netMessage.Write(allNames);
             netMessage.Write(allWins);
+            netMessage.Write(allGoldness);
             netMessage.Write(allPlayersDict);
 
             var serverInfo = GetServerInfo();
@@ -548,9 +551,7 @@ namespace ServerShared
                         }
 
                         int totalWins = SteamServer.Stats.GetInt(ownerId2, "wins");
-                        Players[connection].Wins = totalWins;
-                        float goldness = totalWins / 50f;
-                        Players[connection].SetGoldness(goldness * goldness);
+                        Players[connection].SetWins(totalWins);
                     });
                 }
             }
@@ -572,6 +573,7 @@ namespace ServerShared
             writer.Write(player.Name);
             writer.Write(player.Movement);
             writer.Write(player.Wins);
+            writer.Write(player.Goldness);
             Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
 
             Logger.LogDebug($"Client with id {player.Id} is now spawned");

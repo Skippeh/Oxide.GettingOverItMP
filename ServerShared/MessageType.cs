@@ -10,5 +10,6 @@
         MoveData = 10,
         ChatMessage = 20,
         PlayerGoldness = 21,
+        PlayerWins = 22,
     }
 }

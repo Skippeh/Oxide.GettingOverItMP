@@ -173,6 +173,7 @@ namespace Oxide.GettingOverItMP.Components
                     localPlayer.Wins = netMessage.ReadInt32();
                     var names = netMessage.ReadNamesDictionary();
                     var wins = netMessage.ReadWinsDictionary();
+                    var goldness = netMessage.ReadGoldnessDictionary();
                     var remotePlayers = netMessage.ReadMovementDictionary();
                     ServerInfo = netMessage.ReadDiscoveryServerInfo();
 
@@ -184,7 +185,7 @@ namespace Oxide.GettingOverItMP.Components
 
                     foreach (var kv in remotePlayers)
                     {
-                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key], wins[kv.Key]));
+                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key], wins[kv.Key], goldness[kv.Key]));
                     }
 
                     handshakeResponseReceived = true;
@@ -207,7 +208,8 @@ namespace Oxide.GettingOverItMP.Components
 
                     PlayerMove move = netMessage.ReadPlayerMove();
                     int wins = netMessage.ReadInt32();
-                    StartCoroutine(SpawnRemotePlayer(id, move, name, wins));
+                    float goldness = netMessage.ReadSingle();
+                    StartCoroutine(SpawnRemotePlayer(id, move, name, wins, goldness));
                     
                     break;
                 }
@@ -294,17 +296,25 @@ namespace Oxide.GettingOverItMP.Components
                     targetPlayer.SetGoldness(goldness);
                     break;
                 }
+                case MessageType.PlayerWins:
+                {
+                    int targetId = netMessage.ReadInt32();
+                    int wins = netMessage.ReadInt32();
+                    MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer)RemotePlayers[targetId] : localPlayer;
+                    targetPlayer.SetWins(wins);
+                    break;
+                }
             }
         }
 
-        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName, int wins)
+        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName, int wins, float goldness)
         {
             var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}", id);
             yield return new WaitForSeconds(0);
             remotePlayer.PlayerName = $"[{id}] {playerName}"; // Prefix name with ID.
             remotePlayer.ApplyMove(move, 0);
             remotePlayer.Wins = wins;
-            remotePlayer.UpdateGoldness();
+            remotePlayer.SetGoldness(goldness);
 
             RemotePlayers.Add(id, remotePlayer);
             PlayerJoined?.Invoke(this, new PlayerJoinedEventArgs {Player = remotePlayer});

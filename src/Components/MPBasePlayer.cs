@@ -90,6 +90,12 @@ namespace Oxide.GettingOverItMP.Components
             proceduralMaterial.RebuildTextures();
         }
 
+        public void SetWins(int wins)
+        {
+            Wins = wins;
+            UpdateGoldness();
+        }
+
         /// <summary>Sets the goldness based on the number of wins.</summary>
         public void UpdateGoldness()
         {

@@ -16,7 +16,8 @@ namespace ServerShared.Player
         public string Name;
         public NetPlayer SpectateTarget;
         public bool Spectating => SpectateTarget != null;
-        public int Wins = 0;
+        public int Wins { get; private set; } = 0;
+        public float Goldness { get; private set; }
         public PlayerAccessLevelIdentity Identity { get; private set; }
         public AccessLevel AccessLevel => Identity.AccessLevel;
 
@@ -94,20 +95,48 @@ namespace ServerShared.Player
                 netMessage.Write(Id);
                 netMessage.Write(Name);
                 netMessage.Write(Movement);
+                netMessage.Write(Wins);
+                netMessage.Write(Goldness);
                 server.Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, Peer);
             }
         }
 
-        public void SetGoldness(float goldness)
+        public void SetGoldness(float goldness, bool broadcastToClients = true)
         {
-            goldness = UnityEngine.Mathf.Clamp01(goldness);
+            if (Math.Abs(Goldness - goldness) < 0.001f)
+                return;
+
+            Goldness = UnityEngine.Mathf.Clamp01(goldness);
+
+            if (!broadcastToClients)
+                return;
 
             var message = server.CreateMessage();
             message.Write(MessageType.PlayerGoldness);
             message.Write(Id);
-            message.Write(goldness);
+            message.Write(Goldness);
 
             server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
+        }
+
+        public void SetWins(int wins, bool broadcastToClients = true)
+        {
+            if (Wins == wins)
+                return;
+
+            Wins = wins;
+
+            if (broadcastToClients)
+            {
+                var message = server.CreateMessage();
+                message.Write(MessageType.PlayerWins);
+                message.Write(Id);
+                message.Write(Wins);
+
+                server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
+            }
+
+            SetGoldness(Mathf.Pow(wins / 50f, 2), broadcastToClients);
         }
 
         public void SetAccessLevel(AccessLevel accessLevel)

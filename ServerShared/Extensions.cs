@@ -99,6 +99,33 @@ namespace ServerShared
             return result;
         }
 
+        public static void Write(this NetOutgoingMessage message, IDictionary<int, float> goldnessDict)
+        {
+            message.Write(goldnessDict.Count);
+
+            foreach (var kv in goldnessDict)
+            {
+                float goldness = kv.Value;
+
+                message.Write(kv.Key); // The player ID
+                message.Write(goldness);
+            }
+        }
+
+        public static Dictionary<int, float> ReadGoldnessDictionary(this NetIncomingMessage message)
+        {
+            var result = new Dictionary<int, float>();
+
+            int count = message.ReadInt32();
+
+            for (int i = 0; i < count; ++i)
+            {
+                result.Add(message.ReadInt32(), message.ReadSingle());
+            }
+
+            return result;
+        }
+
         public static void Write(this NetOutgoingMessage message, PlayerMove move)
         {
             message.Write(move.Position);
