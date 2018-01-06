@@ -300,7 +300,7 @@ namespace Oxide.GettingOverItMP.Components
                 {
                     int targetId = netMessage.ReadInt32();
                     int wins = netMessage.ReadInt32();
-                    MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer)RemotePlayers[targetId] : localPlayer;
+                    MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer) RemotePlayers[targetId] : localPlayer;
                     targetPlayer.SetWins(wins);
                     break;
                 }
