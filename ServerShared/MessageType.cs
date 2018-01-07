@@ -9,7 +9,7 @@
         ClientStopSpectating = 8,
         MoveData = 10,
         ChatMessage = 20,
-        PlayerGoldness = 21,
+        PlayerPotProperties = 21,
         PlayerWins = 22,
     }
 }

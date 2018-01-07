@@ -338,10 +338,12 @@ namespace ServerShared
             var allNames = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Name);
             var allWins = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Wins);
             var allGoldness = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Goldness);
+            var allColors = allPlayers.ToDictionary(plr => plr.Id, plr => plr.PotColor);
             var allPlayersDict = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Movement);
             netMessage.Write(allNames);
             netMessage.Write(allWins);
             netMessage.Write(allGoldness);
+            netMessage.Write(allColors);
             netMessage.Write(allPlayersDict);
 
             var serverInfo = GetServerInfo();
@@ -574,6 +576,7 @@ namespace ServerShared
             writer.Write(player.Movement);
             writer.Write(player.Wins);
             writer.Write(player.Goldness);
+            writer.WriteRgbaColor(player.PotColor);
             Broadcast(writer, NetDeliveryMethod.ReliableOrdered, 0, connection);
 
             Logger.LogDebug($"Client with id {player.Id} is now spawned");

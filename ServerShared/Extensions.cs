@@ -3,6 +3,7 @@ using System.Net;
 using Lidgren.Network;
 using ServerShared.Networking;
 using ServerShared.Player;
+using UnityEngine;
 
 namespace ServerShared
 {
@@ -121,6 +122,33 @@ namespace ServerShared
             for (int i = 0; i < count; ++i)
             {
                 result.Add(message.ReadInt32(), message.ReadSingle());
+            }
+
+            return result;
+        }
+
+        public static void Write(this NetOutgoingMessage message, IDictionary<int, Color> goldnessDict)
+        {
+            message.Write(goldnessDict.Count);
+
+            foreach (var kv in goldnessDict)
+            {
+                Color color = kv.Value;
+
+                message.Write(kv.Key); // The player ID
+                message.Write(color);
+            }
+        }
+
+        public static Dictionary<int, Color> ReadColorsDictionary(this NetIncomingMessage message)
+        {
+            var result = new Dictionary<int, Color>();
+
+            int count = message.ReadInt32();
+
+            for (int i = 0; i < count; ++i)
+            {
+                result.Add(message.ReadInt32(), message.ReadRgbaColor());
             }
 
             return result;

@@ -174,6 +174,7 @@ namespace Oxide.GettingOverItMP.Components
                     var names = netMessage.ReadNamesDictionary();
                     var wins = netMessage.ReadWinsDictionary();
                     var goldness = netMessage.ReadGoldnessDictionary();
+                    var colors = netMessage.ReadColorsDictionary();
                     var remotePlayers = netMessage.ReadMovementDictionary();
                     ServerInfo = netMessage.ReadDiscoveryServerInfo();
 
@@ -185,7 +186,7 @@ namespace Oxide.GettingOverItMP.Components
 
                     foreach (var kv in remotePlayers)
                     {
-                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key], wins[kv.Key], goldness[kv.Key]));
+                        StartCoroutine(SpawnRemotePlayer(kv.Key, kv.Value, names[kv.Key], wins[kv.Key], goldness[kv.Key], colors[kv.Key]));
                     }
 
                     handshakeResponseReceived = true;
@@ -209,7 +210,8 @@ namespace Oxide.GettingOverItMP.Components
                     PlayerMove move = netMessage.ReadPlayerMove();
                     int wins = netMessage.ReadInt32();
                     float goldness = netMessage.ReadSingle();
-                    StartCoroutine(SpawnRemotePlayer(id, move, name, wins, goldness));
+                    Color potColor = netMessage.ReadRgbaColor();
+                    StartCoroutine(SpawnRemotePlayer(id, move, name, wins, goldness, potColor));
                     
                     break;
                 }
@@ -288,12 +290,14 @@ namespace Oxide.GettingOverItMP.Components
 
                     break;
                 }
-                case MessageType.PlayerGoldness:
+                case MessageType.PlayerPotProperties:
                 {
                     int targetId = netMessage.ReadInt32();
                     float goldness = netMessage.ReadSingle();
+                    Color potColor = netMessage.ReadRgbaColor();
                     MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer) RemotePlayers[targetId] : localPlayer;
                     targetPlayer.SetGoldness(goldness);
+                    targetPlayer.SetPotColor(potColor);
                     break;
                 }
                 case MessageType.PlayerWins:
@@ -307,7 +311,7 @@ namespace Oxide.GettingOverItMP.Components
             }
         }
 
-        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName, int wins, float goldness)
+        private IEnumerator SpawnRemotePlayer(int id, PlayerMove move, string playerName, int wins, float goldness, Color potColor)
         {
             var remotePlayer = RemotePlayer.CreatePlayer($"Id {id}", id);
             yield return new WaitForSeconds(0);
@@ -315,6 +319,7 @@ namespace Oxide.GettingOverItMP.Components
             remotePlayer.ApplyMove(move, 0);
             remotePlayer.Wins = wins;
             remotePlayer.SetGoldness(goldness);
+            remotePlayer.SetPotColor(potColor);
 
             RemotePlayers.Add(id, remotePlayer);
             PlayerJoined?.Invoke(this, new PlayerJoinedEventArgs {Player = remotePlayer});

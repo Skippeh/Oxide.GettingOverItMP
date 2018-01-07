@@ -82,12 +82,18 @@ namespace Oxide.GettingOverItMP.Components
         {
             goldness = Mathf.Clamp01(goldness);
 
-            if (Math.Abs(goldness - (double) this.goldness) < 0.0001f)
+            if (Math.Abs(goldness - (double) this.goldness) < 0.001f)
                 return;
 
             this.goldness = goldness;
             proceduralMaterial.SetProceduralFloat("Goldness", goldness);
             proceduralMaterial.RebuildTextures();
+        }
+
+        /// <summary>Sets the material color on the pot. Note that the color will be blended with the pot's texture color.</summary>
+        public void SetPotColor(Color color)
+        {
+            proceduralMaterial.color = color;
         }
 
         public void SetWins(int wins)

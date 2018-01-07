@@ -18,6 +18,7 @@ namespace ServerShared.Player
         public bool Spectating => SpectateTarget != null;
         public int Wins { get; private set; } = 0;
         public float Goldness { get; private set; }
+        public Color PotColor { get; private set; } = Color.white;
         public PlayerAccessLevelIdentity Identity { get; private set; }
         public AccessLevel AccessLevel => Identity.AccessLevel;
 
@@ -97,8 +98,20 @@ namespace ServerShared.Player
                 netMessage.Write(Movement);
                 netMessage.Write(Wins);
                 netMessage.Write(Goldness);
+                netMessage.WriteRgbaColor(PotColor);
                 server.Broadcast(netMessage, NetDeliveryMethod.ReliableOrdered, 0, Peer);
             }
+        }
+
+        public void SetPotProperties(float goldness, Color color, bool broadcastToClients = true)
+        {
+            Goldness = Mathf.Clamp01(goldness);
+            PotColor = color;
+
+            if (!broadcastToClients)
+                return;
+
+            BroadcastPotProperties();
         }
 
         public void SetGoldness(float goldness, bool broadcastToClients = true)
@@ -111,12 +124,17 @@ namespace ServerShared.Player
             if (!broadcastToClients)
                 return;
 
-            var message = server.CreateMessage();
-            message.Write(MessageType.PlayerGoldness);
-            message.Write(Id);
-            message.Write(Goldness);
+            BroadcastPotProperties();
+        }
 
-            server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
+        public void SetPotColor(Color color, bool broadcastToClients)
+        {
+            PotColor = color;
+
+            if (!broadcastToClients)
+                return;
+
+            BroadcastPotProperties();
         }
 
         public void SetWins(int wins, bool broadcastToClients = true)
@@ -143,6 +161,17 @@ namespace ServerShared.Player
         {
             Identity.AccessLevel = accessLevel;
             Logger.LogInfo($"{Name} access level set to {AccessLevel}.");
+        }
+
+        private void BroadcastPotProperties()
+        {
+            var message = server.CreateMessage();
+            message.Write(MessageType.PlayerPotProperties);
+            message.Write(Id);
+            message.Write(Goldness);
+            message.WriteRgbaColor(PotColor);
+
+            server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
         }
     }
 }
