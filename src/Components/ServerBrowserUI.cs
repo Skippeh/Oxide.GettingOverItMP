@@ -397,7 +397,7 @@ namespace Oxide.GettingOverItMP.Components
             hostPrivate = GUILayout.Toggle(hostPrivate, " Private server (don't show in server browser)");
 
             GUI.enabled = !ListenServer.Running && MPCore.SteamClient != null;
-            noSteam = GUILayout.Toggle(noSteam, " No steam authentication (players can join without owning the game, but can't be banned etc)");
+            noSteam = GUILayout.Toggle(noSteam, " No steam authentication (players can join without owning the game on Steam but user identity verification will be limited to IP.)");
 
             if (MPCore.SteamClient == null)
                 noSteam = true;
