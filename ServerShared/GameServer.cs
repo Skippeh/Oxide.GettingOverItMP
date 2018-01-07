@@ -38,6 +38,14 @@ namespace ServerShared
 
         private double nextSendTime = 0;
 
+        private readonly Color developerPotColor = new Color(0.5f, 0, 0.5f);
+        private readonly List<ulong> developerSteamIds = new List<ulong>
+        {
+            76561197993586235, // skippy
+            76561197992088428, // perl
+            76561197968283536, // bennett
+        };
+
         public GameServer(string name, int maxConnections, int port, bool listenServer, bool privateServer, bool requireSteamAuth, string configDirectory)
         {
             if (maxConnections <= 0)
@@ -326,6 +334,13 @@ namespace ServerShared
             var netPlayer = new NetPlayer(connection, playerName, this, steamId);
             netPlayer.SetWins(wins, false);
             netPlayer.SetGoldness(wins / 50f, false);
+
+            if (SteamServer != null && developerSteamIds.Contains(steamId))
+            {
+                netPlayer.SetGoldness(1, false);
+                netPlayer.SetPotColor(developerPotColor, false);
+            }
+
             Players[connection] = netPlayer;
             
             var netMessage = server.CreateMessage();
