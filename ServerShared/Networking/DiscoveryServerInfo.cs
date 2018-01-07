@@ -10,6 +10,6 @@ namespace ServerShared.Networking
         public ushort Players;
         public ushort MaxPlayers;
         public List<string> PlayerNames = new List<string>();
-        public int ServerVersion = 8;
+        public int ServerVersion = 7;
     }
 }
