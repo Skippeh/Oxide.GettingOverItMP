@@ -192,6 +192,14 @@ namespace ServerShared
             message.Write(serverInfo.Name);
             message.Write(serverInfo.Players);
             message.Write(serverInfo.MaxPlayers);
+
+            // Write future compatible data
+            message.Write(DiscoveryServerInfo.Version);
+            message.Write(serverInfo.ServerVersion);
+            message.Write(serverInfo.PlayerNames.Count);
+
+            foreach (string name in serverInfo.PlayerNames)
+                message.Write(name);
         }
 
         public static DiscoveryServerInfo ReadDiscoveryServerInfo(this NetIncomingMessage message)
@@ -205,6 +213,17 @@ namespace ServerShared
 
             if (info.Name.Length > SharedConstants.MaxServerNameLength)
                 info.Name = info.Name.Substring(0, SharedConstants.MaxServerNameLength);
+
+            if (message.Position < message.LengthBits)
+            {
+                int version = message.ReadInt32(); // for future compatibility
+
+                info.ServerVersion = message.ReadInt32();
+                int nameCount = message.ReadInt32();
+
+                for (int i = 0; i < nameCount; ++i)
+                    info.PlayerNames.Add(message.ReadString());
+            }
 
             return info;
         }

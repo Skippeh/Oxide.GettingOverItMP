@@ -713,7 +713,9 @@ namespace ServerShared
             {
                 Name = Name,
                 Players = (ushort) Players.Count,
-                MaxPlayers = (ushort) server.Configuration.MaximumConnections
+                MaxPlayers = (ushort) server.Configuration.MaximumConnections,
+                ServerVersion = SharedConstants.Version,
+                PlayerNames = Players.Values.Select(plr => plr.Name).ToList()
             };
         }
     }
