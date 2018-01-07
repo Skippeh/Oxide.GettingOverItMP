@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace ServerShared.Commands.ChatCommands
 {
-    [Command("Set goldness", "goldness", "Set your pot goldness.")]
+    [Command("Set goldness", "goldness", "Set yours or someone elses pot's goldness.")]
     [RequireAuth(AccessLevel.Moderator)]
     public class SetGoldnessChatCommand : ChatCommand
     {
         [CommandArgument("Goldness")]
         public float Goldness { get; set; }
 
-        [CommandArgument("Player id", optional: true, defaultValue: null)]
+        [CommandArgument("Player name", optional: true, defaultValue: null)]
         public string PlayerName { get; set; }
 
         public override void Handle(string[] args)
