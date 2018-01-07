@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using ServerShared.Logging;
 
@@ -21,6 +22,9 @@ namespace Server
 
         public static void Initialize()
         {
+            Console.InputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
+
             Logger.LogMessageReceived += OnLogMessageReceived;
             inputThread = new Thread(DoInputThread);
             inputThread.Start();
