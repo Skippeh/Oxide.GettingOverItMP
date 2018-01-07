@@ -2,7 +2,7 @@
 <Project>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
-    <Version>0.4.1</Version>
+    <Version>0.5.0</Version>
     <AssemblyName>Oxide.GettingOverItMP</AssemblyName>
     <Authors>Oxide and Contributors</Authors>
     <Description>Getting Over It with Bennett Foddy extension for the Oxide modding framework</Description>
@@ -25,6 +25,7 @@
     -->
     <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35' And '$(OS)' == 'Windows_NT'">C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client</FrameworkPathOverride>
     <FrameworkPathOverride Condition="'$(TargetFramework)' == 'net35' And '$(OS)' == 'OSX'">/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/2.0-api</FrameworkPathOverride>
+    <AssemblyVersion>0.5.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Oxide.References" Version="2.0.3751" />
