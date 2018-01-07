@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
 using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Lidgren.Network;
@@ -48,6 +49,8 @@ namespace Oxide.GettingOverItMP.Components
         private float lastReceiveTime = 0;
         private Auth.Ticket authTicket;
 
+        private IPEndPoint launchConnectEndPoint;
+
         private void Start()
         {
             localPlayer = GameObject.Find("Player").GetComponent<LocalPlayer>();
@@ -67,6 +70,37 @@ namespace Oxide.GettingOverItMP.Components
 
             chatUi = GameObject.Find("GOIMP.UI").GetComponent<ChatUI>() ?? throw new NotImplementedException("Could not find ChatUI");
             spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
+
+            if (launchConnectEndPoint != null)
+            {
+                StartCoroutine(ConnectToLaunchEndpoint());
+            }
+        }
+
+        private IEnumerator ConnectToLaunchEndpoint()
+        {
+            // Wait for end of frame so that all components have finished initializing.
+            yield return new WaitForEndOfFrame();
+
+            string playerName = PlayerPrefs.GetString("GOIMP_PlayerName", "");
+
+            if (string.IsNullOrEmpty(playerName))
+            {
+                if (MPCore.SteamClient != null)
+                {
+                    playerName = MPCore.SteamClient.Username;
+                    PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
+                }
+                else
+                {
+                    Interface.Oxide.LogError("Cancelling joining server, no player name set.");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(playerName))
+                Connect(launchConnectEndPoint.Address.ToString(), launchConnectEndPoint.Port, playerName);
+
+            launchConnectEndPoint = null;
         }
 
         private void OnConnected(object sender, ConnectedEventArgs args)
@@ -77,6 +111,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnDisconnected(object sender, DisconnectedEventArgs args)
         {
+            ClearSteamInfo();
+
             localPlayer.ResetPotProperties();
 
             this.server = null;
@@ -195,6 +231,9 @@ namespace Oxide.GettingOverItMP.Components
                     handshakeResponseReceived = true;
                     chatUi.AddMessage("Connected to the server.", null, SharedConstants.ColorGreen);
                     Interface.Oxide.LogDebug($"Got id: {Id} and {remotePlayers.Count} remote player(s)");
+                    
+                    if (MPCore.SteamClient != null)
+                        UpdateSteamInfo();
 
                     break;
                 }
@@ -366,6 +405,26 @@ namespace Oxide.GettingOverItMP.Components
                 Destroy(kv.Value.gameObject);
             });
             RemotePlayers.Clear();
+        }
+
+        private void UpdateSteamInfo()
+        {
+            MPCore.SteamClient.User.SetRichPresence("status", $"Playing on {ServerInfo.Name}.");
+            MPCore.SteamClient.User.SetRichPresence("connect", $"--goimp-connect {server.RemoteEndPoint}");
+            Interface.Oxide.LogDebug("Steam rich presence updated");
+        }
+
+        private void ClearSteamInfo()
+        {
+            MPCore.SteamClient.User.ClearRichPresence();
+            Interface.Oxide.LogDebug("Steam rich presence cleared");
+        }
+
+        // Called by MPCore using StartCoroutine.
+        private void LaunchConnect(IPEndPoint endPoint)
+        {
+            Interface.Oxide.LogDebug($"launchConnectEndPoint = {endPoint}");
+            launchConnectEndPoint = endPoint;
         }
 
         public void Connect(string ip, int port, string playerName)

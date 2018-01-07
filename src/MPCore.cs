@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
+using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP;
@@ -33,6 +35,9 @@ namespace Oxide.GettingOverIt
         private PlayerControl localPlayerControl;
         private PoseControl localPoseControl;
         private MPBasePlayer localPlayerBase;
+
+        private IPEndPoint launchEndPoint;
+        private bool firstLaunch = true;
 
         public MPCore()
         {
@@ -73,6 +78,8 @@ namespace Oxide.GettingOverIt
         [HookMethod("OnSceneChanged")]
         private void OnSceneChanged(SceneType sceneType, Scene scene)
         {
+            Interface.Oxide.LogDebug($"Scene changed to {scene.name} ({scene.buildIndex}).");
+
             if (sceneType == SceneType.Game)
             {
                 RemotePlayer.CreatePlayerPrefab();
@@ -86,7 +93,65 @@ namespace Oxide.GettingOverIt
                 InitUI();
                 InitClient();
             }
-            else
+            else if (sceneType == SceneType.Menu)
+            {
+                if (firstLaunch)
+                    firstLaunch = false;
+                else
+                    return;
+
+                var launchArguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+
+                for (int i = 0; i < launchArguments.Length; i += 2)
+                {
+                    string argument = launchArguments[i].ToLower();
+                    string value = i < launchArguments.Length - 1 ? launchArguments[i + 1].ToLower() : null;
+
+                    if (argument == "--goimp-connect")
+                    {
+                        string[] ipPort = value.Split(':');
+                        string ipString = ipPort[0];
+                        string portString = ipPort[1];
+
+                        IPAddress ipAddress;
+                        short port;
+
+                        if (!IPAddress.TryParse(ipString, out ipAddress))
+                        {
+                            Interface.Oxide.LogError($"Launch arguments contained invalid ip: {ipString}");
+                            return;
+                        }
+
+                        if (!short.TryParse(portString, out port))
+                        {
+                            Interface.Oxide.LogError($"Launch arguments contained invalid port: {portString}");
+                            return;
+                        }
+
+                        launchEndPoint = new IPEndPoint(ipAddress, port);
+
+                        // Wait for game to finish loading then continue game.
+                        var loader = GameObject.FindObjectOfType<Loader>();
+                        var loadingFinishedField = typeof(Loader).GetField("loadFinished", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                        Timer.TimerInstance timerInstance = null;
+                        Action timerCallback = () =>
+                        {
+                            bool loadingFinished = (bool) loadingFinishedField.GetValue(loader);
+
+                            if (loadingFinished)
+                            {
+                                loader.ContinueGame();
+                                timerInstance.Destroy();
+                            }
+                        };
+
+                        timerInstance = Timer.Repeat(0, -1, timerCallback, this);
+                    }
+                }
+            }
+
+            if (sceneType != SceneType.Game)
             {
                 DestroyClient();
                 DestroyUI();
@@ -136,6 +201,12 @@ namespace Oxide.GettingOverIt
 
             clientGameObject = new GameObject("GOIMP.Client");
             client = clientGameObject.AddComponent<Client>();
+
+            if (launchEndPoint != null)
+            {
+                client.StartCoroutine("LaunchConnect", launchEndPoint);
+                launchEndPoint = null;
+            }
         }
 
         private void DestroyClient()
