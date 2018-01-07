@@ -401,9 +401,7 @@ namespace Oxide.GettingOverItMP.Components
 
             if (MPCore.SteamClient == null)
                 noSteam = true;
-
-            GUI.enabled = !ListenServer.Running;
-
+            
             GUI.enabled = true;
 
             GUILayout.BeginHorizontal();
