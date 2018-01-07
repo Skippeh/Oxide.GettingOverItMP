@@ -411,13 +411,11 @@ namespace Oxide.GettingOverItMP.Components
         {
             MPCore.SteamClient.User.SetRichPresence("status", $"Playing on {ServerInfo.Name}.");
             MPCore.SteamClient.User.SetRichPresence("connect", $"--goimp-connect {server.RemoteEndPoint}");
-            Interface.Oxide.LogDebug("Steam rich presence updated");
         }
 
         private void ClearSteamInfo()
         {
             MPCore.SteamClient.User.ClearRichPresence();
-            Interface.Oxide.LogDebug("Steam rich presence cleared");
         }
 
         // Called by MPCore using StartCoroutine.
