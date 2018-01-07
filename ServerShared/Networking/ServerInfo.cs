@@ -1,4 +1,6 @@
-﻿namespace ServerShared.Networking
+﻿using System.Collections.Generic;
+
+namespace ServerShared.Networking
 {
     public class ServerInfo
     {
@@ -6,6 +8,8 @@
         public int Players;
         public int MaxPlayers;
         public float Ping;
+        public int ServerVersion;
+        public List<string> PlayerNames = new List<string>();
 
         public string Ip;
         public int Port;

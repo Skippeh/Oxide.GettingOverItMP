@@ -74,7 +74,9 @@ namespace Oxide.GettingOverItMP.Networking
                                 Name = serverInfo.Name,
                                 Players = serverInfo.Players,
                                 MaxPlayers = serverInfo.MaxPlayers,
-                                Ping = ping
+                                Ping = ping,
+                                ServerVersion = serverInfo.ServerVersion,
+                                PlayerNames = serverInfo.PlayerNames
                             },
                             Successful = true
                         });

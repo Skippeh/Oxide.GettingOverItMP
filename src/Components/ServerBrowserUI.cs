@@ -500,8 +500,10 @@ namespace Oxide.GettingOverItMP.Components
 
                         lock (this)
                         {
-                            if (args.Successful)
+                            if (args.Successful && args.ServerInfo.ServerVersion == SharedConstants.Version)
                                 servers.Add(args.ServerInfo);
+                            else
+                                Interface.Oxide.LogDebug($"Found incompatible server ({args.ServerInfo.ServerVersion}), ignoring.");
 
                             ++numDone;
 
