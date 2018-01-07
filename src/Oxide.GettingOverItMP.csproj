@@ -87,8 +87,12 @@
     <ItemGroup>
         <AssetFiles Include="$(SolutionDir)GOIMP_Content\Assets\AssetBundles\goimp_content" />
     </ItemGroup>
+    <ItemGroup>
+      <SteamFiles Include="$(SolutionDir)\SteamRedist\*.dll" />
+    </ItemGroup>
     <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(StreamingAssetsDir)\%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(SteamFiles)" DestinationFiles="@(SteamFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\%(Filename)%(Extension)')" />
   </Target>
   <Target Name="LocalDeploy" AfterTargets="AfterBuild" Condition="Exists('$(SolutionDir)\.deploy')">
     <Exec Command="start /b /wait taskkill /f /im GettingOverIt.exe /fi &quot;memusage gt 2&quot;" Condition="'$(OS)' == 'Windows_NT'" />
