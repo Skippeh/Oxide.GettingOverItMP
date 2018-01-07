@@ -5,6 +5,9 @@ namespace Oxide.GettingOverItMP.Components
 {
     public class LocalPlayer : MPBasePlayer
     {
+        public float OriginalGoldness { get; private set; }
+        public Color OriginalPotColor { get; private set; }
+
         public override string PlayerName { get; set; }
 
         private Spectator spectator;
@@ -15,6 +18,9 @@ namespace Oxide.GettingOverItMP.Components
 
             spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
             gameObject.AddComponent<LocalPlayerDebug>();
+
+            OriginalGoldness = ProceduralMaterial.GetProceduralFloat("Goldness");
+            OriginalPotColor = ProceduralMaterial.color;
         }
 
         protected override void Update()
@@ -37,6 +43,12 @@ namespace Oxide.GettingOverItMP.Components
                     client.SendSwitchSpectateTarget(-1);
                 }
             }
+        }
+
+        public void ResetPotProperties()
+        {
+            SetPotColor(OriginalPotColor);
+            SetGoldness(OriginalGoldness);
         }
     }
 }

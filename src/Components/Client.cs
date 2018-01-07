@@ -77,6 +77,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnDisconnected(object sender, DisconnectedEventArgs args)
         {
+            localPlayer.ResetPotProperties();
+
             this.server = null;
             Id = 0;
             authTicket?.Cancel();
