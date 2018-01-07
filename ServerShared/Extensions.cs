@@ -127,16 +127,16 @@ namespace ServerShared
             return result;
         }
 
-        public static void Write(this NetOutgoingMessage message, IDictionary<int, Color> goldnessDict)
+        public static void Write(this NetOutgoingMessage message, IDictionary<int, Color> colors)
         {
-            message.Write(goldnessDict.Count);
+            message.Write(colors.Count);
 
-            foreach (var kv in goldnessDict)
+            foreach (var kv in colors)
             {
                 Color color = kv.Value;
 
                 message.Write(kv.Key); // The player ID
-                message.Write(color);
+                message.WriteRgbaColor(color);
             }
         }
 
