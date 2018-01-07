@@ -127,7 +127,7 @@ namespace ServerShared.Player
             BroadcastPotProperties();
         }
 
-        public void SetPotColor(Color color, bool broadcastToClients)
+        public void SetPotColor(Color color, bool broadcastToClients = true)
         {
             PotColor = color;
 
@@ -137,7 +137,7 @@ namespace ServerShared.Player
             BroadcastPotProperties();
         }
 
-        public void SetWins(int wins, bool broadcastToClients = true)
+        public void SetWins(int wins, bool updateGoldness, bool broadcastToClients = true)
         {
             if (Wins == wins)
                 return;
@@ -154,7 +154,8 @@ namespace ServerShared.Player
                 server.Broadcast(message, NetDeliveryMethod.ReliableOrdered, 0);
             }
 
-            SetGoldness(Mathf.Pow(wins / 50f, 2), broadcastToClients);
+            if (updateGoldness)
+                SetGoldness(Mathf.Pow(wins / 50f, 2), broadcastToClients);
         }
 
         public void SetAccessLevel(AccessLevel accessLevel)

@@ -93,20 +93,7 @@ namespace Oxide.GettingOverItMP.Components
         /// <summary>Sets the material color on the pot. Note that the color will be blended with the pot's texture color.</summary>
         public void SetPotColor(Color color)
         {
-            proceduralMaterial.color = color;
-        }
-
-        public void SetWins(int wins)
-        {
-            Wins = wins;
-            UpdateGoldness();
-        }
-
-        /// <summary>Sets the goldness based on the number of wins.</summary>
-        public void UpdateGoldness()
-        {
-            float goldness = Wins / 50f;
-            SetGoldness(goldness * goldness);
+            ProceduralMaterial.color = color;
         }
 
         public void EnableRenderers()

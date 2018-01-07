@@ -337,8 +337,7 @@ namespace ServerShared
 
             if (SteamServer != null && developerSteamIds.Contains(steamId))
             {
-                netPlayer.SetGoldness(1, false);
-                netPlayer.SetPotColor(developerPotColor, false);
+                netPlayer.SetPotProperties(1f, developerPotColor, false);
             }
 
             Players[connection] = netPlayer;
@@ -348,6 +347,8 @@ namespace ServerShared
             netMessage.Write(netPlayer.Id);
             netMessage.Write(netPlayer.Name);
             netMessage.Write(netPlayer.Wins);
+            netMessage.Write(netPlayer.Goldness);
+            netMessage.WriteRgbaColor(netPlayer.PotColor);
 
             var allPlayers = Players.Values.Where(plr => !plr.Spectating && plr.Peer != connection).ToList();
             var allNames = allPlayers.ToDictionary(plr => plr.Id, plr => plr.Name);
@@ -568,7 +569,7 @@ namespace ServerShared
                         }
 
                         int totalWins = SteamServer.Stats.GetInt(ownerId2, "wins");
-                        Players[connection].SetWins(totalWins);
+                        Players[connection].SetWins(totalWins, !developerSteamIds.Contains(ownerId)); // Only update goldness if this user is not a developer (otherwise the goldness will be changed from 1).
                     });
                 }
             }

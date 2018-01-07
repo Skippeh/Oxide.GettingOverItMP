@@ -173,6 +173,8 @@ namespace Oxide.GettingOverItMP.Components
                     Id = netMessage.ReadInt32();
                     PlayerName = netMessage.ReadString();
                     localPlayer.Wins = netMessage.ReadInt32();
+                    localPlayer.SetGoldness(netMessage.ReadSingle());
+                    localPlayer.SetPotColor(netMessage.ReadRgbaColor());
                     var names = netMessage.ReadNamesDictionary();
                     var wins = netMessage.ReadWinsDictionary();
                     var goldness = netMessage.ReadGoldnessDictionary();
@@ -184,7 +186,6 @@ namespace Oxide.GettingOverItMP.Components
 
                     localPlayer.PlayerName = PlayerName;
                     localPlayer.Id = Id;
-                    localPlayer.UpdateGoldness();
 
                     foreach (var kv in remotePlayers)
                     {
@@ -298,8 +299,8 @@ namespace Oxide.GettingOverItMP.Components
                     float goldness = netMessage.ReadSingle();
                     Color potColor = netMessage.ReadRgbaColor();
                     MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer) RemotePlayers[targetId] : localPlayer;
-                    targetPlayer.SetGoldness(goldness);
                     targetPlayer.SetPotColor(potColor);
+                    targetPlayer.SetGoldness(goldness);
                     break;
                 }
                 case MessageType.PlayerWins:
@@ -307,7 +308,7 @@ namespace Oxide.GettingOverItMP.Components
                     int targetId = netMessage.ReadInt32();
                     int wins = netMessage.ReadInt32();
                     MPBasePlayer targetPlayer = RemotePlayers.ContainsKey(targetId) ? (MPBasePlayer) RemotePlayers[targetId] : localPlayer;
-                    targetPlayer.SetWins(wins);
+                    targetPlayer.Wins = wins;
                     break;
                 }
             }
