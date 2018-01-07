@@ -29,17 +29,17 @@ namespace ServerShared.Commands.ChatCommands
                     SendMessage($"Could not find a player with a name starting with '{PlayerName}'.", LogMessageType.Error);
                     return;
                 }
-
-                if (target.Spectating)
-                {
-                    SendMessage($"Can't set goldness on spectating players.", LogMessageType.Error);
-                    return;
-                }
             }
 
             if (target == null)
             {
                 SendMessage("Missing player name, if typed in server console a player name needs to be specified.", LogMessageType.Error);
+                return;
+            }
+
+            if (target.Spectating)
+            {
+                SendMessage($"Can't set goldness on spectating players.", LogMessageType.Error);
                 return;
             }
 
