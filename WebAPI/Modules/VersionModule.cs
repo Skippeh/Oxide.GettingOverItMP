@@ -4,7 +4,7 @@ using Nancy;
 
 namespace WebAPI.Modules
 {
-    public class VersionModule : NancyModule
+    public sealed class VersionModule : NancyModule
     {
         public VersionModule() : base("/version")
         {
