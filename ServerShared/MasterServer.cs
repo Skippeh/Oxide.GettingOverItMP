@@ -86,7 +86,8 @@ namespace ServerShared
             {
                 webClient.UploadValues($"{SharedConstants.MasterServerUrl}/beat", "POST", new NameValueCollection
                 {
-                    {"port", port.ToString()}
+                    {"port", port.ToString()},
+                    {"version", SharedConstants.Version.ToString() }
                 });
 
                 return true;
