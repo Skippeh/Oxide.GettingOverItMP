@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.Net;
+using System.Text;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using ServerShared.Logging;
 
 namespace ServerShared
@@ -84,11 +86,30 @@ namespace ServerShared
         {
             try
             {
-                webClient.UploadValues($"{SharedConstants.MasterServerUrl}/beat", "POST", new NameValueCollection
+                byte[] byteResponse = webClient.UploadValues($"{SharedConstants.MasterServerUrl}/beat", "POST", new NameValueCollection
                 {
                     {"port", port.ToString()},
                     {"version", SharedConstants.Version.ToString() }
                 });
+
+                string json = Encoding.UTF8.GetString(byteResponse);
+
+                if (!webClient.ResponseHeaders["Content-Type"].StartsWith("application/json"))
+                    return true;
+
+                JObject response = JObject.Parse(json);
+                string status = response["status"].ToObject<string>();
+                string message = response["message"].ToObject<string>();
+
+                if (status == "warning")
+                {
+                    Logger.LogWarning($"MasterServer responded with a warning: {message}");
+                }
+                else if (status == "error")
+                {
+                    Logger.LogError($"MasterServer responded with an error: {message}");
+                    return false;
+                }
 
                 return true;
             }
