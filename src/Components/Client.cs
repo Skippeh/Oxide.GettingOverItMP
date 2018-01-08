@@ -111,7 +111,8 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnDisconnected(object sender, DisconnectedEventArgs args)
         {
-            ClearSteamInfo();
+            if (MPCore.SteamClient != null)
+                ClearSteamInfo();
 
             localPlayer.ResetPotProperties();
 
@@ -447,9 +448,10 @@ namespace Oxide.GettingOverItMP.Components
             else
             {
                 hailMessage.Write(false);
-                hailMessage.Write(PlayerPrefs.GetInt("NumWins", 0));
             }
-            
+
+            hailMessage.Write(PlayerPrefs.GetInt("NumWins", 0));
+
             client.Connect(ip, port, hailMessage);
             Interface.Oxide.LogDebug($"Connecting to: {ip}:{port}...");
         }

@@ -497,7 +497,6 @@ namespace ServerShared
                 ulong steamId = 0; // Unverified steam id
                 byte[] sessionData = null;
                 bool hasAuth = hailMessage.ReadBoolean();
-                int numWins = hasAuth ? 0 : hailMessage.ReadInt32();
 
                 if (hasAuth)
                 {
@@ -505,6 +504,8 @@ namespace ServerShared
                     sessionData = hailMessage.ReadBytes(sessionLength);
                     steamId = hailMessage.ReadUInt64();
                 }
+
+                int numWins = hailMessage.ReadInt32();
 
                 if (RequireSteamAuth)
                 {
