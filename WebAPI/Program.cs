@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using CommandLineParser.Exceptions;
+using Nancy.Bootstrapper;
 using Nancy.Hosting.Self;
 
 namespace WebAPI
@@ -10,6 +12,10 @@ namespace WebAPI
 
         static int Main(string[] args)
         {
+            // Set current directory to the assembly's location.
+            var assemblyLocation = typeof(Program).Assembly.Location;
+            Directory.SetCurrentDirectory(Path.GetDirectoryName(assemblyLocation));
+
             var parser = new CommandLineParser.CommandLineParser();
             LaunchArguments = new LaunchArguments();
 
@@ -25,6 +31,8 @@ namespace WebAPI
                 return 1;
             }
 
+            Data.Load();
+
             var config = new HostConfiguration
             {
                 UrlReservations = new UrlReservations
@@ -34,7 +42,8 @@ namespace WebAPI
                 RewriteLocalhost = true
             };
 
-            using (var host = new NancyHost(config, new Uri($"http://localhost:{LaunchArguments.Port}")))
+            var bootstrapper = new NancyBootstrapper();
+            using (var host = new NancyHost(bootstrapper, config, new Uri($"http://localhost:{LaunchArguments.Port}")))
             {
                 host.Start();
                 Console.WriteLine("Server started, press CTRL+Q to stop.");

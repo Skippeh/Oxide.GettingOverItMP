@@ -10,6 +10,7 @@
     <PackageReference Include="CommandLineArgumentsParser" Version="3.0.18" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Hosting.Self" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Nancy.Serialization.JsonNet" Version="2.0.0-clinteastwood" />
   </ItemGroup>
 
 </Project>
