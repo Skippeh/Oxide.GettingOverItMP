@@ -16,8 +16,15 @@ namespace WebAPI.Models
         public string Version;
         public DateTime ReleaseDate;
         public List<FileChecksum> Checksums = new List<FileChecksum>();
+        public ModType Type;
 
         /// <summary>The path to the directory that contains the version.json and archive file.</summary>
         [JsonIgnore] public string DirectoryPath;
+
+    public enum ModType
+    {
+        Invalid,
+        Client,
+        Server
     }
 }
