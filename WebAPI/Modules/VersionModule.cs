@@ -30,7 +30,7 @@ namespace WebAPI.Modules
         {
             Get("/{type}", GetVersion);
             Post("/{type}/upload", UploadVersionAsync);
-            Get("/{type}/{version}/file/{filePath}", DownloadFileAsync);
+            Get("/{type}/{version}/file/{filePath*}", DownloadFileAsync);
         }
 
         private async Task<object> GetVersion(dynamic args)
@@ -63,7 +63,7 @@ namespace WebAPI.Modules
                 if (entry.Name == string.Empty)
                     continue;
 
-                if (entry.FullName == filePath)
+                if (entry.FullName.ToLowerInvariant() == filePath.ToLowerInvariant())
                 {
                     Stream fileStream = entry.Open();
                     var response = new ZipStreamResponse(archive, () => fileStream, MimeTypes.GetMimeType(entry.FullName));
