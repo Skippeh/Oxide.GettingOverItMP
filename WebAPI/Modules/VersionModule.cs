@@ -53,7 +53,7 @@ namespace WebAPI.Modules
             ModVersion version = Data.FindVersion(modType, versionQuery);
 
             if (version == null)
-                return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.InternalServerError);
+                return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.NotFound);
 
             string filePath = args.filePath;
             ZipArchive archive = version.OpenZipArchive();
@@ -75,7 +75,7 @@ namespace WebAPI.Modules
 
             archive.Dispose();
 
-            return await Response.JsonError(null, HttpStatusCode.NotFound);
+            return await Response.JsonError("The file could not be found.", HttpStatusCode.NotFound);
         }
         
         private async Task<Response> UploadVersionAsync(dynamic args, CancellationToken cancellationToken)
