@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Responses;
 using Newtonsoft.Json;
 using WebAPI.Models;
 
@@ -29,6 +30,7 @@ namespace WebAPI.Modules
         {
             Get("/{type}", GetVersion);
             Post("/{type}/upload", UploadVersionAsync);
+            Get("/{type}/{version}/file/{filePath}", DownloadFileAsync);
         }
 
         private async Task<object> GetVersion(dynamic args)
@@ -40,6 +42,40 @@ namespace WebAPI.Modules
                 return await Response.AsJson(modVersion);
             else
                 return await Response.JsonError("No version was found.", HttpStatusCode.InternalServerError);
+        }
+
+        private async Task<Response> DownloadFileAsync(dynamic args)
+        {
+            if (!ParseModType(args, out ModType modType, out Response errorResponse))
+                return await errorResponse;
+
+            string versionQuery = args.version;
+            ModVersion version = Data.FindVersion(modType, versionQuery);
+
+            if (version == null)
+                return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.InternalServerError);
+
+            string filePath = args.filePath;
+            ZipArchive archive = version.OpenZipArchive();
+
+            foreach (var entry in archive.Entries)
+            {
+                if (entry.Name == string.Empty)
+                    continue;
+
+                if (entry.FullName == filePath)
+                {
+                    Stream fileStream = entry.Open();
+                    var response = new ZipStreamResponse(archive, () => fileStream, MimeTypes.GetMimeType(entry.FullName));
+                    return await response
+                                         .WithHeader("X-File-Length", entry.Length.ToString())
+                                         .AsAttachment(entry.Name);
+                }
+            }
+
+            archive.Dispose();
+
+            return await Response.JsonError(null, HttpStatusCode.NotFound);
         }
         
         private async Task<Response> UploadVersionAsync(dynamic args, CancellationToken cancellationToken)
