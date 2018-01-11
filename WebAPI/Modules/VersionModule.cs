@@ -28,13 +28,13 @@ namespace WebAPI.Modules
 
         public VersionModule() : base("/version")
         {
-            Get("/{type}", GetVersion);
+            Get("/{type}", GetVersionAsync);
             Post("/{type}/upload", UploadVersionAsync);
             Get("/{type}/{version}/file/{filePath*}", DownloadFileAsync);
             Get("/{type}/{version}/archive", DownloadArchiveAsync);
         }
 
-        private async Task<object> GetVersion(dynamic args)
+        private async Task<object> GetVersionAsync(dynamic args)
         {
             if (!ParseModType(args, out ModType type, out Response errorResponse))
                 return await errorResponse;
