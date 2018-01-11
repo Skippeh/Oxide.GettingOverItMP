@@ -108,6 +108,41 @@ namespace WebAPI.Modules
 
             if (file.ContentType != "application/zip")
                 return await Response.JsonError("File is not a zip file", HttpStatusCode.BadRequest);
+
+            // Verify that the version not older or equal to the current latest version
+            if (Data.GetLatestVersion(modType, out ModVersion latestVersion))
+            {
+                if (modType == ModType.Server)
+                {
+                    if (!Version.TryParse(data.Version, out Version serverVersion))
+                    {
+                        return await Response.JsonError("The specified version is not valid.", HttpStatusCode.BadRequest);
+                    }
+
+                    var currentServerVersion = Version.Parse(latestVersion.Version);
+
+                    if (serverVersion <= currentServerVersion)
+                    {
+                        return await Response.JsonError("The specified version is older or equal to the current version.", HttpStatusCode.BadRequest);
+                    }
+                }
+                else if (modType == ModType.Client)
+                {
+                    if (!data.Version.Contains("_"))
+                        return await Response.JsonError("The specified version is not valid.", HttpStatusCode.BadRequest);
+
+                    string[] currentVersions = latestVersion.Version.Split('_');
+                    Version currentClientVersion = Version.Parse(currentVersions[0]);
+                    Version currentGameVersion = Version.Parse(currentVersions[1]);
+                    string[] versions = data.Version.Split('_');
+
+                    if (!Version.TryParse(versions[0], out Version clientVersion) || !Version.TryParse(versions[1], out Version gameVersion))
+                        return await Response.JsonError("The specified version is not valid.", HttpStatusCode.BadRequest);
+
+                    if (clientVersion <= currentClientVersion && gameVersion <= currentGameVersion)
+                        return await Response.JsonError("The specified version is older or equal to the current version.", HttpStatusCode.BadRequest);
+                }
+            }
             
             var modVersion = new ModVersion
             {
