@@ -13,7 +13,7 @@ namespace WebAPI
 
         public static Response JsonError(this IResponseFormatter responseFormatter, string message, HttpStatusCode statusCode)
         {
-            return responseFormatter.AsJson(new
+            return responseFormatter.AsJson(message == null ? null : new
             {
                 error = message
             }, statusCode);
