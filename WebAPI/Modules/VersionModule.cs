@@ -101,7 +101,7 @@ namespace WebAPI.Modules
                 return await errorResponse;
 
             var file = Request.Files.FirstOrDefault();
-            var data = JsonConvert.DeserializeObject<UploadVersionDTO>(Request.Form.data);
+            UploadVersionDTO data = JsonConvert.DeserializeObject<UploadVersionDTO>(Request.Form.data);
             
             if (file == null)
                 return await Response.JsonError("No file found", HttpStatusCode.BadRequest);
