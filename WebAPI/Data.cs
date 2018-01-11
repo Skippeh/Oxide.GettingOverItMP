@@ -83,6 +83,9 @@ namespace WebAPI
 
         public static ModVersion FindVersion(ModType modType, string version)
         {
+            if (version == "latest")
+                return GetLatestVersion(modType);
+
             return Versions.FirstOrDefault(v => v.Type == modType && v.Version.ToLowerInvariant() == version.ToLowerInvariant());
         }
     }
