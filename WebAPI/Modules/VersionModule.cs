@@ -31,6 +31,7 @@ namespace WebAPI.Modules
             Get("/{type}", GetVersion);
             Post("/{type}/upload", UploadVersionAsync);
             Get("/{type}/{version}/file/{filePath*}", DownloadFileAsync);
+            Get("/{type}/{version}/archive", DownloadArchiveAsync);
         }
 
         private async Task<object> GetVersion(dynamic args)
@@ -77,7 +78,23 @@ namespace WebAPI.Modules
 
             return await Response.JsonError("The file could not be found.", HttpStatusCode.NotFound);
         }
-        
+
+        private async Task<Response> DownloadArchiveAsync(dynamic args)
+        {
+            if (!ParseModType(args, out ModType modType, out Response errorResponse))
+                return await errorResponse;
+
+            string versionQuery = args.version;
+            ModVersion version = Data.FindVersion(modType, versionQuery);
+
+            if (version == null)
+                return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.NotFound);
+
+            var fileStream = new FileStream(Path.Combine(version.DirectoryPath, "archive.zip"), FileMode.Open, FileAccess.Read);
+            var response = new StreamResponse(() => fileStream, MimeTypes.GetMimeType("archive.zip"));
+            return await response.AsAttachment($"goimp-{modType.ToString().ToLowerInvariant()}-{version.Version}.zip");
+        }
+
         private async Task<Response> UploadVersionAsync(dynamic args, CancellationToken cancellationToken)
         {
             if (!ParseModType(args, out ModType modType, out Response errorResponse))
