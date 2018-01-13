@@ -152,25 +152,40 @@ namespace WebAPI.Modules
                 Type = modType
             };
 
+            byte[] archiveBytes = new byte[file.Value.Length];
+            await file.Value.ReadAsync(archiveBytes, 0, archiveBytes.Length, cancellationToken);
+            var zipStream = new MemoryStream();
+            await zipStream.WriteAsync(archiveBytes, 0, archiveBytes.Length, cancellationToken);
+            zipStream.Position = 0;
+
             try
             {
-                var zipArchive = new ZipArchive(file.Value, ZipArchiveMode.Read, false);
-
-                // Calculate checksums
-                using (var md5 = MD5.Create())
+                using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Update, true))
                 {
-                    foreach (ZipArchiveEntry entry in zipArchive.Entries)
+                    using (var md5 = MD5.Create())
                     {
-                        // Ignore directories
-                        if (entry.Name == string.Empty)
-                            continue;
-
-                        using (var entryStream = entry.Open())
+                        foreach (ZipArchiveEntry entry in zipArchive.Entries)
                         {
-                            var md5Bytes = md5.ComputeHash(entryStream);
-                            string md5String = BitConverter.ToString(md5Bytes).Replace("-", "").ToLowerInvariant();
-                            modVersion.Checksums.Add(new ModVersion.FileChecksum {FilePath = entry.FullName, Md5 = md5String});
+                            // Ignore directories
+                            if (entry.Name == string.Empty)
+                                continue;
+
+                            using (var entryStream = entry.Open())
+                            {
+                                var md5Bytes = md5.ComputeHash(entryStream);
+                                string md5String = BitConverter.ToString(md5Bytes).Replace("-", "").ToLowerInvariant();
+                                modVersion.Checksums.Add(new ModVersion.FileChecksum {FilePath = entry.FullName, Md5 = md5String});
+                            }
                         }
+                    }
+
+                    // Add version.json to archive.
+                    var versionEntry = zipArchive.CreateEntry("version.json", CompressionLevel.Optimal);
+                    using (var stream = versionEntry.Open())
+                    {
+                        string versionJson = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(modVersion), cancellationToken);
+                        byte[] bytes = Encoding.UTF8.GetBytes(versionJson);
+                        await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
                     }
                 }
             }
@@ -184,11 +199,13 @@ namespace WebAPI.Modules
             // Save archive
             using (var fileStream = File.Create(Path.Combine(modVersion.DirectoryPath, "archive.zip")))
             {
-                file.Value.Position = 0;
-                byte[] bytes = new byte[file.Value.Length];
-                await file.Value.ReadAsync(bytes, 0, bytes.Length, cancellationToken);
+                zipStream.Position = 0;
+                byte[] bytes = new byte[zipStream.Length];
+                await zipStream.ReadAsync(bytes, 0, bytes.Length, cancellationToken);
                 await fileStream.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
             }
+
+            zipStream.Dispose();
 
             // Save json file
             string json = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(modVersion), cancellationToken);
