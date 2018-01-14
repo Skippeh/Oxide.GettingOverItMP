@@ -48,6 +48,15 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShellProgressBar\ChildProgressBar.cs" />
+    <Compile Include="ShellProgressBar\IProgressBar.cs" />
+    <Compile Include="ShellProgressBar\ProgressBar.cs" />
+    <Compile Include="ShellProgressBar\ProgressBarBase.cs" />
+    <Compile Include="ShellProgressBar\ProgressBarHeight.cs" />
+    <Compile Include="ShellProgressBar\ProgressBarOptions.cs" />
+    <Compile Include="ShellProgressBar\StringExtensions.cs" />
+    <Compile Include="ShellProgressBar\TaskbarProgress.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
