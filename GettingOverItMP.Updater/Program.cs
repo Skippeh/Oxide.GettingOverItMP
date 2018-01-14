@@ -29,6 +29,8 @@ namespace GettingOverItMP.Updater
 
         private static int Main(string[] args)
         {
+            CosturaUtility.Initialize();
+
             ModType modType;
 
             if (args.Length == 0)
