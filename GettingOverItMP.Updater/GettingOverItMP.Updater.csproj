@@ -46,6 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiClient.cs" />
+    <Compile Include="Exceptions\ApiRequestFailedException.cs" />
+    <Compile Include="LocalData.cs" />
+    <Compile Include="Models\ModVersion.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShellProgressBar\ChildProgressBar.cs" />
