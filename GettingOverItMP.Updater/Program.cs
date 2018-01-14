@@ -33,15 +33,25 @@ namespace GettingOverItMP.Updater
 
             if (args.Length == 0)
             {
-                Console.WriteLine("Usage: GettingOverItMP.Updater.exe client/server");
-                return 2;
+                if (File.Exists("GettingOverIt.exe") && Directory.Exists("GettingOverIt_Data"))
+                {
+                    Console.WriteLine("client/server not specified, but found client specific files. Updating client.");
+                    modType = ModType.Client;
+                }
+                else
+                {
+                    Console.WriteLine("client/server not specified, could not find client specific fules. Updating server.");
+                    modType = ModType.Server;
+                }
             }
-
-            modType = args[0] == "server"
-                               ? ModType.Server
-                               : args[0] == "client"
-                                          ? ModType.Client
-                                          : ModType.Invalid;
+            else
+            {
+                modType = args[0] == "server"
+                    ? ModType.Server
+                    : args[0] == "client"
+                        ? ModType.Client
+                        : ModType.Invalid;
+            }
 
             if (modType == ModType.Invalid)
             {
