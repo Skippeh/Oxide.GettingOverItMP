@@ -132,17 +132,17 @@ namespace GettingOverItMP.Updater
 
             if (filesToDownload.Count > 0)
             {
-                using (var progressBar = new ProgressBar(filesToDownload.Count, $"Downloading version {modVersion.Version}", progressBarOptions))
+                using (var progressBar = new ProgressBar(filesToDownload.Count, $"Downloading files", progressBarOptions))
                 {
-                    List<Task> runningTasks = new List<Task>();
+                    var runningTasks = new Task[filesToDownload.Count];
 
                     for (int i = 0; i < filesToDownload.Count; ++i)
                     {
                         string filePath = filesToDownload[i];
-                        runningTasks.Add(DownloadFile(filePath, modVersion.Type, modVersion.Version, progressBar, () => progressBar.Tick()));
+                        runningTasks[i] = DownloadFile(filePath, modVersion.Type, modVersion.Version, progressBar, () => progressBar.Tick());
                     }
 
-                    Task.WaitAll(runningTasks.ToArray());
+                    Task.WaitAll(runningTasks);
                 }
             }
 
@@ -165,11 +165,11 @@ namespace GettingOverItMP.Updater
             }
         }
 
-        private static async Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, Action doneCallback)
+        private static Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, Action doneCallback)
         {
-            await Task.Run(async () =>
+            return Task.Run(async () =>
             {
-                using (var progressBar = parentProgressBar.Spawn(100, $"Downloading {filePath}"))
+                using (var progressBar = parentProgressBar.Spawn(100, filePath))
                 {
                     using (var apiClient = new ApiClient())
                     {
@@ -179,7 +179,7 @@ namespace GettingOverItMP.Updater
                             {
                                 var headers = apiClient.WebClient.ResponseHeaders;
                                 long fileLength = long.Parse(headers["X-File-Length"]);
-                                int newTick = (int) (((double) args.BytesReceived / fileLength) * 100f);
+                                int newTick = (int) (((double) args.BytesReceived / fileLength) * 100d);
                                 progressBar.Tick(newTick);
                             });
                         }
