@@ -87,15 +87,41 @@ namespace GettingOverItMP.Updater
                 if (filesToDelete.Count > 0)
                     Console.WriteLine($"Deleting {filesToDelete.Count} old file(s)...");
 
+                var allDirectories = new List<string>();
+
                 foreach (string filePath in filesToDelete)
                 {
                     try
                     {
                         File.Delete(filePath);
+
+                        string directory = Path.GetDirectoryName(filePath);
+                        
+                        if (directory != string.Empty && !allDirectories.Contains(directory))
+                        {
+                            List<string> directories = GetDirectories(directory).ToList();
+                            allDirectories.AddRange(directories.Where(d => !allDirectories.Contains(d)));
+                        }
                     }
                     catch (IOException ex)
                     {
                         Console.Error.WriteLine($"Failed to delete file: {filePath} ({ex.Message}");
+                    }
+                }
+
+                foreach (string directory in allDirectories)
+                {
+                    try
+                    {
+                        if (Directory.Exists(directory) && Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length == 0)
+                        {
+                            Console.WriteLine($"Deleting empty directory: {directory}");
+                            Directory.Delete(directory, true);
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.Error.WriteLine($"Failed to delete directory: {directory} ({ex.Message})");
                     }
                 }
             }
@@ -121,6 +147,20 @@ namespace GettingOverItMP.Updater
             File.WriteAllText("version.json", JsonConvert.SerializeObject(modVersion, Formatting.None, SerializerSettings));
 
             Console.WriteLine("Finished update.");
+        }
+
+        private static IEnumerable<string> GetDirectories(string directory)
+        {
+            string[] directories = directory.Split('/', '\\');
+
+            string currentDirectory = directories[0];
+            yield return currentDirectory;
+
+            for (int i = 1; i < directories.Length; ++i)
+            {
+                currentDirectory += Path.DirectorySeparatorChar + directories[i];
+                yield return currentDirectory;
+            }
         }
 
         private static async Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, Action doneCallback)
