@@ -80,7 +80,7 @@ namespace GettingOverItMP.Updater
 
                     if (success)
                     {
-                        Console.WriteLine("Finished update.");
+                        Console.WriteLine("Update downloaded successfully.");
                         break;
                     }
 
