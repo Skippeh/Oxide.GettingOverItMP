@@ -5,7 +5,7 @@ namespace ShellProgressBar
 	/// <summary>
 	/// Control the behaviour of your progressbar
 	/// </summary>
-	public class ProgressBarOptions
+	public class ProgressBarOptions : ICloneable
 	{
 		public static readonly ProgressBarOptions Default = new ProgressBarOptions();
 
@@ -52,5 +52,21 @@ namespace ShellProgressBar
 		/// This feature is available on the Windows platform.
 		/// </remarks>
 		public bool EnableTaskBarProgress { get; set; }
+
+	    public object Clone()
+	    {
+	        return new ProgressBarOptions
+	        {
+	            ForegroundColor = ForegroundColor,
+	            ForegroundColorDone = ForegroundColorDone,
+	            BackgroundColor = BackgroundColor,
+	            ProgressCharacter = ProgressCharacter,
+	            BackgroundCharacter = BackgroundCharacter,
+	            DisplayTimeInRealTime = DisplayTimeInRealTime,
+	            CollapseWhenFinished = CollapseWhenFinished,
+	            ProgressBarOnBottom = ProgressBarOnBottom,
+	            EnableTaskBarProgress = EnableTaskBarProgress,
+	        };
+	    }
 	}
 }
