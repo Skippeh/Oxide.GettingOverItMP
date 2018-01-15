@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Responses;
+using Nancy.Security;
 using Newtonsoft.Json;
 using WebAPI.Models;
 
@@ -97,6 +98,8 @@ namespace WebAPI.Modules
 
         private async Task<Response> UploadVersionAsync(dynamic args, CancellationToken cancellationToken)
         {
+            this.RequiresAuthentication();
+
             if (!ParseModType(args, out ModType modType, out Response errorResponse))
                 return await errorResponse;
 
