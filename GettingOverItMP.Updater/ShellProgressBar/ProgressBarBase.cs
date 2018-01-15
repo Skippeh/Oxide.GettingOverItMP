@@ -15,7 +15,7 @@ namespace ShellProgressBar
 		{
 			this._maxTicks = Math.Max(0, maxTicks);
 			this._message = message;
-			this.Options = options ?? ProgressBarOptions.Default;
+		    this.Options = options ?? (ProgressBarOptions) ProgressBarOptions.Default.Clone();
 		}
 
 		internal ProgressBarOptions Options { get; }
