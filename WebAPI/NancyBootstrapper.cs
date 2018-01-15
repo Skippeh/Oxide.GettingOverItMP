@@ -1,8 +1,11 @@
 ﻿using Nancy;
+using Nancy.Authentication.Basic;
+using Nancy.Bootstrapper;
 using Nancy.Configuration;
 using Nancy.TinyIoc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using WebAPI.Authentication;
 
 namespace WebAPI
 {
@@ -14,6 +17,12 @@ namespace WebAPI
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver();
             }
+        }
+
+        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        {
+            base.ApplicationStartup(container, pipelines);
+            pipelines.EnableBasicAuthentication(new BasicAuthenticationConfiguration(new BasicUserValidator(), "GOIMP WebAPI"));
         }
 
         public override void Configure(INancyEnvironment environment)
