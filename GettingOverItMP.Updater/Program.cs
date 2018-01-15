@@ -21,6 +21,8 @@ namespace GettingOverItMP.Updater
             ContractResolver = new CamelCasePropertyNamesContractResolver()
         };
 
+        private const int MaxRetries = 10;
+
         private static readonly ProgressBarOptions progressBarOptions = new ProgressBarOptions
         {
             CollapseWhenFinished = false,
@@ -63,20 +65,46 @@ namespace GettingOverItMP.Updater
 
             if (!LocalData.Load())
             {
-                Console.Error.WriteLine("Failed to load local version info. Downloading latest version.");
+                Console.Error.WriteLine("Failed to load local version info.");
                 return 1;
             }
 
             using (var client = new ApiClient())
             {
                 var latestVersion = client.QueryLatestVersion(modType);
-                Task.WaitAll(DownloadVersion(latestVersion));
+
+                int retries = 0;
+                while (retries < MaxRetries)
+                {
+                    bool success = DownloadVersion(latestVersion).Result;
+
+                    if (success)
+                    {
+                        Console.WriteLine("Finished update.");
+                        break;
+                    }
+
+                    ++retries;
+
+                    if (retries < MaxRetries)
+                    {
+                        Console.Error.WriteLine($"Failed to download some files, retrying update in 3 seconds (attempt {retries}/{MaxRetries})...");
+                        Thread.Sleep(3000);
+                        Console.Clear();
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine("Failed to download all files successfully, aborting update.");
+                        Thread.Sleep(3000);
+                        return 1;
+                    }
+                }
             }
 
             return 0;
         }
 
-        private static async Task DownloadVersion(ModVersion modVersion)
+        private static async Task<bool> DownloadVersion(ModVersion modVersion)
         {
             Console.WriteLine($"Downloading update: {modVersion.Version}...");
 
@@ -84,7 +112,10 @@ namespace GettingOverItMP.Updater
 
             if (currentVersion != null)
             {
-                var filesToDelete = currentVersion.Checksums.Where(checksum => !modVersion.Checksums.Contains(checksum)).Select(checksum => checksum.FilePath).ToList();
+                var filesToDelete = currentVersion.Checksums.Where(checksum => !modVersion.Checksums.Select(c => c.FilePath)
+                                                            .Contains(checksum.FilePath))
+                                                            .Select(checksum => checksum.FilePath)
+                                                            .Where(File.Exists).ToList();
 
                 if (filesToDelete.Count > 0)
                     Console.WriteLine($"Deleting {filesToDelete.Count} old file(s)...");
@@ -129,6 +160,7 @@ namespace GettingOverItMP.Updater
             }
 
             List<string> filesToDownload = modVersion.Checksums.Where(checksum => !checksum.MatchesExistingFile()).Select(checksum => checksum.FilePath).ToList();
+            bool failed = false;
 
             if (filesToDownload.Count > 0)
             {
@@ -139,16 +171,25 @@ namespace GettingOverItMP.Updater
                     for (int i = 0; i < filesToDownload.Count; ++i)
                     {
                         string filePath = filesToDownload[i];
-                        runningTasks[i] = DownloadFile(filePath, modVersion.Type, modVersion.Version, progressBar, () => progressBar.Tick());
+                        runningTasks[i] = DownloadFile(filePath, modVersion.Type, modVersion.Version, progressBar, (success) =>
+                        {
+                            if (success)
+                                progressBar.Tick();
+                            else
+                                failed = true;
+                        });
                     }
 
-                    Task.WaitAll(runningTasks);
+                    await Task.WhenAll(runningTasks);
                 }
             }
 
-            File.WriteAllText("version.json", JsonConvert.SerializeObject(modVersion, Formatting.None, SerializerSettings));
+            if (failed)
+                return false;
 
-            Console.WriteLine("Finished update.");
+            File.WriteAllText("version.json", JsonConvert.SerializeObject(modVersion, Formatting.None, SerializerSettings));
+            
+            return true;
         }
 
         private static IEnumerable<string> GetDirectories(string directory)
@@ -165,7 +206,7 @@ namespace GettingOverItMP.Updater
             }
         }
 
-        private static Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, Action doneCallback)
+        private static Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, Action<bool> doneCallback)
         {
             return Task.Run(async () =>
             {
@@ -182,13 +223,16 @@ namespace GettingOverItMP.Updater
                                 int newTick = (int) (((double) args.BytesReceived / fileLength) * 100d);
                                 progressBar.Tick(newTick);
                             });
-                        }
-                        catch (WebException webException)
-                        {
-                            throw;
-                        }
 
-                        doneCallback();
+                            doneCallback(true);
+                        }
+                        catch (Exception exception)
+                        {
+                            progressBar.Options.CollapseWhenFinished = false;
+                            progressBar.Options.ForegroundColor = ConsoleColor.Red;
+                            progressBar.Tick(progressBar.CurrentTick, $"Failed: {exception.Message} ({filePath})");
+                            doneCallback(false);
+                        }
                     }
                 }
             });
