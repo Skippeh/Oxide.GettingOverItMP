@@ -27,6 +27,11 @@ namespace WebAPI
         private static ModVersion latestServerVersion;
         public static ModVersion LatestServerVersion => latestServerVersion ?? (latestServerVersion = Versions.Where(v => v.ReleaseDate <= DateTime.UtcNow && v.Type == ModType.Server).OrderByDescending(v => v.ReleaseDate).FirstOrDefault());
 
+        public static List<UserCredential> UserCredentials { get; private set; } = new List<UserCredential>
+        {
+            new UserCredential("changeme", "CHANGEME")
+        };
+
         public static ModVersion GetLatestVersion(ModType type)
         {
             return type == ModType.Client ? LatestClientVersion : LatestServerVersion;
@@ -55,6 +60,29 @@ namespace WebAPI
                     modVersion.DirectoryPath = directoryPath;
                     Versions.Add(modVersion);
                 }
+            }
+
+            if (File.Exists("credentials.json"))
+            {
+                string json = File.ReadAllText("credentials.json", Encoding.UTF8);
+                UserCredentials = JsonConvert.DeserializeObject<List<UserCredential>>(json);
+            }
+            else
+            {
+                string json = JsonConvert.SerializeObject(UserCredentials, Formatting.Indented, SerializerSettings);
+                File.WriteAllText("credentials.json", json, Encoding.UTF8);
+            }
+
+            foreach (var user in UserCredentials.ToList())
+            {
+                if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Password))
+                {
+                    UserCredentials.Remove(user);
+                    Console.WriteLine($"Refused user account: {user.Username} (username or password empty)");
+                    continue;
+                }
+
+                Console.WriteLine($"Added user account: {user.Username}");
             }
         }
 
@@ -93,6 +121,21 @@ namespace WebAPI
         {
             modVersion = FindVersion(modType, version);
             return modVersion != null;
+        }
+    }
+
+    public class UserCredential
+    {
+        public string Username;
+        public string Password;
+
+        [JsonConstructor]
+        private UserCredential() { }
+
+        public UserCredential(string username, string password)
+        {
+            Username = username;
+            Password = password;
         }
     }
 }
