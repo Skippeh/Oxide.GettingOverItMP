@@ -90,9 +90,13 @@
     <ItemGroup>
       <SteamFiles Include="$(SolutionDir)\SteamRedist\*.dll" />
     </ItemGroup>
+    <ItemGroup>
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\GettingOverItMP.Updater.exe" />
+    </ItemGroup>
     <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(StreamingAssetsDir)\%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(SteamFiles)" DestinationFiles="@(SteamFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(UpdaterFiles)" DestinationFiles="@(UpdaterFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\%(Filename)%(Extension)')" />
   </Target>
   <Target Name="LocalDeploy" AfterTargets="AfterBuild" Condition="Exists('$(SolutionDir)\.deploy')">
     <Exec Command="start /b /wait taskkill /f /im GettingOverIt.exe /fi &quot;memusage gt 2&quot;" Condition="'$(OS)' == 'Windows_NT'" />

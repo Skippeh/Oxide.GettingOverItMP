@@ -78,6 +78,10 @@
     <ItemGroup>
       <SteamFiles Include="$(SolutionDir)\SteamRedist\*.*" />
     </ItemGroup>
+    <ItemGroup>
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\GettingOverItMP.Updater.exe" />
+    </ItemGroup>
     <Copy SourceFiles="@(SteamFiles)" DestinationFiles="@(SteamFiles->'$(OutputPath)\%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(UpdaterFiles)" DestinationFiles="@(UpdaterFiles->'$(OutputPath)\%(Filename)%(Extension)')" />
   </Target>
 </Project>
