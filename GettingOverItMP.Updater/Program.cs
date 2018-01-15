@@ -81,6 +81,7 @@ namespace GettingOverItMP.Updater
                     if (success)
                     {
                         Console.WriteLine("Update downloaded successfully.");
+                        Thread.Sleep(2000);
                         break;
                     }
 
