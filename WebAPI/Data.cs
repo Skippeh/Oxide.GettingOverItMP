@@ -75,14 +75,19 @@ namespace WebAPI
 
             foreach (var user in UserCredentials.ToList())
             {
-                if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Password))
+                if (user.Username == "changeme" && user.Password == "CHANGEME")
                 {
                     UserCredentials.Remove(user);
-                    Console.WriteLine($"Refused user account: {user.Username} (username or password empty)");
+                    Console.WriteLine($"Refused user account: {user.Username} (Default credentials are not allowed, change in credentials.json)");
                     continue;
                 }
 
-                Console.WriteLine($"Added user account: {user.Username}");
+                if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Password))
+                {
+                    UserCredentials.Remove(user);
+                    Console.WriteLine($"Refused user account: {user.Username} (Username or password empty)");
+                    continue;
+                }
             }
         }
 
