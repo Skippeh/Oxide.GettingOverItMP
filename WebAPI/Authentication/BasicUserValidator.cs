@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Linq;
+using System.Security.Claims;
 using System.Security.Principal;
 using Nancy.Authentication.Basic;
 
@@ -8,10 +9,10 @@ namespace WebAPI.Authentication
     {
         public ClaimsPrincipal Validate(string username, string password)
         {
-            // Todo: Implement config
-            if (username == "username" && password == "password")
+            var account = Data.UserCredentials.FirstOrDefault(credentials => credentials.Username.ToLowerInvariant() == username.ToLowerInvariant() && credentials.Password == password);
+            if (account != null)
             {
-                var principal = new ClaimsPrincipal(new GenericIdentity(username, "Basic"));
+                var principal = new ClaimsPrincipal(new GenericIdentity(account.Username, "Basic"));
                 var claimsPrincipal = principal;
                 return claimsPrincipal;
             }
