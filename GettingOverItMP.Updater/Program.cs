@@ -44,7 +44,7 @@ namespace GettingOverItMP.Updater
                 }
                 else
                 {
-                    Console.WriteLine("client/server not specified, could not find client specific fules. Updating server.");
+                    Console.WriteLine("client/server not specified, could not find client specific files. Updating server.");
                     modType = ModType.Server;
                 }
             }
