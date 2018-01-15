@@ -73,7 +73,7 @@ namespace ShellProgressBar
 
 		public ChildProgressBar Spawn(int maxTicks, string message, ProgressBarOptions options = null)
 		{
-			var pbar = new ChildProgressBar(maxTicks, message, DisplayProgress, options, this.Grow);
+		    var pbar = new ChildProgressBar(maxTicks, message, DisplayProgress, (ProgressBarOptions) options?.Clone(), this.Grow);
 			this.Children.Add(pbar);
 			DisplayProgress();
 			return pbar;
