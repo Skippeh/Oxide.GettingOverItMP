@@ -28,7 +28,17 @@ namespace GettingOverItMP.Updater
 
         public ModVersion QueryLatestVersion(ModType modType)
         {
-            return QueryLatestVersionAsync(modType).Result;
+            try
+            {
+                return QueryLatestVersionAsync(modType).Result;
+            }
+            catch (AggregateException aex)
+            {
+                if (aex.InnerException != null)
+                    throw aex.InnerException;
+
+                throw aex.GetBaseException();
+            }
         }
 
         public async Task<ModVersion> QueryLatestVersionAsync(ModType modType)
