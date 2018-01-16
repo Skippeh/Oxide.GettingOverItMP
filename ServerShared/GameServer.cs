@@ -563,6 +563,9 @@ namespace ServerShared
 
                     SteamServer.Stats.Refresh(ownerId, (ownerId2, success) =>
                     {
+                        if (!Players.ContainsKey(connection) || connection.Status != NetConnectionStatus.Connected)
+                            return;
+
                         if (!success)
                         {
                             Logger.LogError($"Failed to refresh stats for steamid {ownerId2}.");
