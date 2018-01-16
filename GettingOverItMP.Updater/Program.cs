@@ -88,7 +88,7 @@ namespace GettingOverItMP.Updater
                 int retries = 0;
                 while (retries < MaxRetries)
                 {
-                    bool success = DownloadVersion(latestVersion).Result;
+                    bool success = DownloadVersionAsync(latestVersion).Result;
 
                     if (success)
                     {
@@ -117,7 +117,7 @@ namespace GettingOverItMP.Updater
             return 0;
         }
 
-        private static async Task<bool> DownloadVersion(ModVersion modVersion)
+        private static async Task<bool> DownloadVersionAsync(ModVersion modVersion)
         {
             Console.WriteLine($"Downloading update: {modVersion.Version}...");
 
