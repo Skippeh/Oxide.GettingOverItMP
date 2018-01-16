@@ -71,7 +71,18 @@ namespace GettingOverItMP.Updater
 
             using (var client = new ApiClient())
             {
-                var latestVersion = client.QueryLatestVersion(modType);
+                ModVersion latestVersion;
+
+                try
+                {
+                    latestVersion = client.QueryLatestVersion(modType);
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine($"Failed to query latest version: {e.Message}");
+                    Thread.Sleep(3000);
+                    return 1;
+                }
 
                 int retries = 0;
                 while (retries < MaxRetries)
