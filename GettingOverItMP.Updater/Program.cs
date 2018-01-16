@@ -7,6 +7,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using GettingOverItMP.Updater.Exceptions;
 using GettingOverItMP.Updater.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -77,9 +78,9 @@ namespace GettingOverItMP.Updater
                 {
                     latestVersion = client.QueryLatestVersion(modType);
                 }
-                catch (Exception e)
+                catch (Exception ex) when (ex is WebException || ex is ApiRequestFailedException)
                 {
-                    Console.Error.WriteLine($"Failed to query latest version: {e.Message}");
+                    Console.Error.WriteLine($"Failed to query latest version: {ex.Message}");
                     Thread.Sleep(3000);
                     return 1;
                 }
