@@ -2,6 +2,7 @@
 using Nancy.Authentication.Basic;
 using Nancy.Bootstrapper;
 using Nancy.Configuration;
+using Nancy.Conventions;
 using Nancy.TinyIoc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -39,6 +40,12 @@ namespace WebAPI
             base.ConfigureApplicationContainer(container);
 
             container.Register<JsonSerializer, CustomJsonSerializer>();
+        }
+
+        protected override void ConfigureConventions(NancyConventions nancyConventions)
+        {
+            base.ConfigureConventions(nancyConventions);
+            nancyConventions.StaticContentsConventions.AddDirectory("/frontend", "frontend");
         }
     }
 }
