@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700');
 
-body
+:global(#app)
 {
 	font-family: "Open Sans", sans-serif;
-	color: rgb(50, 50, 50);
 }
