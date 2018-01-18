@@ -227,7 +227,7 @@ namespace WebAPI.Modules
 
         private bool ParseModType(dynamic args, out ModType type, out Response response)
         {
-            string strType = args.type;
+            string strType = ((string) args.type)?.ToLowerInvariant();
 
             if (strType == "client")
                 type = ModType.Client;
