@@ -24,6 +24,13 @@ namespace WebAPI
         {
             base.ApplicationStartup(container, pipelines);
             pipelines.EnableBasicAuthentication(new BasicAuthenticationConfiguration(new BasicUserValidator(), "GOIMP WebAPI"));
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(context =>
+            {
+                context.Response.WithHeader("Access-Control-Allow-Origin", "*")
+                                .WithHeader("Access-Control-Allow-Methods", "GET, POST")
+                                .WithHeader("Access-Control-Allow-Headers", "Content-Type");
+            });
         }
 
         public override void Configure(INancyEnvironment environment)
