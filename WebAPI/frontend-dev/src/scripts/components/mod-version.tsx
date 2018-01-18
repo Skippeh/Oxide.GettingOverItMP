@@ -18,6 +18,8 @@ interface State
 	inputVersionError: string;
 	inputState: InputState;
 	responseError: string;
+	file: File;
+	fileError: string;
 }
 
 enum InputState
@@ -40,29 +42,27 @@ export default class ModVersion extends React.Component<Props, State>
 			inputVersion: '',
 			inputVersionError: null,
 			inputState: InputState.Pristine,
-			responseError: null
+			responseError: null,
+			file: null,
+			fileError: null
 		};
 
 		this.handleVersionChange = this.handleVersionChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
+		this.onFileChange = this.onFileChange.bind(this);
 	}
 
 	componentDidMount(): void
 	{
-		this.loadVersion();
+		this.loadVersionAsync();
 	}
 
-	loadVersion(): void
+	async loadVersionAsync(): Promise<void>
 	{
-		ClientApi.requestVersionAsync(this.props.type).then((version) =>
-		{
-			this.setState({ loading: false, version });
-		})
-		.catch(err =>
-		{
-			this.setState({ loading: false, error: err});
-			console.error('Failed to query version:', err);
-		});
+		this.setState({ version: null });
+
+		var version = await ClientApi.requestVersionAsync(this.props.type);
+		this.setState({ loading: false, version });
 	}
 
 	render(): React.ReactNode
@@ -109,7 +109,8 @@ export default class ModVersion extends React.Component<Props, State>
 		return (
 			<form className="input">
 				<h4>Upload version</h4>
-				<input type="file" />
+				<input type="file" onChange={this.onFileChange} />
+				<span className='text-danger'>&nbsp;{this.state.fileError}</span>
 				<br />
 				<input type="text" placeholder="Version" onChange={this.handleVersionChange}/>
 				<span className='text-danger'>&nbsp;{this.state.inputVersionError}</span>
@@ -131,6 +132,12 @@ export default class ModVersion extends React.Component<Props, State>
 		this.setState({
 			inputVersion: ev.target.value
 		}, () => this.validateInputAsync());
+	}
+
+	private onFileChange(ev): void
+	{
+		const file: File = ev.target.files[0];
+		this.setState({ file });
 	}
 
 	private async validateInputAsync(): Promise<void>
@@ -155,19 +162,21 @@ export default class ModVersion extends React.Component<Props, State>
 			}
 		}
 
-		await this.setState({
-			inputState: this.state.inputVersionError == null ? InputState.Valid : InputState.Invalid
+		if (this.state.file == null)
+		{
+			await this.setState({ fileError: 'A file is required.' });
+		}
+
+		this.setState({
+			inputState: this.state.inputVersionError == null && this.state.fileError == null ? InputState.Valid : InputState.Invalid
 		});
 	}
 
-	private onSubmit(): void
+	private async onSubmit(): Promise<void>
 	{
-		this.validateInputAsync().then(() =>
-		{
-			console.log(this.state);
+		await this.validateInputAsync();
 
-			if (this.state.inputState != InputState.Valid)
-				return;
-		});
+		if (this.state.inputState != InputState.Valid)
+			return;
 	}
 }
