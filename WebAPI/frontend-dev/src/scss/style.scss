@@ -4,3 +4,17 @@
 {
 	font-family: "Open Sans", sans-serif;
 }
+
+.load-overlay
+{
+	position: absolute;
+	display: flex;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5f);
+	align-content: center;
+	align-items: center;
+	font-size: 4rem;
+}
