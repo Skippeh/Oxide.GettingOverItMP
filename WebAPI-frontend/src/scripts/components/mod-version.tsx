@@ -49,7 +49,7 @@ export default class ModVersion extends React.Component<Props, State>
 			fileError: null
 		};
 
-		this.handleVersionChange = this.handleVersionChange.bind(this);
+		this.onVersionChange = this.onVersionChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
 		this.onFileChange = this.onFileChange.bind(this);
 	}
@@ -114,7 +114,7 @@ export default class ModVersion extends React.Component<Props, State>
 				<input type="file" onChange={this.onFileChange} />
 				<span className='text-danger'>&nbsp;{this.state.fileError}</span>
 				<br />
-				<input type="text" placeholder="Version" onChange={this.handleVersionChange}/>
+				<input type="text" placeholder="Version" onChange={this.onVersionChange}/>
 				<span className='text-danger'>&nbsp;{this.state.inputVersionError}</span>
 				<br />
 				<input type="submit" onClick={(ev) => { ev.preventDefault(); this.onSubmit(); }} disabled={this.state.responseLoading} />
@@ -129,7 +129,7 @@ export default class ModVersion extends React.Component<Props, State>
 		return <h2>Loading {Utility.getFriendlyModType(this.props.type)}...</h2>;
 	}
 
-	private handleVersionChange(ev): void
+	private onVersionChange(ev): void
 	{
 		this.setState({
 			inputVersion: ev.target.value
