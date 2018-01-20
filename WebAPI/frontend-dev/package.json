@@ -15,8 +15,8 @@
     "typescript": "^2.6.2"
   },
   "scripts": {
-    "start": "parcel index.html --out-dir ../frontend",
-    "build": "parcel build index.html --out-dir ../frontend"
+    "start": "parcel index.html --out-dir ./dist",
+    "build": "parcel build index.html --out-dir ./dist"
   },
   "dependencies": {
     "@types/prop-types": "^15.5.2",

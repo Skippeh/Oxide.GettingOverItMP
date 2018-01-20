@@ -72,5 +72,3 @@ DepotDownloader.config
 .DepotDownloader/
 .deploy
 .steam*
-
-WebAPI/frontend/
