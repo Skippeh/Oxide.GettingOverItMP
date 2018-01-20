@@ -109,7 +109,9 @@ namespace WebAPI.Modules
             if (file == null)
                 return await Response.JsonError("No file found", HttpStatusCode.BadRequest);
 
-            if (file.ContentType != "application/zip")
+            if (file.ContentType != "application/zip" &&
+                file.ContentType != "application/x-zip-compressed" &&
+                file.ContentType != "application/zip-compressed")
                 return await Response.JsonError("File is not a zip file", HttpStatusCode.BadRequest);
 
             // Verify that the version not older or equal to the current latest version
