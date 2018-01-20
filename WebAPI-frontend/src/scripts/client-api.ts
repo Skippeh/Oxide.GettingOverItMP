@@ -4,7 +4,7 @@ import Utility from './utility';
 
 class ClientApi
 {
-	static ApiUrl: string = 'http://skippy.pizza:8090';
+	static ApiUrl: string = 'http://localhost:8090';
 
 	async requestVersionAsync(modType: ModType, version: string = 'latest'): Promise<ModVersionModel>
 	{

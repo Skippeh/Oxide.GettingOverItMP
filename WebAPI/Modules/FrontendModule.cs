@@ -16,7 +16,8 @@ namespace WebAPI.Modules
 
         private async Task<Response> GetFrontendAsync(dynamic args, CancellationToken cancellationToken)
         {
-            return Response.AsRedirect("/frontend");
+            this.RequiresAuthentication();
+            return Response.AsFile("./frontend/index.html");
         }
     }
 }

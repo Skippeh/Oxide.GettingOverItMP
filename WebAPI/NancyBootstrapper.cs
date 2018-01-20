@@ -52,7 +52,7 @@ namespace WebAPI
         protected override void ConfigureConventions(NancyConventions nancyConventions)
         {
             base.ConfigureConventions(nancyConventions);
-            nancyConventions.StaticContentsConventions.AddDirectory("/frontend", "frontend");
+            nancyConventions.StaticContentsConventions.AddDirectory("/static", "frontend");
         }
     }
 }
