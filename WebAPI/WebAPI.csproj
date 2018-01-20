@@ -20,6 +20,8 @@
     <ItemGroup>
       <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\GettingOverItMP.Updater.exe" />
     </ItemGroup>
+    <Exec WorkingDirectory="$(SolutionDir)\WebAPI-frontend" Command="yarn" />
+    <Exec WorkingDirectory="$(SolutionDir)\WebAPI-frontend" Command="yarn build" />
     <Copy SourceFiles="@(FrontendDistFiles)" DestinationFiles="@(FrontendDistFiles->'$(OutputPath)\frontend\%(Filename)%(Extension)')" />
   </Target>
 </Project>
