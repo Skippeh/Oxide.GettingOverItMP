@@ -18,6 +18,7 @@ interface State
 	inputVersionError: string;
 	inputState: InputState;
 	responseError: string;
+	responseLoading: boolean;
 	file: File;
 	fileError: string;
 }
@@ -43,6 +44,7 @@ export default class ModVersion extends React.Component<Props, State>
 			inputVersionError: null,
 			inputState: InputState.Pristine,
 			responseError: null,
+			responseLoading: false,
 			file: null,
 			fileError: null
 		};
@@ -115,7 +117,7 @@ export default class ModVersion extends React.Component<Props, State>
 				<input type="text" placeholder="Version" onChange={this.handleVersionChange}/>
 				<span className='text-danger'>&nbsp;{this.state.inputVersionError}</span>
 				<br />
-				<input type="submit" onClick={(ev) => { ev.preventDefault(); this.onSubmit(); }} />
+				<input type="submit" onClick={(ev) => { ev.preventDefault(); this.onSubmit(); }} disabled={this.state.responseLoading} />
 				<br />
 				<span className='text-danger'>{this.state.responseError}</span>
 			</form>
@@ -166,6 +168,10 @@ export default class ModVersion extends React.Component<Props, State>
 		{
 			await this.setState({ fileError: 'A file is required.' });
 		}
+		else
+		{
+			await this.setState({ fileError: null });
+		}
 
 		this.setState({
 			inputState: this.state.inputVersionError == null && this.state.fileError == null ? InputState.Valid : InputState.Invalid
@@ -178,5 +184,30 @@ export default class ModVersion extends React.Component<Props, State>
 
 		if (this.state.inputState != InputState.Valid)
 			return;
+
+		await this.setState({ responseError: null, responseLoading: true });
+
+		try
+		{
+			const response = await ClientApi.uploadVersionAsync(this.state.file, this.state.inputVersion, this.props.type, new Date(Date.now()));
+			console.log(response);
+		}
+		catch (error)
+		{
+			const response = error as Response;
+			if (response.status != 400) // If not bad request
+			{
+				this.setState({ responseError: response.statusText });
+			}
+			else
+			{
+				const json = await response.json();
+				this.setState({ responseError: json.error });
+			}
+		}
+		finally
+		{
+			this.setState({ responseLoading: false });
+		}
 	}
 }
