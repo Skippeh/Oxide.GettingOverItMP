@@ -163,6 +163,10 @@ export default class ModVersion extends React.Component<Props, State>
 				await this.setState({ inputVersionError: null });
 			}
 		}
+		else
+		{
+			await this.setState({ inputVersionError: null });
+		}
 
 		if (this.state.file == null)
 		{
