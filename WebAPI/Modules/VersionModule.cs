@@ -33,6 +33,7 @@ namespace WebAPI.Modules
             Post("/{type}/upload", UploadVersionAsync);
             Get("/{type}/{version}/file/{filePath*}", DownloadFileAsync);
             Get("/{type}/{version}/archive", DownloadArchiveAsync);
+            Get("/{type}/history", GetVersionHistoryAsync);
         }
 
         private async Task<object> GetVersionAsync(dynamic args)
@@ -44,6 +45,20 @@ namespace WebAPI.Modules
                 return await Response.AsJson(modVersion);
             else
                 return await Response.JsonError("No version was found.", HttpStatusCode.InternalServerError);
+        }
+
+        private async Task<Response> GetVersionHistoryAsync(dynamic args)
+        {
+            if (!ParseModType(args, out ModType modType, out Response errorResponse))
+                return await errorResponse;
+
+            var now = DateTime.UtcNow;
+            return await Response.AsJson(Data.Versions.Where(v => v.Type == modType && v.ReleaseDate <= now).OrderByDescending(v => v.ReleaseDate).Select(v => new
+            {
+                v.Version,
+                v.ReleaseDate,
+                v.Type
+            }));
         }
 
         private async Task<Response> DownloadFileAsync(dynamic args)
