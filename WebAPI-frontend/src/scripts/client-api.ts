@@ -4,13 +4,13 @@ import Utility from './utility';
 
 class ClientApi
 {
-	static ApiUrl: string = 'http://localhost:8090';
+	ApiUrl: string = 'http://localhost:8090';
 
 	async requestVersionAsync(modType: ModType, version: string = 'latest'): Promise<ModVersionModel>
 	{
 		let modTypeString: string = Utility.getFriendlyModType(modType);
 
-		const response = await fetch(`${ClientApi.ApiUrl}/version/${modTypeString}`);
+		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}`);
 		const json = await response.json();
 		return new ModVersionModel(json);
 	}
@@ -28,7 +28,7 @@ class ClientApi
 
 		const modTypeString: string = Utility.getFriendlyModType(modType);
 
-		const response = await fetch(`${ClientApi.ApiUrl}/version/${modTypeString}/upload`, {
+		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}/upload`, {
 			method: 'POST',
 			cache: 'no-cache',
 			credentials: 'same-origin',
