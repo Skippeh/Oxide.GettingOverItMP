@@ -156,8 +156,16 @@ export default class ModVersion extends React.Component<Props, State>
 				return null;
 			}
 
+			const renderText = (): React.ReactNode =>
+			{
+				if (this.state.version.version == model.version)
+					return <b>{model.version} {renderSuffix()}</b>;
+				else
+					return <span>{model.version} {renderSuffix()}</span>;
+			};
+
 			return (
-				<a key={model.version} href={`${ClientApi.ApiUrl}/version/${modTypeString}/${model.version}/archive/all`}>{model.version} {renderSuffix()}</a>
+				<a key={model.version} href={`${ClientApi.ApiUrl}/version/${modTypeString}/${model.version}/archive/all`}>{renderText()}</a>
 			);
 		}
 
