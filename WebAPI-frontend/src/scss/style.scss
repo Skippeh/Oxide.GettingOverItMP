@@ -9,4 +9,9 @@
 	{
 		margin-bottom: 0.5rem;
 	}
+
+	& :global(.versions) > :global(.row) > :global(div:nth-child(2)) > :global(.modversion)
+	{
+		float: right;
+	}
 }

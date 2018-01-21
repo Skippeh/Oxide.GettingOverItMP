@@ -7,7 +7,7 @@ export default class ModVersions extends React.Component
 	render(): React.ReactNode
 	{
 		return (
-			<div className="container">
+			<div className="container versions">
 				<div className="row">
 					<div className="col-sm">
 						<ModVersion type={ModType.Client} />
