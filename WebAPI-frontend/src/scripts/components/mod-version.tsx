@@ -141,7 +141,7 @@ export default class ModVersion extends React.Component<Props, State>
 
 	private renderHistory(): React.ReactNode
 	{
-		function renderModel(model: ModVersionModel)
+		function renderModel(model: ModVersionModel): React.ReactNode
 		{
 			const modTypeString = Utility.getFriendlyModType(model.type);
 
@@ -150,7 +150,7 @@ export default class ModVersion extends React.Component<Props, State>
 			);
 		}
 
-		const history = this.state.history.map(model => renderModel(model));
+		const history: React.ReactNode = this.state.history.map(model => renderModel(model)).reduce((prev, curr) => [prev, <br />, curr]);
 
 		return (
 			<div>
