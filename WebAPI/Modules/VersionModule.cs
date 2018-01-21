@@ -116,7 +116,7 @@ namespace WebAPI.Modules
             ModVersion version = Data.FindVersion(modType, versionQuery, includeUnreleased);
 
             if (version == null)
-                return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.NotFound);
+                return await Response.Error($"The version '{versionQuery}' could not be found.", HttpStatusCode.NotFound);
 
             var fileStream = new FileStream(Path.Combine(version.DirectoryPath, "archive.zip"), FileMode.Open, FileAccess.Read);
             var response = new StreamResponse(() => fileStream, MimeTypes.GetMimeType("archive.zip"));

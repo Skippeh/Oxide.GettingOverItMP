@@ -18,5 +18,13 @@ namespace WebAPI
                 error = message
             }, statusCode);
         }
+
+        public static Response Error(this IResponseFormatter responseFormatter, string message, HttpStatusCode statusCode)
+        {
+            var result = new Response();
+            result.StatusCode = statusCode;
+            result.ReasonPhrase = message;
+            return result;
+        }
     }
 }
