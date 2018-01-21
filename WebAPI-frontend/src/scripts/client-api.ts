@@ -6,11 +6,16 @@ class ClientApi
 {
 	ApiUrl: string = 'http://localhost:8090';
 
-	async requestVersionAsync(modType: ModType, version: string = 'latest'): Promise<ModVersionModel>
+	async requestVersionAsync(modType: ModType, version: string = 'latest', includeUnreleased: boolean = false): Promise<ModVersionModel>
 	{
 		let modTypeString: string = Utility.getFriendlyModType(modType);
 
-		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}`);
+		let url = `${this.ApiUrl}/version/${modTypeString}`;
+
+		if (includeUnreleased)
+			url += '/all';
+
+		const response = await fetch(url, { credentials: 'same-origin', cache: 'no-cache' });
 		const json = await response.json();
 		return new ModVersionModel(json);
 	}
@@ -42,7 +47,7 @@ class ClientApi
 	async requestVersionHistory(modType: ModType): Promise<ModVersionModel[]>
 	{
 		const modTypeString: string = Utility.getFriendlyModType(modType);
-		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}/history`);
+		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}/history/all`, { credentials: 'same-origin', cache: 'no-cache' });
 		const jsonVersions = await response.json();
 
 		const result: ModVersionModel[] = [];

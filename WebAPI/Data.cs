@@ -22,9 +22,11 @@ namespace WebAPI
         public static List<ModVersion> Versions { get; private set; } = new List<ModVersion>();
 
         private static ModVersion latestClientVersion;
+        /// <summary>Returns the latest released client version.</summary>
         public static ModVersion LatestClientVersion => latestClientVersion ?? (latestClientVersion = Versions.Where(v => v.ReleaseDate <= DateTime.UtcNow && v.Type == ModType.Client).OrderByDescending(v => v.ReleaseDate).FirstOrDefault());
 
         private static ModVersion latestServerVersion;
+        /// <summary>Returns the latest released server version.</summary>
         public static ModVersion LatestServerVersion => latestServerVersion ?? (latestServerVersion = Versions.Where(v => v.ReleaseDate <= DateTime.UtcNow && v.Type == ModType.Server).OrderByDescending(v => v.ReleaseDate).FirstOrDefault());
 
         public static List<UserCredential> UserCredentials { get; private set; } = new List<UserCredential>
@@ -32,14 +34,15 @@ namespace WebAPI
             new UserCredential("changeme", "CHANGEME")
         };
 
-        public static ModVersion GetLatestVersion(ModType type)
+        public static ModVersion GetLatestVersion(ModType type, bool includeUnreleased)
         {
-            return type == ModType.Client ? LatestClientVersion : LatestServerVersion;
+            ModVersion result = Versions.Where(v => v.Type == type && (includeUnreleased || v.ReleaseDate <= DateTime.UtcNow)).OrderByDescending(v => v.ReleaseDate).FirstOrDefault();
+            return result;
         }
 
-        public static bool GetLatestVersion(ModType type, out ModVersion modVersion)
+        public static bool GetLatestVersion(ModType type, bool includeUnreleased, out ModVersion modVersion)
         {
-            modVersion = GetLatestVersion(type);
+            modVersion = GetLatestVersion(type, includeUnreleased);
             return modVersion != null;
         }
 
@@ -114,17 +117,17 @@ namespace WebAPI
             latestServerVersion = null;
         }
 
-        public static ModVersion FindVersion(ModType modType, string version)
+        public static ModVersion FindVersion(ModType modType, string version, bool includeUnreleased)
         {
             if (version == "latest")
-                return GetLatestVersion(modType);
+                return GetLatestVersion(modType, includeUnreleased);
 
             return Versions.FirstOrDefault(v => v.Type == modType && v.Version.ToLowerInvariant() == version.ToLowerInvariant());
         }
 
-        public static bool FindVersion(ModType modType, string version, out ModVersion modVersion)
+        public static bool FindVersion(ModType modType, string version, bool includeUnreleased, out ModVersion modVersion)
         {
-            modVersion = FindVersion(modType, version);
+            modVersion = FindVersion(modType, version, includeUnreleased);
             return modVersion != null;
         }
     }

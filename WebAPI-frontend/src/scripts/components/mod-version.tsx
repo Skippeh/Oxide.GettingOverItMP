@@ -66,7 +66,7 @@ export default class ModVersion extends React.Component<Props, State>
 	{
 		this.setState({ version: null });
 
-		var version = await ClientApi.requestVersionAsync(this.props.type);
+		var version = await ClientApi.requestVersionAsync(this.props.type, 'latest', false);
 		var history = await ClientApi.requestVersionHistory(this.props.type);
 		this.setState({ loading: false, version, history });
 	}

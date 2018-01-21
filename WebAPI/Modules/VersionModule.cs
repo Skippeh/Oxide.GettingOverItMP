@@ -29,31 +29,40 @@ namespace WebAPI.Modules
 
         public VersionModule() : base("/version")
         {
-            Get("/{type}", GetVersionAsync);
+            Get("/{type}", (args, token) => GetLatestVersionAsync(args, false));
+            Get("/{type}/all", (args, token) => GetLatestVersionAsync(args, true));
             Post("/{type}/upload", UploadVersionAsync);
             Get("/{type}/{version}/file/{filePath*}", DownloadFileAsync);
-            Get("/{type}/{version}/archive", DownloadArchiveAsync);
-            Get("/{type}/history", GetVersionHistoryAsync);
+            Get("/{type}/{version}/archive", (args, token) => DownloadArchiveAsync(args, false));
+            Get("/{type}/{version}/archive/all", (args, token) => DownloadArchiveAsync(args, true));
+            Get("/{type}/history", (args, token) => GetVersionHistoryAsync(args, false));
+            Get("/{type}/history/all", (args, token) => GetVersionHistoryAsync(args, true));
         }
-
-        private async Task<object> GetVersionAsync(dynamic args)
+        
+        private async Task<object> GetLatestVersionAsync(dynamic args, bool includeUnreleased)
         {
+            if (includeUnreleased)
+                this.RequiresAuthentication();
+
             if (!ParseModType(args, out ModType type, out Response errorResponse))
                 return await errorResponse;
 
-            if (Data.GetLatestVersion(type, out var modVersion))
+            if (Data.GetLatestVersion(type, includeUnreleased, out var modVersion))
                 return await Response.AsJson(modVersion);
             else
                 return await Response.JsonError("No version was found.", HttpStatusCode.InternalServerError);
         }
 
-        private async Task<Response> GetVersionHistoryAsync(dynamic args)
+        private async Task<object> GetVersionHistoryAsync(dynamic args, bool includeUnreleased)
         {
+            if (includeUnreleased)
+                this.RequiresAuthentication();
+
             if (!ParseModType(args, out ModType modType, out Response errorResponse))
                 return await errorResponse;
 
             var now = DateTime.UtcNow;
-            return await Response.AsJson(Data.Versions.Where(v => v.Type == modType && v.ReleaseDate <= now).OrderByDescending(v => v.ReleaseDate).Select(v => new
+            return await Response.AsJson(Data.Versions.Where(v => v.Type == modType && (includeUnreleased || v.ReleaseDate <= now)).OrderByDescending(v => v.ReleaseDate).Select(v => new
             {
                 v.Version,
                 v.ReleaseDate,
@@ -61,13 +70,13 @@ namespace WebAPI.Modules
             }));
         }
 
-        private async Task<Response> DownloadFileAsync(dynamic args)
+        private async Task<object> DownloadFileAsync(dynamic args)
         {
             if (!ParseModType(args, out ModType modType, out Response errorResponse))
                 return await errorResponse;
 
             string versionQuery = args.version;
-            ModVersion version = Data.FindVersion(modType, versionQuery);
+            ModVersion version = Data.FindVersion(modType, versionQuery, includeUnreleased: false);
 
             if (version == null)
                 return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.NotFound);
@@ -95,13 +104,16 @@ namespace WebAPI.Modules
             return await Response.JsonError("The file could not be found.", HttpStatusCode.NotFound);
         }
 
-        private async Task<Response> DownloadArchiveAsync(dynamic args)
+        private async Task<object> DownloadArchiveAsync(dynamic args, bool includeUnreleased)
         {
+            if (includeUnreleased)
+                this.RequiresAuthentication();
+
             if (!ParseModType(args, out ModType modType, out Response errorResponse))
                 return await errorResponse;
 
             string versionQuery = args.version;
-            ModVersion version = Data.FindVersion(modType, versionQuery);
+            ModVersion version = Data.FindVersion(modType, versionQuery, includeUnreleased);
 
             if (version == null)
                 return await Response.JsonError($"The version '{versionQuery}' could not be found.", HttpStatusCode.NotFound);
@@ -111,7 +123,7 @@ namespace WebAPI.Modules
             return await response.AsAttachment($"goimp-{modType.ToString().ToLowerInvariant()}-{version.Version}.zip");
         }
 
-        private async Task<Response> UploadVersionAsync(dynamic args, CancellationToken cancellationToken)
+        private async Task<object> UploadVersionAsync(dynamic args, CancellationToken cancellationToken)
         {
             this.RequiresAuthentication();
 
@@ -130,7 +142,7 @@ namespace WebAPI.Modules
                 return await Response.JsonError("File is not a zip file", HttpStatusCode.BadRequest);
 
             // Verify that the version not older or equal to the current latest version
-            if (Data.GetLatestVersion(modType, out ModVersion latestVersion))
+            if (Data.GetLatestVersion(modType, true, out ModVersion latestVersion))
             {
                 if (modType == ModType.Server)
                 {
