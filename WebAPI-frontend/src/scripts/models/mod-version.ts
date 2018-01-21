@@ -32,12 +32,15 @@ export default class ModVersionModel
 			this.version = json.version;
 			this.type = json.type;
 			this.releaseDate = new Date(json.releaseDate);
-			this.checksums = [];
 
-			for (let i = 0; i < json.checksums.length; ++i)
+			if (json.checksums != null)
 			{
-				const jsonChecksum = json.checksums[i];
-				this.checksums.push(new FileChecksum(jsonChecksum.filePath, jsonChecksum.md5));
+				this.checksums = [];
+				for (let i = 0; i < json.checksums.length; ++i)
+				{
+					const jsonChecksum = json.checksums[i];
+					this.checksums.push(new FileChecksum(jsonChecksum.filePath, jsonChecksum.md5));
+				}
 			}
 		}
 	}

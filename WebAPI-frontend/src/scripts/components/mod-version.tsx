@@ -22,6 +22,7 @@ interface State
 	responseLoading: boolean;
 	file: File;
 	fileError: string;
+	history: ModVersionModel[]
 }
 
 enum InputState
@@ -47,7 +48,8 @@ export default class ModVersion extends React.Component<Props, State>
 			responseError: null,
 			responseLoading: false,
 			file: null,
-			fileError: null
+			fileError: null,
+			history: []
 		};
 
 		this.onVersionChange = this.onVersionChange.bind(this);
@@ -65,7 +67,8 @@ export default class ModVersion extends React.Component<Props, State>
 		this.setState({ version: null });
 
 		var version = await ClientApi.requestVersionAsync(this.props.type);
-		this.setState({ loading: false, version });
+		var history = await ClientApi.requestVersionHistory(this.props.type);
+		this.setState({ loading: false, version, history });
 	}
 
 	render(): React.ReactNode
@@ -88,6 +91,7 @@ export default class ModVersion extends React.Component<Props, State>
 				{this.renderTitle()}
 				{this.renderInfo()}
 				{this.renderInput()}
+				{this.renderHistory()}
 			</div>
 		);
 	}
@@ -133,6 +137,27 @@ export default class ModVersion extends React.Component<Props, State>
 				<span className="text-danger">{this.state.responseError}</span>
 			</form>
 		);
+	}
+
+	private renderHistory(): React.ReactNode
+	{
+		function renderModel(model: ModVersionModel)
+		{
+			const modTypeString = Utility.getFriendlyModType(model.type);
+
+			return (
+				<a key={model.version} href={`${ClientApi.ApiUrl}/version/${modTypeString}/${model.version}/archive`}>{model.version}</a>
+			);
+		}
+
+		const history = this.state.history.map(model => renderModel(model));
+
+		return (
+			<div>
+				<h4>History</h4>
+				{history}
+			</div>
+		)
 	}
 
 	private renderLoading(): React.ReactNode

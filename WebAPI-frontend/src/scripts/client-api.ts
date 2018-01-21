@@ -38,6 +38,21 @@ class ClientApi
 		if (!response.ok)
 			throw response;
 	}
+
+	async requestVersionHistory(modType: ModType): Promise<ModVersionModel[]>
+	{
+		const modTypeString: string = Utility.getFriendlyModType(modType);
+		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}/history`);
+		const jsonVersions = await response.json();
+
+		const result: ModVersionModel[] = [];
+		for (let i = 0; i < jsonVersions.length; ++i)
+		{
+			result.push(new ModVersionModel(jsonVersions[i]));
+		}
+
+		return result;
+	}
 }
 
 export default new ClientApi();
