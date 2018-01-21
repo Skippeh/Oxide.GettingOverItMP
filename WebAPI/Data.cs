@@ -122,7 +122,7 @@ namespace WebAPI
             if (version == "latest")
                 return GetLatestVersion(modType, includeUnreleased);
 
-            return Versions.FirstOrDefault(v => v.Type == modType && v.Version.ToLowerInvariant() == version.ToLowerInvariant());
+            return Versions.FirstOrDefault(v => v.Type == modType && v.Version.ToLowerInvariant() == version.ToLowerInvariant() && (includeUnreleased || DateTime.UtcNow >= v.ReleaseDate));
         }
 
         public static bool FindVersion(ModType modType, string version, bool includeUnreleased, out ModVersion modVersion)
