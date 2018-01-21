@@ -141,12 +141,23 @@ export default class ModVersion extends React.Component<Props, State>
 
 	private renderHistory(): React.ReactNode
 	{
-		function renderModel(model: ModVersionModel): React.ReactNode
+		const renderModel = (model: ModVersionModel): React.ReactNode =>
 		{
 			const modTypeString = Utility.getFriendlyModType(model.type);
 
+			const renderSuffix = (): React.ReactNode =>
+			{
+				if (this.state.version.version == model.version)
+					return <span>(Current version)</span>;
+
+				if (model.releaseDate > new Date())
+					return <span>(Releases {Moment(model.releaseDate).fromNow()})</span>;
+
+				return null;
+			}
+
 			return (
-				<a key={model.version} href={`${ClientApi.ApiUrl}/version/${modTypeString}/${model.version}/archive`}>{model.version}</a>
+				<a key={model.version} href={`${ClientApi.ApiUrl}/version/${modTypeString}/${model.version}/archive/all`}>{model.version} {renderSuffix()}</a>
 			);
 		}
 
@@ -229,7 +240,7 @@ export default class ModVersion extends React.Component<Props, State>
 
 		try
 		{
-			const response = await ClientApi.uploadVersionAsync(this.state.file, this.state.inputVersion, this.props.type, new Date(Date.now()));
+			const response = await ClientApi.uploadVersionAsync(this.state.file, this.state.inputVersion, this.props.type, new Date());
 			console.log(response);
 		}
 		catch (error)
