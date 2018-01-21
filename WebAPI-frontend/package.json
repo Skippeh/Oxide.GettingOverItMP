@@ -22,6 +22,7 @@
     "@types/prop-types": "^15.5.2",
     "bootstrap": "4.0.0-beta.2",
     "jquery": "^3.3.0",
+    "moment": "^2.20.1",
     "popper.js": "^1.12.9",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
