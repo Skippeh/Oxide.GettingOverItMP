@@ -1,6 +1,7 @@
 import * as React from 'react';
 import ModVersionModel, { ModType } from '../models/mod-version';
 import PropTypes from 'prop-types';
+import Moment from 'moment';
 import ClientApi from '../client-api';
 import Utility from '../utility';
 
@@ -93,15 +94,25 @@ export default class ModVersion extends React.Component<Props, State>
 
 	private renderTitle(): React.ReactNode
 	{
-		let title: string = Utility.getFriendlyModType(this.props.type);
-		return <h2>{title}</h2>;
+		const title: string = Utility.getFriendlyModType(this.props.type);
+
+		return (
+			<div>
+				<h2>{title}</h2>
+			</div>
+		);
 	}
 
 	private renderInfo(): React.ReactNode
 	{
+		const releaseDate: Date = this.state.version.releaseDate;
+		const moment = Moment(releaseDate);
 		return (
 			<div>
-				<p>Current version: {this.state.version.version}</p>
+				<p>
+					Current version: {this.state.version.version}<br />
+					Release date: <span title={moment.format('LLLL')}>{moment.calendar()}</span>
+				</p>
 			</div>
 		);
 	}
@@ -117,9 +128,9 @@ export default class ModVersion extends React.Component<Props, State>
 				<input type="text" placeholder="Version" onChange={this.onVersionChange}/>
 				<span className='text-danger'>&nbsp;{this.state.inputVersionError}</span>
 				<br />
-				<input type="submit" onClick={(ev) => { ev.preventDefault(); this.onSubmit(); }} disabled={this.state.responseLoading} />
+				<input type="submit" value="Upload" onClick={(ev) => { ev.preventDefault(); this.onSubmit(); }} disabled={this.state.responseLoading} />
 				<br />
-				<span className='text-danger'>{this.state.responseError}</span>
+				<span className="text-danger">{this.state.responseError}</span>
 			</form>
 		);
 	}

@@ -9,6 +9,7 @@ export class FileChecksum
 {
 	filePath: string;
 	md5: string;
+	releaseDate: Date;
 
 	constructor(filePath: string, md5: string)
 	{
@@ -22,6 +23,7 @@ export default class ModVersionModel
 	version: string;
 	type: ModType;
 	checksums: FileChecksum[];
+	releaseDate: Date;
 
 	constructor(json?: any)
 	{
@@ -29,6 +31,7 @@ export default class ModVersionModel
 		{
 			this.version = json.version;
 			this.type = json.type;
+			this.releaseDate = new Date(json.releaseDate);
 			this.checksums = [];
 
 			for (let i = 0; i < json.checksums.length; ++i)
