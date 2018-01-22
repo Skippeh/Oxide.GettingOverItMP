@@ -9,13 +9,16 @@ class ClientApi
 	async requestVersionAsync(modType: ModType, version: string = 'latest', includeUnreleased: boolean = false): Promise<ModVersionModel>
 	{
 		let modTypeString: string = Utility.getFriendlyModType(modType);
-
 		let url = `${this.ApiUrl}/version/${modTypeString}`;
 
 		if (includeUnreleased)
 			url += '/all';
 
 		const response = await fetch(url, { credentials: 'same-origin', cache: 'no-cache' });
+
+		if (!response.ok)
+			throw response;
+
 		const json = await response.json();
 		return new ModVersionModel(json);
 	}
@@ -48,6 +51,10 @@ class ClientApi
 	{
 		const modTypeString: string = Utility.getFriendlyModType(modType);
 		const response = await fetch(`${this.ApiUrl}/version/${modTypeString}/history/all`, { credentials: 'same-origin', cache: 'no-cache' });
+
+		if (!response.ok)
+			throw response;
+
 		const jsonVersions = await response.json();
 
 		const result: ModVersionModel[] = [];
