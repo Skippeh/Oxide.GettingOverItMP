@@ -4,7 +4,7 @@ import Utility from './utility';
 
 class ClientApi
 {
-	ApiUrl: string = 'http://localhost:8090';
+	ApiUrl: string = 'https://api.gettingoverit.mp';
 
 	async requestVersionAsync(modType: ModType, version: string = 'latest', includeUnreleased: boolean = false): Promise<ModVersionModel>
 	{

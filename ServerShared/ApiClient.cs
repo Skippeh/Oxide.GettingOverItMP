@@ -29,7 +29,7 @@ namespace ServerShared
             public string Error;
         }
 
-        public const string ApiUrl = "http://localhost:8090";
+        public const string ApiUrl = "https://api.gettingoverit.mp";
 
         public readonly WebClient WebClient;
 
