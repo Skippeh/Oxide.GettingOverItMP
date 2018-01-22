@@ -90,6 +90,8 @@ namespace Oxide.GettingOverIt
                 {
                     using (var apiClient = new ApiClient())
                     {
+                        Interface.Oxide.LogDebug("Checking for update...");
+
                         string currentVersion = MPExtension.AssemblyVersion + "_" + Application.version;
                         string latestVersion = apiClient.QueryLatestVersion(ApiClient.ModType.Client);
 
@@ -102,7 +104,7 @@ namespace Oxide.GettingOverIt
                 }
                 catch (ApiRequestFailedException ex)
                 {
-                    Interface.Oxide.LogError("Failed to query latest version: " + ex);
+                    Interface.Oxide.LogError("Failed to get latest version: " + ex.Message);
                 }
             }
         }

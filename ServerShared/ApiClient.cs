@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -55,10 +56,10 @@ namespace ServerShared
                 var httpWebResponse = ex.Response as HttpWebResponse;
 
                 if (httpWebResponse == null)
-                    throw;
+                    throw new ApiRequestFailedException("Failed to query the api: " + ex.Message, ex);
 
                 if (httpWebResponse.StatusCode != HttpStatusCode.BadRequest)
-                    throw;
+                    throw new ApiRequestFailedException("Failed to query the api: " + ex.Message, ex);
 
                 using (var responseStream = httpWebResponse.GetResponseStream())
                 {
@@ -74,8 +75,12 @@ namespace ServerShared
                         throw new ApiRequestFailedException(errorResponse.Error, ex);
                     }
 
-                    throw new ApiRequestFailedException("Failed to query the api. No error message was given.", ex);
+                    throw new ApiRequestFailedException("Failed to query the api: " + ex.Message, ex);
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new ApiRequestFailedException("Failed to query the api: " + ex.Message, ex);
             }
         }
     }
