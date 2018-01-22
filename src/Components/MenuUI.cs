@@ -31,7 +31,7 @@ namespace Oxide.GettingOverItMP.Components
             if (state == MenuState.None)
                 return;
 
-            Rect windowRect = new Rect(0, 0, 400, 200);
+            Rect windowRect = new Rect(0, 0, 400, 100);
             windowRect.center = new Vector2(Screen.width / 2f, Screen.height / 2f);
 
             string title = state == MenuState.UpdateAvailable ? "New update available" : "First time launch";
