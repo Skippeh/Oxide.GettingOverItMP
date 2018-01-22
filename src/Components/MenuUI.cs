@@ -34,7 +34,7 @@ namespace Oxide.GettingOverItMP.Components
             Rect windowRect = new Rect(0, 0, 400, 100);
             windowRect.center = new Vector2(Screen.width / 2f, Screen.height / 2f);
 
-            string title = state == MenuState.UpdateAvailable ? "New update available" : "First time launch";
+            string title = state == MenuState.UpdateAvailable ? "New update available" : "First time setup";
             
             switch (state)
             {
@@ -49,7 +49,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private void DrawUpdateAvailable(int windowId)
         {
-            GUILayout.Label("There is a new update available. Do you want to download it now?");
+            GUILayout.Label("There is an update available. Do you want to download it now?");
             GUILayout.BeginHorizontal(GUILayout.Width(150));
             {
                 if (GUILayout.Button("Yes"))
