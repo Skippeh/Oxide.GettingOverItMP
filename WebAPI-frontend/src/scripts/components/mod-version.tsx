@@ -64,10 +64,28 @@ export default class ModVersion extends React.Component<Props, State>
 
 	async loadVersionAsync(): Promise<void>
 	{
-		this.setState({ version: null });
+		this.setState({ version: null, history: null, loading: true });
 
-		var version = await ClientApi.requestVersionAsync(this.props.type, 'latest', false);
-		var history = await ClientApi.requestVersionHistory(this.props.type);
+		let version: ModVersionModel;
+		let history: ModVersionModel[];
+
+		try
+		{
+			version = await ClientApi.requestVersionAsync(this.props.type);
+		}
+		catch (error)
+		{
+			version = null;
+		}
+
+		try
+		{
+			history = await ClientApi.requestVersionHistory(this.props.type);
+		}
+		catch (error)
+		{
+			history = [];
+		}
 		this.setState({ loading: false, version, history });
 	}
 
@@ -109,13 +127,22 @@ export default class ModVersion extends React.Component<Props, State>
 
 	private renderInfo(): React.ReactNode
 	{
-		const releaseDate: Date = this.state.version.releaseDate;
-		const moment = Moment(releaseDate);
+		const releaseDate: Date = this.state.version && this.state.version.releaseDate || null;
+		const moment = releaseDate && Moment(releaseDate);
+
+		const versionNode = this.state.version == null
+										 ? <span>Not found</span>
+										 : <span>{this.state.version.version}</span>;
+
+		const releaseDateNode = this.state.version == null
+											 ? <span>-</span>
+											 : <span title={moment.format('LLLL')}>{moment.calendar()}</span>;
+
 		return (
 			<div>
 				<p>
-					Current version: {this.state.version.version}<br />
-					Release date: <span title={moment.format('LLLL')}>{moment.calendar()}</span>
+					Current version: {versionNode}<br />
+					Release date: {releaseDateNode}
 				</p>
 			</div>
 		);
@@ -147,7 +174,7 @@ export default class ModVersion extends React.Component<Props, State>
 
 			const renderSuffix = (): React.ReactNode =>
 			{
-				if (this.state.version.version == model.version)
+				if (this.state.version != null && this.state.version.version == model.version)
 					return <span>(Current version)</span>;
 
 				if (model.releaseDate > new Date())
@@ -169,7 +196,11 @@ export default class ModVersion extends React.Component<Props, State>
 			);
 		}
 
-		const history: React.ReactNode = this.state.history.map(model => renderModel(model)).reduce((prev, curr) => [prev, <br />, curr]);
+		let map: React.ReactNode[] = this.state.history.map(model => renderModel(model));
+		let history: React.ReactNode = null;
+
+		if (map.length > 0)
+			history = map.reduce((prev, curr) => [prev, <br />, curr]);
 
 		return (
 			<div>
@@ -249,7 +280,7 @@ export default class ModVersion extends React.Component<Props, State>
 		try
 		{
 			const response = await ClientApi.uploadVersionAsync(this.state.file, this.state.inputVersion, this.props.type, new Date());
-			console.log(response);
+			this.loadVersionAsync();
 		}
 		catch (error)
 		{
