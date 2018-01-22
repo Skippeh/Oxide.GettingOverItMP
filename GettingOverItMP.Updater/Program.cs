@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -35,6 +36,7 @@ namespace GettingOverItMP.Updater
             CosturaUtility.Initialize();
 
             ModType modType;
+            bool launchGame = false;
 
             if (args.Length == 0)
             {
@@ -56,6 +58,11 @@ namespace GettingOverItMP.Updater
                     : args[0] == "client"
                         ? ModType.Client
                         : ModType.Invalid;
+
+                if (modType == ModType.Client && args.Length >= 2 && args[1] == "launch")
+                {
+                    launchGame = true;
+                }
             }
 
             if (modType == ModType.Invalid)
@@ -64,9 +71,31 @@ namespace GettingOverItMP.Updater
                 return 2;
             }
 
+            string currentModuleFileName = Directory.GetCurrentDirectory();
+
+            if (modType == ModType.Client)
+                currentModuleFileName = Path.Combine(currentModuleFileName, "GettingOverIt.exe");
+            else if (modType == ModType.Server)
+                currentModuleFileName = Path.Combine(currentModuleFileName, "GettingOverIt.Server.exe");
+
+            var waitingProcesses = FindProcesses(currentModuleFileName, "GettingOverIt", "GettingOverIt.Server");
+
+            Console.WriteLine(waitingProcesses.Length);
+
+            if (waitingProcesses.Length > 0)
+            {
+                Console.WriteLine("Waiting for processes to exit...");
+
+                foreach (var process in waitingProcesses)
+                {
+                    process.WaitForExit();
+                }
+            }
+
             if (!LocalData.Load())
             {
-                Console.Error.WriteLine("Failed to load local version info.");
+                Console.Error.WriteLine("Failed to load local version info. Press any key to close the updater.");
+                Console.ReadKey(true);
                 return 1;
             }
 
@@ -80,8 +109,8 @@ namespace GettingOverItMP.Updater
                 }
                 catch (Exception ex) when (ex is WebException || ex is ApiRequestFailedException)
                 {
-                    Console.Error.WriteLine($"Failed to query latest version: {ex.Message}");
-                    Thread.Sleep(3000);
+                    Console.Error.WriteLine($"Failed to query latest version: {ex.Message}. Press any key to close the updater.");
+                    Console.ReadKey(true);
                     return 1;
                 }
 
@@ -107,14 +136,39 @@ namespace GettingOverItMP.Updater
                     }
                     else
                     {
-                        Console.Error.WriteLine("Failed to download all files successfully, aborting update.");
-                        Thread.Sleep(3000);
+                        Console.Error.WriteLine("Failed to download all files successfully, aborting update. Press any key to close the updater.");
+                        Console.ReadKey(true);
                         return 1;
                     }
                 }
             }
 
+            if (launchGame)
+            {
+                Console.WriteLine("Launching game...");
+                Process.Start("GettingOverIt.exe");
+            }
+
             return 0;
+        }
+
+        private static Process[] FindProcesses(string currentModuleFileName, params string[] names)
+        {
+            var processes = new List<Process>();
+            foreach (Process process in Process.GetProcessesByName("GettingOverIt").Concat(Process.GetProcessesByName("GettingOverIt.Server")))
+            {
+                try
+                {
+                    if (process.MainModule.FileName.ToLowerInvariant() == currentModuleFileName.ToLowerInvariant())
+                        processes.Add(process);
+                }
+                catch (Exception ex)
+                {
+                    continue;
+                }
+            }
+
+            return processes.ToArray();
         }
 
         private static async Task<bool> DownloadVersionAsync(ModVersion modVersion)
