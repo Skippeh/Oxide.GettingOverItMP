@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using CommandLineParser.Exceptions;
 using Nancy.Bootstrapper;
 using Nancy.Hosting.Self;
@@ -46,16 +47,11 @@ namespace WebAPI
             using (var host = new NancyHost(bootstrapper, config, new Uri($"http://localhost:{LaunchArguments.Port}")))
             {
                 host.Start();
-                Console.WriteLine("Server started, press CTRL+Q to stop.");
+                Console.WriteLine("Server started, press CTRL+C to stop.");
 
                 while (true)
                 {
-                    var key = Console.ReadKey(true);
-
-                    if ((key.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control && key.Key == ConsoleKey.Q)
-                    {
-                        break;
-                    }
+                    Thread.Sleep(500);
                 }
             }
 
