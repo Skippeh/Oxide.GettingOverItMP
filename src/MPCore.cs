@@ -29,6 +29,8 @@ namespace Oxide.GettingOverIt
         private GameObject uiGameObject;
         private GameObject clientGameObject;
         private GameObject spectateGameObject;
+        private GameObject menuUiGameObject;
+        private MenuUI menuUi;
         private Client client;
 
         private GameObject localPlayer;
@@ -38,6 +40,8 @@ namespace Oxide.GettingOverIt
 
         private IPEndPoint launchEndPoint;
         private bool firstLaunch = true;
+        private bool firstEverLaunch;
+        private bool updateAvailable;
 
         public MPCore()
         {
@@ -73,6 +77,34 @@ namespace Oxide.GettingOverIt
                     Interface.Oxide.LogWarning("The current steam account is not subscribed to the game.");
                 }
             }
+
+            if (PlayerPrefs.GetInt("GOIMP_LaunchedBefore", 0) == 0)
+            {
+                PlayerPrefs.SetInt("GOIMP_LaunchedBefore", 1);
+                firstEverLaunch = true;
+            }
+
+            if (!firstEverLaunch && PlayerPrefs.GetInt("GOIMP_CheckForUpdates", 0) == 1)
+            {
+                try
+                {
+                    using (var apiClient = new ApiClient())
+                    {
+                        string currentVersion = MPExtension.AssemblyVersion + "_" + Application.version;
+                        string latestVersion = apiClient.QueryLatestVersion(ApiClient.ModType.Client);
+
+                        if (currentVersion != latestVersion)
+                        {
+                            Interface.Oxide.LogDebug($"Update available: {latestVersion}");
+                            updateAvailable = true;
+                        }
+                    }
+                }
+                catch (ApiRequestFailedException ex)
+                {
+                    Interface.Oxide.LogError("Failed to query latest version: " + ex);
+                }
+            }
         }
 
         [HookMethod("OnSceneChanged")]
@@ -88,15 +120,32 @@ namespace Oxide.GettingOverIt
                 localPlayerControl = localPlayer.GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl on local player");
                 localPoseControl = localPlayer.transform.Find("dude/mixamorig:Hips").GetComponent<PoseControl>() ?? throw new NotImplementedException("Could not find PoseControl on local player");
                 localPlayerBase = localPlayer.AddComponent<LocalPlayer>();
-
+                
                 InitSpectator();
                 InitUI();
                 InitClient();
             }
             else if (sceneType == SceneType.Menu)
             {
+                InitMenuUI();
+
                 if (firstLaunch)
+                {
                     firstLaunch = false;
+
+                    // Don't connect to server automatically if an update is available or if this is the first ever launch.
+                    if (firstEverLaunch)
+                    {
+                        menuUi.ShowFirstLaunch();
+                        return;
+                    }
+
+                    if (updateAvailable)
+                    {
+                        menuUi.ShowUpdateAvailable();
+                        return;
+                    }
+                }
                 else
                     return;
 
@@ -160,6 +209,10 @@ namespace Oxide.GettingOverIt
                 if (ListenServer.Running)
                     ListenServer.Stop();
             }
+            else if (sceneType != SceneType.Menu)
+            {
+                DestroyMenuUI();
+            }
         }
 
         [HookMethod("OnGameQuit")]
@@ -176,6 +229,21 @@ namespace Oxide.GettingOverIt
                 ListenServer.Update();
         }
 
+        private void InitMenuUI()
+        {
+            menuUiGameObject = new GameObject("GOIMP.Menu.UI");
+            menuUi = menuUiGameObject.AddComponent<MenuUI>();
+        }
+
+        private void DestroyMenuUI()
+        {
+            if (!menuUiGameObject)
+                return;
+
+            GameObject.Destroy(menuUiGameObject);
+            menuUi = null;
+        }
+
         private void InitUI()
         {
             if (uiGameObject)
@@ -188,7 +256,7 @@ namespace Oxide.GettingOverIt
 
         private void DestroyUI()
         {
-            if (uiGameObject == null || !uiGameObject)
+            if (!uiGameObject)
                 return;
 
             GameObject.Destroy(uiGameObject);
