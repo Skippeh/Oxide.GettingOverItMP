@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GettingOverItMP.Updater.Exceptions;
@@ -231,6 +232,8 @@ namespace GettingOverItMP.Updater
 
             if (filesToDownload.Count > 0)
             {
+                List<string> filesToReplace = new List<string>();
+
                 using (var progressBar = new ProgressBar(filesToDownload.Count, $"Downloading files", progressBarOptions))
                 {
                     var runningTasks = new Task[filesToDownload.Count];
@@ -238,7 +241,7 @@ namespace GettingOverItMP.Updater
                     for (int i = 0; i < filesToDownload.Count; ++i)
                     {
                         string filePath = filesToDownload[i];
-                        runningTasks[i] = DownloadFile(filePath, modVersion.Type, modVersion.Version, progressBar, (success) =>
+                        runningTasks[i] = DownloadFile(filePath, modVersion.Type, modVersion.Version, progressBar, filesToReplace, (success) =>
                         {
                             if (success)
                                 progressBar.Tick();
@@ -248,6 +251,25 @@ namespace GettingOverItMP.Updater
                     }
 
                     await Task.WhenAll(runningTasks);
+                }
+
+                if (filesToReplace.Count > 0)
+                {
+                    var scriptGenerator = new ScriptGenerator();
+                    scriptGenerator.WriteLine("Waiting for updater to exit...").SleepSeconds(1);
+                    filesToReplace.ForEach(filePath => scriptGenerator.MoveFile(filePath + ".new", filePath));
+
+                    string scriptFileName = scriptGenerator.GetFileName("update-finish");
+                    scriptGenerator.DeleteFile(scriptFileName);
+                    var script = scriptGenerator.Generate();
+                    File.WriteAllText(scriptFileName, script);
+
+                    Console.WriteLine("Exiting updater to replace files in use...");
+
+                    await Task.Delay(1000);
+
+                    Process.Start(scriptFileName);
+                    Environment.Exit(3);
                 }
             }
 
@@ -273,7 +295,7 @@ namespace GettingOverItMP.Updater
             }
         }
 
-        private static Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, Action<bool> doneCallback)
+        private static Task DownloadFile(string filePath, ModType modType, string version, ProgressBar parentProgressBar, List<string> filesToReplace, Action<bool> doneCallback)
         {
             return Task.Run(async () =>
             {
@@ -283,7 +305,15 @@ namespace GettingOverItMP.Updater
                     {
                         try
                         {
-                            await apiClient.DownloadFileAsync(filePath, filePath, modType, version, args =>
+                            string targetFilePath = filePath;
+
+                            if (Utility.FileInUse(targetFilePath))
+                            {
+                                targetFilePath += ".new";
+                                filesToReplace.Add(filePath);
+                            }
+
+                            await apiClient.DownloadFileAsync(filePath, targetFilePath, modType, version, args =>
                             {
                                 var headers = apiClient.WebClient.ResponseHeaders;
                                 long fileLength = long.Parse(headers["X-File-Length"]);

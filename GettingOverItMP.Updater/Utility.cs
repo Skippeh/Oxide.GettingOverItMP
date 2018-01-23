@@ -20,5 +20,24 @@ namespace GettingOverItMP.Updater
                 }
             }
         }
+
+        public static bool FileInUse(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return false;
+
+            try
+            {
+                using (File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                {
+                }
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

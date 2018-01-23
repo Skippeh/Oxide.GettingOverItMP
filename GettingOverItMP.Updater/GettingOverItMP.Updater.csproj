@@ -58,6 +58,7 @@
     <Compile Include="Models\ModVersion.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScriptGenerator.cs" />
     <Compile Include="ShellProgressBar\ChildProgressBar.cs" />
     <Compile Include="ShellProgressBar\IProgressBar.cs" />
     <Compile Include="ShellProgressBar\ProgressBar.cs" />
