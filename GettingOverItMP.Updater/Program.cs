@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -176,6 +177,7 @@ namespace GettingOverItMP.Updater
         {
             Console.WriteLine($"Downloading update: {modVersion.Version}...");
 
+            List<string> filesToDeleteInScript = new List<string>();
             var currentVersion = LocalData.Version;
 
             if (currentVersion != null)
@@ -192,6 +194,12 @@ namespace GettingOverItMP.Updater
 
                 foreach (string filePath in filesToDelete)
                 {
+                    if (Utility.FileInUse(filePath))
+                    {
+                        filesToDeleteInScript.Add(filePath);
+                        continue;
+                    }
+
                     try
                     {
                         File.Delete(filePath);
@@ -258,9 +266,15 @@ namespace GettingOverItMP.Updater
                     var scriptGenerator = new ScriptGenerator();
                     scriptGenerator.WriteLine("Waiting for updater to exit...").SleepSeconds(1);
                     filesToReplace.ForEach(filePath => scriptGenerator.MoveFile(filePath + ".new", filePath));
+                    filesToDeleteInScript.ForEach(filePath => scriptGenerator.DeleteFile(filePath));
 
                     string scriptFileName = scriptGenerator.GetFileName("update-finish");
-                    scriptGenerator.DeleteFile(scriptFileName);
+
+                    File.WriteAllText("version.json.new", JsonConvert.SerializeObject(modVersion, Formatting.None, SerializerSettings));
+                    scriptGenerator.MoveFile("version.json.new", "version.json");
+
+                    //scriptGenerator.DeleteFile(scriptFileName);
+                    scriptGenerator.LaunchFile(Assembly.GetEntryAssembly().Location, string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
                     var script = scriptGenerator.Generate();
                     File.WriteAllText(scriptFileName, script);
 

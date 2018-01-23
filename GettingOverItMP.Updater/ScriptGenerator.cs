@@ -110,7 +110,34 @@ namespace GettingOverItMP.Updater
 
         public ScriptGenerator WriteLine(string message)
         {
-            builder.AppendLine($"echo {message}");
+            switch (platform)
+            {
+                default: throw new NotImplementedException();
+                case Platform.Windows:
+                case Platform.Unix:
+                    builder.AppendLine($"echo {message}");
+                    break;
+            }
+
+            return this;
+        }
+
+        public ScriptGenerator LaunchFile(string filePath, string arguments)
+        {
+            filePath = Path.GetFullPath(filePath);
+
+            if (!string.IsNullOrEmpty(arguments))
+                arguments = " " + arguments;
+
+            switch (platform)
+            {
+                default: throw new NotImplementedException();
+                case Platform.Windows:
+                case Platform.Unix:
+                    builder.AppendLine($"\"{filePath}\"{arguments}");
+                    break;
+            }
+
             return this;
         }
     }
