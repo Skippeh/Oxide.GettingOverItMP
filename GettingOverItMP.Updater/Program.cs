@@ -273,7 +273,7 @@ namespace GettingOverItMP.Updater
                     File.WriteAllText("version.json.new", JsonConvert.SerializeObject(modVersion, Formatting.None, SerializerSettings));
                     scriptGenerator.MoveFile("version.json.new", "version.json");
 
-                    //scriptGenerator.DeleteFile(scriptFileName);
+                    scriptGenerator.DeleteFile(scriptFileName);
                     scriptGenerator.LaunchFile(Assembly.GetEntryAssembly().Location, string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
                     var script = scriptGenerator.Generate();
                     File.WriteAllText(scriptFileName, script);
