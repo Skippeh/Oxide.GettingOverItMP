@@ -81,9 +81,7 @@ namespace GettingOverItMP.Updater
                 currentModuleFileName = Path.Combine(currentModuleFileName, "GettingOverIt.Server.exe");
 
             var waitingProcesses = FindProcesses(currentModuleFileName, "GettingOverIt", "GettingOverIt.Server");
-
-            Console.WriteLine(waitingProcesses.Length);
-
+            
             if (waitingProcesses.Length > 0)
             {
                 Console.WriteLine("Waiting for processes to exit...");
@@ -261,7 +259,7 @@ namespace GettingOverItMP.Updater
                     await Task.WhenAll(runningTasks);
                 }
 
-                if (filesToReplace.Count > 0)
+                if (filesToReplace.Count > 0 || filesToDeleteInScript.Count > 0)
                 {
                     var scriptGenerator = new ScriptGenerator();
                     scriptGenerator.WriteLine("Waiting for updater to exit...").SleepSeconds(1);
