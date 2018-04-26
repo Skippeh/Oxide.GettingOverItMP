@@ -10,7 +10,6 @@ namespace Oxide.GettingOverItMP.Components
         public RemotePlayer Target { get; private set; }
 
         private LocalPlayer localPlayer;
-        private CameraControl cameraControl;
         private Client client;
 
         private GUIContent text1;
@@ -22,7 +21,6 @@ namespace Oxide.GettingOverItMP.Components
         private void Start()
         {
             localPlayer = GameObject.Find("Player").GetComponent<LocalPlayer>() ?? throw new NotImplementedException("Could not find LocalPlayer");
-            cameraControl = GameObject.Find("Main Camera").GetComponent<CameraControl>() ?? throw new NotImplementedException("Could not find CameraControl");
             client = GameObject.Find("GOIMP.Client").GetComponent<Client>() ?? throw new NotImplementedException("Could not find Client");
 
             text1 = new GUIContent("[SPECTATING]");
@@ -80,7 +78,7 @@ namespace Oxide.GettingOverItMP.Components
 
             if (player != null)
             {
-                DisableLocalPlayer();
+                localPlayer.Disable();
 
                 // Teleport camera if target is 20+ meters away
                 if ((cameraZ0 - player.transform.position).sqrMagnitude > 20 * 20)
@@ -93,7 +91,7 @@ namespace Oxide.GettingOverItMP.Components
             }
             else
             {
-                EnableLocalPlayer();
+                localPlayer.Enable();
 
                 if ((cameraZ0 - localPlayer.transform.position).sqrMagnitude > 20 * 20)
                 {
@@ -108,20 +106,6 @@ namespace Oxide.GettingOverItMP.Components
         public void StopSpectating()
         {
             SpectatePlayer(null);
-        }
-
-        private void EnableLocalPlayer()
-        {
-            localPlayer.EnableRenderers();
-            localPlayer.GetComponent<PlayerControl>().PauseInput(0);
-            cameraControl.enabled = true;
-        }
-
-        private void DisableLocalPlayer()
-        {
-            localPlayer.GetComponent<PlayerControl>().PauseInput(float.MinValue);
-            localPlayer.DisableRenderers();
-            cameraControl.enabled = false;
         }
     }
 }
