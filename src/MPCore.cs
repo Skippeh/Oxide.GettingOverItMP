@@ -12,6 +12,7 @@ using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP;
 using Oxide.GettingOverItMP.Components;
+using Oxide.GettingOverItMP.Components.MapEditing;
 using Oxide.GettingOverItMP.Networking;
 using RootMotion.FinalIK;
 using ServerShared;
@@ -30,6 +31,7 @@ namespace Oxide.GettingOverIt
         private GameObject clientGameObject;
         private GameObject spectateGameObject;
         private GameObject menuUiGameObject;
+        private GameObject mapEditorObject;
         private MenuUI menuUi;
         private Client client;
 
@@ -37,6 +39,7 @@ namespace Oxide.GettingOverIt
         private PlayerControl localPlayerControl;
         private PoseControl localPoseControl;
         private MPBasePlayer localPlayerBase;
+        private MapEditManager mapEditManager;
 
         private IPEndPoint launchEndPoint;
         private bool firstLaunch = true;
@@ -126,6 +129,7 @@ namespace Oxide.GettingOverIt
                 InitSpectator();
                 InitUI();
                 InitClient();
+                InitMapEditor();
             }
             else if (sceneType == SceneType.Menu)
             {
@@ -204,6 +208,7 @@ namespace Oxide.GettingOverIt
 
             if (sceneType != SceneType.Game)
             {
+                DestroyMapEditor();
                 DestroyClient();
                 DestroyUI();
                 DestroySpectator();
@@ -279,6 +284,15 @@ namespace Oxide.GettingOverIt
             }
         }
 
+        private void InitMapEditor()
+        {
+            if (mapEditorObject)
+                return;
+
+            mapEditorObject = new GameObject("GOIMP.MapEditManager");
+            mapEditManager = mapEditorObject.AddComponent<MapEditManager>();
+        }
+
         private void DestroyClient()
         {
             if (clientGameObject == null || !clientGameObject)
@@ -302,6 +316,14 @@ namespace Oxide.GettingOverIt
                 return;
 
             GameObject.Destroy(spectateGameObject);
+        }
+
+        private void DestroyMapEditor()
+        {
+            if (!mapEditorObject)
+                return;
+
+            GameObject.Destroy(mapEditorObject);
         }
 
         public static void LogGameObjects(IEnumerable<GameObject> gameObjects, int indentLevel = 0)
