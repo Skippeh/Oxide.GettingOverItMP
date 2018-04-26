@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
+using Oxide.GettingOverItMP.Components.MapEditing;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Event = UnityEngine.Event;
@@ -17,6 +18,7 @@ namespace Oxide.GettingOverItMP.Components
         private bool lastShowUi;
 
         private PlayerControl localPlayerControl;
+        private MapEditManager mapEditManager;
 
         private GUIStyle backgroundStyle;
 
@@ -25,6 +27,24 @@ namespace Oxide.GettingOverItMP.Components
         private void Start()
         {
             localPlayerControl = GameObject.Find("Player").GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl");
+            mapEditManager = GameObject.Find("GOIMP.MapEditManager").GetComponent<MapEditManager>();
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                if (mapEditManager.EditModeEnabled)
+                {
+                    Debug.Log("Disabling edit mode");
+                    mapEditManager.DisableEditMode();
+                }
+                else
+                {
+                    Debug.Log("Enabling edit mode");
+                    mapEditManager.EnableEditMode();
+                }
+            }
         }
 
         private void OnGUI()
