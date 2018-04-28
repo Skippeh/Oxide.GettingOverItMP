@@ -86,7 +86,7 @@ namespace Oxide.GettingOverItMP.Components
 
                 // Raycast world
                 Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                RaycastHit2D raycastHit = Physics2D.Raycast(mouseWorldPosition, Vector2.zero, 1000);
+                RaycastHit2D[] raycastHits = Physics2D.RaycastAll(mouseWorldPosition, Vector2.zero, 1000);
 
                 // Raycast UI
                 var pointerData = new PointerEventData(EventSystem.current);
@@ -97,32 +97,45 @@ namespace Oxide.GettingOverItMP.Components
                 results = results.Where(result => result.gameObject.transform.childCount == 0).ToList();
 
                 // Clamp selected index to valid a valid index
-                selectedIndex = Mathf.Clamp(selectedIndex, raycastHit.transform != null ? 0 : 1, results.Count);
+                selectedIndex = Mathf.Clamp(selectedIndex, 0, results.Count + raycastHits.Length - 1);
                 
                 // Build string
                 StringBuilder builder = new StringBuilder();
 
-                if (raycastHit.transform != null)
+                if (raycastHits.Length > 0)
                 {
-                    builder.Append("World:\n- ");
+                    builder.Append("World:\n");
 
-                    if (selectedIndex == 0)
-                        builder.Append("[");
+                    for (var i = 0; i < raycastHits.Length; ++i)
+                    {
+                        RaycastHit2D raycastHit = raycastHits[i];
 
-                    builder.Append($"{GetPathString(raycastHit.transform.gameObject)} ({LayerMask.LayerToName(raycastHit.transform.gameObject.layer)})");
+                        if (raycastHit.transform != null)
+                        {
+                            builder.Append("- ");
 
-                    if (selectedIndex == 0)
-                        builder.Append("]");
+                            if (selectedIndex == i)
+                                builder.Append("[");
+
+                            builder.Append($"{GetPathString(raycastHit.transform.gameObject)} ({LayerMask.LayerToName(raycastHit.transform.gameObject.layer)})");
+
+                            if (selectedIndex == i)
+                                builder.Append("]");
+
+                            if (i < raycastHits.Length - 1)
+                                builder.Append("\n");
+                        }
+                    }
                 }
-                
+
                 if (results.Any())
                 {
                     builder.AppendLine("\nUI:");
 
                     for (var i = 0; i < results.Count; i++)
                     {
-                        string prefix = selectedIndex - 1 == i ? "[" : "";
-                        string suffix = selectedIndex - 1 == i ? "]" : "";
+                        string prefix = selectedIndex - raycastHits.Length == i ? "[" : "";
+                        string suffix = selectedIndex - raycastHits.Length == i ? "]" : "";
 
                         var result = results[i];
                         builder.Append($"- {prefix}{GetPathString(result.gameObject)}{suffix}");
@@ -132,24 +145,24 @@ namespace Oxide.GettingOverItMP.Components
                     }
                 }
 
-                if (currentEvent.isKey && currentEvent.type == EventType.KeyDown && currentEvent.keyCode == KeyCode.F4 && (raycastHit.transform != null || results.Any()))
+                if (currentEvent.isKey && currentEvent.type == EventType.KeyDown && currentEvent.keyCode == KeyCode.F4 && (raycastHits.Length > 0 || results.Any()))
                 {
                     string toCopy;
 
-                    if (selectedIndex == 0)
+                    if (selectedIndex < raycastHits.Length)
                     {
-                        toCopy = GetPathString(raycastHit.transform.gameObject);
+                        toCopy = GetPathString(raycastHits[selectedIndex].transform.gameObject);
                     }
                     else
                     {
-                        toCopy = GetPathString(results[selectedIndex - 1].gameObject);
+                        toCopy = GetPathString(results[selectedIndex - raycastHits.Length].gameObject);
                     }
 
                     GUIUtility.systemCopyBuffer = toCopy;
                     Interface.Oxide.LogDebug($"Copied to clipboard: {toCopy}");
                 }
 
-                if (raycastHit.transform == null && !results.Any())
+                if (raycastHits.Length == 0 && !results.Any())
                     return;
 
                 var content = new GUIContent(builder.ToString());
