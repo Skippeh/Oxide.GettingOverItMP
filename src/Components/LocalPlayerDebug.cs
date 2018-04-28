@@ -27,7 +27,7 @@ namespace Oxide.GettingOverItMP.Components
         private void Start()
         {
             localPlayerControl = GameObject.Find("Player").GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl");
-            mapEditManager = GameObject.Find("GOIMP.MapEditManager").GetComponent<MapEditManager>();
+            mapEditManager = GameObject.Find("GOIMP.MapEditManager").GetComponent<MapEditManager>() ?? throw new NotImplementedException("Could not find MapEditManager");
         }
 
         private void Update()
