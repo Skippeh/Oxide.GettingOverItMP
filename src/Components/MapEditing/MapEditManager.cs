@@ -14,12 +14,24 @@ namespace Oxide.GettingOverItMP.Components.MapEditing
             localPlayer = GameObject.Find("Player").GetComponent<LocalPlayer>() ?? throw new NotImplementedException("Could not find LocalPlayer");
         }
 
+        private void Update()
+        {
+            if (EditModeEnabled)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+        }
+
         public void EnableEditMode()
         {
             if (EditModeEnabled)
                 return;
 
             localPlayer.Disable();
+            localPlayer.FreeCamera.enabled = true;
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
 
             EditModeEnabled = true;
         }
@@ -30,6 +42,10 @@ namespace Oxide.GettingOverItMP.Components.MapEditing
                 return;
 
             localPlayer.Enable();
+            localPlayer.FreeCamera.enabled = false;
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
 
             EditModeEnabled = false;
         }

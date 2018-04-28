@@ -10,6 +10,8 @@ namespace Oxide.GettingOverItMP.Components
 
         public override string PlayerName { get; set; }
 
+        public FreeCameraController FreeCamera { get; private set; }
+
         private Spectator spectator;
         private CameraControl cameraControl;
         private PlayerControl playerControl;
@@ -23,6 +25,8 @@ namespace Oxide.GettingOverItMP.Components
             
             cameraControl = GameObject.Find("Main Camera").GetComponent<CameraControl>() ?? throw new NotImplementedException("Could not find CameraControl");
             playerControl = GetComponent<PlayerControl>();
+            FreeCamera = gameObject.AddComponent<FreeCameraController>();
+            FreeCamera.enabled = false;
 
             OriginalGoldness = ProceduralMaterial.GetProceduralFloat("Goldness");
             OriginalPotColor = ProceduralMaterial.color;
