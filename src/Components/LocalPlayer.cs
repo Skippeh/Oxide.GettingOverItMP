@@ -15,6 +15,7 @@ namespace Oxide.GettingOverItMP.Components
         private Spectator spectator;
         private CameraControl cameraControl;
         private PlayerControl playerControl;
+        private bool physicsEnabled = true;
 
         protected override void Start()
         {
@@ -63,15 +64,47 @@ namespace Oxide.GettingOverItMP.Components
         public void Enable()
         {
             EnableRenderers();
-            playerControl.PauseInput(0);
+            EnablePhysics();
+            playerControl.enabled = true;
+            playerControl.loadFinished = true;
             cameraControl.enabled = true;
         }
 
         public void Disable()
         {
-            playerControl.PauseInput(float.MinValue);
             DisableRenderers();
+            DisablePhysics();
+            playerControl.fakeCursor.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            playerControl.enabled = false;
             cameraControl.enabled = false;
+        }
+
+        public void EnablePhysics()
+        {
+            if (physicsEnabled)
+                return;
+
+            foreach (Rigidbody2D rigidBody in GetComponentsInChildren<Rigidbody2D>())
+            {
+                rigidBody.isKinematic = false;
+            }
+            
+            physicsEnabled = true;
+        }
+
+        public void DisablePhysics()
+        {
+            if (!physicsEnabled)
+                return;
+
+            foreach (Rigidbody2D rigidBody in GetComponentsInChildren<Rigidbody2D>())
+            {
+                rigidBody.isKinematic = true;
+                rigidBody.velocity = Vector2.zero;
+                rigidBody.angularVelocity = 0;
+            }
+            
+            physicsEnabled = false;
         }
     }
 }
