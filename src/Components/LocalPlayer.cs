@@ -78,6 +78,26 @@ namespace Oxide.GettingOverItMP.Components
             cameraControl.enabled = false;
         }
 
+        public override void EnableRenderers()
+        {
+            if (!renderersEnabled)
+            {
+                playerControl.fakeCursor.GetComponent<SpriteRenderer>().enabled = true;
+            }
+
+            base.EnableRenderers();
+        }
+
+        public override void DisableRenderers()
+        {
+            if (renderersEnabled)
+            {
+                playerControl.fakeCursor.GetComponent<SpriteRenderer>().enabled = false;
+            }
+
+            base.DisableRenderers();
+        }
+
         public void EnablePhysics()
         {
             if (physicsEnabled)

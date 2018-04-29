@@ -19,7 +19,7 @@ namespace Oxide.GettingOverItMP.Components
         protected Transform tip;
 
         protected ProceduralMaterial ProceduralMaterial { get; private set; }
-        private bool renderersEnabled = true;
+        protected bool renderersEnabled = true;
         private float goldness;
 
         protected virtual void Start()
@@ -96,7 +96,7 @@ namespace Oxide.GettingOverItMP.Components
             ProceduralMaterial.color = color;
         }
 
-        public void EnableRenderers()
+        public virtual void EnableRenderers()
         {
             if (renderersEnabled)
                 return;
@@ -109,7 +109,7 @@ namespace Oxide.GettingOverItMP.Components
             renderersEnabled = true;
         }
 
-        public void DisableRenderers()
+        public virtual void DisableRenderers()
         {
             if (!renderersEnabled)
                 return;
