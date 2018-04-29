@@ -66,7 +66,6 @@ namespace Oxide.GettingOverItMP.Components
             EnableRenderers();
             EnablePhysics();
             playerControl.enabled = true;
-            playerControl.loadFinished = true;
             cameraControl.enabled = true;
         }
 
