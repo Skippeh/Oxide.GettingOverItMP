@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
-using Oxide.GettingOverItMP.Components.MapEditing;
+using Oxide.GettingOverIt;
+using Oxide.GettingOverItMP.Components.CustomMaps.Editing;
+using Oxide.GettingOverItMP.Debugging;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Event = UnityEngine.Event;
@@ -19,15 +20,19 @@ namespace Oxide.GettingOverItMP.Components
 
         private PlayerControl localPlayerControl;
         private MapEditManager mapEditManager;
+        private LocalPlayer localPlayer;
 
         private GUIStyle backgroundStyle;
 
         private int selectedIndex = 0;
 
+        private List<GameObject> hoverObjects = new List<GameObject>();
+
         private void Start()
         {
             localPlayerControl = GameObject.Find("Player").GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl");
-            mapEditManager = GameObject.Find("GOIMP.MapEditManager").GetComponent<MapEditManager>() ?? throw new NotImplementedException("Could not find MapEditManager");
+            mapEditManager = GameObject.Find("GOIMP.MapManager").GetComponent<MapEditManager>() ?? throw new NotImplementedException("Could not find MapEditManager");
+            localPlayer = GetComponent<LocalPlayer>();
         }
 
         private void Update()
@@ -44,6 +49,10 @@ namespace Oxide.GettingOverItMP.Components
                     Debug.Log("Enabling edit mode");
                     mapEditManager.EnableEditMode();
                 }
+            }
+            else if (Input.GetKeyDown(KeyCode.F6))
+            {
+                localPlayer.Teleport(new Vector2(0, 10));
             }
         }
 
@@ -88,6 +97,19 @@ namespace Oxide.GettingOverItMP.Components
                 Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 RaycastHit2D[] raycastHits = Physics2D.RaycastAll(mouseWorldPosition, Vector2.zero, 1000);
 
+                // Remove visualizer from objects not hovered over anymore
+                foreach (var gameObject in hoverObjects.ToList())
+                {
+                    if (raycastHits.Any(hit => hit.transform == gameObject.transform))
+                        continue;
+
+                    if (raycastHits.Any(hit => gameObject.transform.IsChildOf(hit.transform)))
+                        continue;
+
+                    hoverObjects.Remove(gameObject);
+                    Destroy(gameObject.GetComponent<PolygonColliderVisualizer>());
+                }
+
                 // Raycast UI
                 var pointerData = new PointerEventData(EventSystem.current);
                 pointerData.position = Input.mousePosition;
@@ -112,12 +134,24 @@ namespace Oxide.GettingOverItMP.Components
 
                         if (raycastHit.transform != null)
                         {
+                            var polygonColliders = raycastHit.transform.gameObject.GetComponentsInSelfAndChildren<PolygonCollider2D>();
+
+                            foreach (var collider in polygonColliders)
+                            {
+                                if (!hoverObjects.Contains(collider.gameObject))
+                                {
+                                    hoverObjects.Add(collider.gameObject);
+                                    collider.gameObject.AddComponent<PolygonColliderVisualizer>();
+                                }
+                            }
+
                             builder.Append("- ");
 
                             if (selectedIndex == i)
                                 builder.Append("[");
 
-                            builder.Append($"{GetPathString(raycastHit.transform.gameObject)} ({LayerMask.LayerToName(raycastHit.transform.gameObject.layer)})");
+                            //builder.Append($"{GetPathString(raycastHit.transform.gameObject)} ({LayerMask.LayerToName(raycastHit.transform.gameObject.layer)})");
+                            builder.Append($"{MPCore.LogGameObjectsToString(new[] {raycastHit.transform.gameObject})}");
 
                             if (selectedIndex == i)
                                 builder.Append("]");
@@ -194,20 +228,12 @@ namespace Oxide.GettingOverItMP.Components
 
         private string GetPathString(GameObject gameObject)
         {
-            if (gameObject == null)
-                return "null";
-            
-            var builder = new StringBuilder();
-
-            if (gameObject.transform.parent != null)
-                builder.Append(GetPathString(gameObject.transform.parent.gameObject) + "/");
-
-            builder.Append(gameObject.name);
+            var result = gameObject.ToHierarchicalString();
 
             if (!gameObject.activeInHierarchy)
-                builder.Append(" (inactive)");
+                result += " (inactive)";
 
-            return builder.ToString();
+            return result;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Oxide.GettingOverItMP.Components
         public float CameraSpeed = 10;
         public float SpeedBoostMultiplier = 2f;
 
-        public float MinimumOrtoSize => initialOrtoSize * 0.5f;
+        public float MinimumOrtoSize => initialOrtoSize * 0.1f;
         public float MaximumOrtoSize => initialOrtoSize * 10f;
         private float ZoomMultiplier => Camera.orthographicSize / initialOrtoSize;
 
@@ -22,7 +22,7 @@ namespace Oxide.GettingOverItMP.Components
         
         private void OnDisable()
         {
-            Camera.orthographicSize = initialOrtoSize;
+            //Camera.orthographicSize = initialOrtoSize;
         }
 
         private void Update()
@@ -57,13 +57,16 @@ namespace Oxide.GettingOverItMP.Components
                 Translate(translation * Time.deltaTime);
             }
 
-            float newOrtoSize = Camera.orthographicSize + (-Input.mouseScrollDelta.y * 1.25f);
-            Camera.orthographicSize = Mathf.Clamp(newOrtoSize, MinimumOrtoSize, MaximumOrtoSize);
-
-            // Reset zoom on middle mouse click
-            if (Input.GetMouseButtonDown(2))
+            if (!Input.GetKey(KeyCode.F3)) // Only change zoom if F3 is not being held (debug button for viewing current object under cursor)
             {
-                Camera.orthographicSize = initialOrtoSize;
+                float newOrtoSize = Camera.orthographicSize + (-Input.mouseScrollDelta.y * 1.25f);
+                Camera.orthographicSize = Mathf.Clamp(newOrtoSize, MinimumOrtoSize, MaximumOrtoSize);
+
+                // Reset zoom on middle mouse click
+                if (Input.GetMouseButtonDown(2))
+                {
+                    Camera.orthographicSize = initialOrtoSize;
+                }
             }
         }
 

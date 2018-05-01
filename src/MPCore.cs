@@ -12,10 +12,15 @@ using Oxide.Core.Plugins;
 using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP;
 using Oxide.GettingOverItMP.Components;
-using Oxide.GettingOverItMP.Components.MapEditing;
+using Oxide.GettingOverItMP.Components.CustomMaps;
+using Oxide.GettingOverItMP.Components.CustomMaps.Editing;
 using Oxide.GettingOverItMP.Networking;
 using RootMotion.FinalIK;
 using ServerShared;
+using ServerShared.CustomMaps;
+using ServerShared.CustomMaps.ComponentModels;
+using ServerShared.CustomMaps.ComponentModels.Collision;
+using ServerShared.CustomMaps.ComponentModels.Visual;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -31,15 +36,16 @@ namespace Oxide.GettingOverIt
         private GameObject clientGameObject;
         private GameObject spectateGameObject;
         private GameObject menuUiGameObject;
-        private GameObject mapEditorObject;
+        private GameObject mapManagerObject;
         private MenuUI menuUi;
         private Client client;
 
         private GameObject localPlayer;
         private PlayerControl localPlayerControl;
         private PoseControl localPoseControl;
-        private MPBasePlayer localPlayerBase;
+        private LocalPlayer localPlayerBase;
         private MapEditManager mapEditManager;
+        private MapManager mapManager;
 
         private IPEndPoint launchEndPoint;
         private bool firstLaunch = true;
@@ -130,6 +136,64 @@ namespace Oxide.GettingOverIt
                 InitUI();
                 InitClient();
                 InitMapEditor();
+                
+                mapManager.LoadMap(new GameMapModel
+                {
+                    Entities =
+                    {
+                        new MapEntityModel
+                        {
+                            Id = 0,
+                            Position = Vector3.zero,
+                            Scale = new Vector3(10, 10, 10),
+                            Components =
+                            {
+                                new EntityMeshComponentModel
+                                {
+                                    Id = 0,
+                                    //PrefabId = "Mountain/Intresto_rock055_252vert_500face_scale_1m_tex_sandstone1"
+                                    PrefabId = "GOIMP/Sphere"
+                                },
+                                new EntityCircleColliderComponentModel
+                                {
+                                    Id = 1,
+                                    Friction = 1f,
+                                    Radius = 0.5f,
+                                    Material = (int)GroundCol.SoundMaterial.solidmetal
+                                }
+                            }
+                        },
+                        new MapEntityModel
+                        {
+                            Id = 1,
+                            Position = new Vector2(15, 0),
+                            Scale = new Vector3(10, 10, 10),
+                            Components =
+                            {
+                                new EntityMeshComponentModel
+                                {
+                                    Id = 0,
+                                    PrefabId = "GOIMP/Cube"
+                                },
+                                new EntityPolygonColliderComponentModel
+                                {
+                                    Id = 1,
+                                    Friction = 1f,
+                                    Material = (int)GroundCol.SoundMaterial.solidmetal,
+                                    Points = new[]
+                                    {
+                                        new Vector2(-0.5f, 0.5f),
+                                        new Vector2(0.5f, 0.5f),
+                                        new Vector2(0.5f, -0.5f),
+                                        new Vector2(-0.5f, -0.5f)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                localPlayerBase.Teleport(new Vector2(0, 10));
             }
             else if (sceneType == SceneType.Menu)
             {
@@ -286,11 +350,13 @@ namespace Oxide.GettingOverIt
 
         private void InitMapEditor()
         {
-            if (mapEditorObject)
+            if (mapManagerObject)
                 return;
 
-            mapEditorObject = new GameObject("GOIMP.MapEditManager");
-            mapEditManager = mapEditorObject.AddComponent<MapEditManager>();
+            MapManager.LoadMapObjects();
+            mapManagerObject = new GameObject("GOIMP.MapManager");
+            mapManager = mapManagerObject.AddComponent<MapManager>();
+            mapEditManager = mapManagerObject.AddComponent<MapEditManager>();
         }
 
         private void DestroyClient()
@@ -320,22 +386,29 @@ namespace Oxide.GettingOverIt
 
         private void DestroyMapEditor()
         {
-            if (!mapEditorObject)
+            if (!mapManagerObject)
                 return;
 
-            GameObject.Destroy(mapEditorObject);
+            MapManager.DestroyMapObjects();
+            GameObject.Destroy(mapManagerObject);
         }
 
-        public static void LogGameObjects(IEnumerable<GameObject> gameObjects, int indentLevel = 0)
+        public static void LogGameObjects(IEnumerable<GameObject> gameObjects)
         {
+            Interface.Oxide.LogDebug(LogGameObjectsToString(gameObjects));
+        }
+
+        public static string LogGameObjectsToString(IEnumerable<GameObject> gameObjects, int indentLevel = 0)
+        {
+            var builder = new StringBuilder();
             var gameObjectList = gameObjects.ToList();
 
             if (indentLevel == 0)
-                Interface.Oxide.LogDebug($"# GameObjects: {gameObjectList.Count}");
+                builder.AppendLine($"# GameObjects: {gameObjectList.Count}");
 
             foreach (GameObject gameObject in gameObjectList)
             {
-                Interface.Oxide.LogDebug(indentLevel + " " + new string(' ', indentLevel) + GameObjectToString(gameObject));
+                builder.AppendLine(indentLevel + " " + new string(' ', indentLevel) + GameObjectToString(gameObject));
 
                 if (gameObject == null)
                     continue;
@@ -346,11 +419,13 @@ namespace Oxide.GettingOverIt
                     childObjects.Add(childTransform.gameObject);
                 }
 
-                LogGameObjects(childObjects, indentLevel + 1);
+                builder.Append(LogGameObjectsToString(childObjects, indentLevel + 1));
             }
+
+            return builder.ToString();
         }
 
-        private static string GameObjectToString(GameObject go)
+        public static string GameObjectToString(GameObject go)
         {
             if (go == null)
                 return "null";
@@ -372,6 +447,7 @@ namespace Oxide.GettingOverIt
             }
 
             builder.Append("]");
+
             return builder.ToString();
         }
     }

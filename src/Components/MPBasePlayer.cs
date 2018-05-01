@@ -22,6 +22,10 @@ namespace Oxide.GettingOverItMP.Components
         protected bool renderersEnabled = true;
         private float goldness;
 
+        protected virtual void Awake()
+        {
+        }
+
         protected virtual void Start()
         {
             Interface.Oxide.LogDebug($"{GetType().Name} Start");

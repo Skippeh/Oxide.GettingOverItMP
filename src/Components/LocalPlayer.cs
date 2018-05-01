@@ -16,21 +16,24 @@ namespace Oxide.GettingOverItMP.Components
         private CameraControl cameraControl;
         private PlayerControl playerControl;
         private bool physicsEnabled = true;
-
+        
         protected override void Start()
         {
-            base.Start();
-            
             spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
             gameObject.AddComponent<LocalPlayerDebug>();
-            
+
             cameraControl = GameObject.Find("Main Camera").GetComponent<CameraControl>() ?? throw new NotImplementedException("Could not find CameraControl");
-            playerControl = GetComponent<PlayerControl>();
-            FreeCamera = gameObject.AddComponent<FreeCameraController>();
-            FreeCamera.enabled = false;
 
             OriginalGoldness = ProceduralMaterial.GetProceduralFloat("Goldness");
             OriginalPotColor = ProceduralMaterial.color;
+        }
+
+        protected override void Awake()
+        {
+            playerControl = GetComponent<PlayerControl>();
+
+            FreeCamera = gameObject.AddComponent<FreeCameraController>();
+            FreeCamera.enabled = false;
         }
 
         protected override void Update()
@@ -124,6 +127,21 @@ namespace Oxide.GettingOverItMP.Components
             }
             
             physicsEnabled = false;
+        }
+
+        public void Teleport(Vector2 position, bool resetVelocity = true)
+        {
+            var cursorOffset = playerControl.fakeCursor.position - transform.position;
+
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+            playerControl.fakeCursor.transform.position = transform.position + cursorOffset;
+            
+            if (resetVelocity)
+            {
+                var rigidBody = GetComponent<Rigidbody2D>();
+                rigidBody.velocity = Vector2.zero;
+                rigidBody.angularVelocity = 0;
+            }
         }
     }
 }
