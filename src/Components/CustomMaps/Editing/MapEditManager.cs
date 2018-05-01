@@ -1,4 +1,5 @@
 ﻿using System;
+using RuntimeGizmos;
 using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
@@ -10,10 +11,12 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
         private LocalPlayer localPlayer;
 
         private GameObject selectedObject;
+        private TransformGizmo transformGizmo;
         
         private void Start()
         {
             localPlayer = GameObject.Find("Player").GetComponent<LocalPlayer>() ?? throw new NotImplementedException("Could not find LocalPlayer");
+            transformGizmo = Camera.main.gameObject.AddComponent<TransformGizmo>();
         }
 
         private void Update()
@@ -35,6 +38,8 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
 
+            transformGizmo.enabled = true;
+
             EditModeEnabled = true;
         }
 
@@ -43,6 +48,9 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
             if (!EditModeEnabled)
                 return;
 
+            SelectObject(null);
+            transformGizmo.enabled = false;
+            
             localPlayer.Enable();
             localPlayer.FreeCamera.enabled = false;
 
@@ -57,16 +65,19 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
             if (gameObject != null && !gameObject)
                 throw new ArgumentException("Tried to select destroyed object");
 
+            if (gameObject == selectedObject)
+                return;
+
             if (selectedObject)
             {
-                // todo: remove any temporary components added to previously selected object.
+                // todo: remove any temporary components added to previously selected object
             }
 
             selectedObject = gameObject;
 
             if (selectedObject)
             {
-
+                // todo: add any temporary components to selected object
             }
         }
     }
