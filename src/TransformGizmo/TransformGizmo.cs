@@ -221,11 +221,11 @@ namespace RuntimeGizmos
 		{
 			if(selectedAxis == Axis.None && Input.GetMouseButtonDown(0))
 			{
-				RaycastHit hitInfo; 
-				if(Physics.Raycast(myCamera.ScreenPointToRay(Input.mousePosition), out hitInfo))
-				{
-					target = hitInfo.transform;
-				}else{
+			    RaycastHit2D hitInfo = Physics2D.Raycast(myCamera.ScreenToWorldPoint(Input.mousePosition), Vector3.zero);
+                if (hitInfo.transform != null)
+                {
+                    target = hitInfo.transform;
+                }else{
 					target = null;
 				}
 			}
