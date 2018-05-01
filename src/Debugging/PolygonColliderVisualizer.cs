@@ -44,6 +44,7 @@ namespace Oxide.GettingOverItMP.Debugging
         private void OnDestroy()
         {
             Destroy(visualizeObject);
+            Destroy(mesh);
         }
 
         public void RebuildMesh()
