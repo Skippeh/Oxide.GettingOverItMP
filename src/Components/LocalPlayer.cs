@@ -138,9 +138,13 @@ namespace Oxide.GettingOverItMP.Components
             
             if (resetVelocity)
             {
-                var rigidBody = GetComponent<Rigidbody2D>();
-                rigidBody.velocity = Vector2.zero;
-                rigidBody.angularVelocity = 0;
+                var rigidBodies = gameObject.GetComponentsInSelfAndChildren<Rigidbody2D>();
+
+                foreach (var rigidBody in rigidBodies)
+                {
+                    rigidBody.velocity = Vector2.zero;
+                    rigidBody.angularVelocity = 0;
+                }
             }
         }
     }
