@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1801141236
+CRC: 2835285926
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 34d8f7a039e2d579af89d8dc6c5c93ad
+    Hash: 935783c05e831f706b91bcdaa29c030e
   TypeTreeHash:
     serializedVersion: 2
     Hash: bf45a693cba34bf6690ae7a121f21f9c
@@ -12,5 +12,6 @@ ClassTypes:
 - Class: 48
   Script: {instanceID: 0}
 Assets:
+- Assets/Shaders/Lines.shader
 - Assets/Shaders/AlphaMask.shader
 Dependencies: []
