@@ -54,5 +54,15 @@ namespace Oxide.GettingOverItMP
         {
             return gameObject.GetComponents<T>().Concat(gameObject.GetComponentsInChildren<T>()).ToArray();
         }
+
+        public static T GetComponentInSelfOrParent<T>(this GameObject gameObject) where T : Component
+        {
+            return gameObject.GetComponent<T>() ?? gameObject.GetComponentInParent<T>();
+        }
+
+        public static T[] GetComponentsInSelfAndParent<T>(this GameObject gameObject) where T : Component
+        {
+            return gameObject.GetComponents<T>().Concat(gameObject.GetComponentsInParent<T>()).ToArray();
+        }
     }
 }

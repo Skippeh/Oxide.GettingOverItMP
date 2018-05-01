@@ -3,6 +3,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using Oxide.GettingOverItMP;
+using Oxide.GettingOverItMP.Components.CustomMaps;
+using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents;
 
 namespace RuntimeGizmos
 {
@@ -225,9 +227,9 @@ namespace RuntimeGizmos
             if (selectedAxis == Axis.None && Input.GetMouseButtonDown(0))
             {
                 RaycastHit2D hitInfo = Physics2D.Raycast(myCamera.ScreenToWorldPoint(Input.mousePosition), Vector3.zero);
-                if (hitInfo.transform != null)
+                if (hitInfo.collider && hitInfo.collider.gameObject.GetComponentInParent<MapEntity>())
                 {
-                    target = hitInfo.transform;
+                    target = hitInfo.collider.gameObject.GetComponentInParent<MapEntity>().transform;
                 }
                 else
                 {
