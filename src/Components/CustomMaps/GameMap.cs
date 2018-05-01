@@ -72,7 +72,6 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
             newObject.SetLayerRecursively(LayerMask.NameToLayer("Terrain"));
             entities.Add(entity.Id, entity);
 
-            MPCore.LogGameObjects(new[] {newObject});
             if (entityModel.Components.Any(component => component is EntitySpawnPointComponentModel))
                 spawnPoints.Add(entity);
             

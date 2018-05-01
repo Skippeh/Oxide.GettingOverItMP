@@ -20,6 +20,7 @@ using ServerShared;
 using ServerShared.CustomMaps;
 using ServerShared.CustomMaps.ComponentModels;
 using ServerShared.CustomMaps.ComponentModels.Collision;
+using ServerShared.CustomMaps.ComponentModels.Informational;
 using ServerShared.CustomMaps.ComponentModels.Visual;
 using Steamworks;
 using UnityEngine;
@@ -136,15 +137,27 @@ namespace Oxide.GettingOverIt
                 InitUI();
                 InitClient();
                 InitMapEditor();
-                
-                mapManager.LoadMap(new GameMapModel
+
+                var entities = new List<MapEntityModel>();
+
+                entities.Add(new MapEntityModel
                 {
-                    Entities =
+                    Id = 0,
+                    Position = new Vector2(0, 160),
+                    Components =
+                    {
+                        new EntitySpawnPointComponentModel()
+                    }
+                });
+
+                for (uint i = 0; i < 300; i += 3)
+                {
+                    entities.AddRange(new[]
                     {
                         new MapEntityModel
                         {
-                            Id = 0,
-                            Position = Vector3.zero,
+                            Id = i + 1,
+                            Position = new Vector2(8f * i, 150),
                             Scale = new Vector3(10, 10, 10),
                             Components =
                             {
@@ -159,15 +172,15 @@ namespace Oxide.GettingOverIt
                                     Id = 1,
                                     Friction = 1f,
                                     Radius = 0.5f,
-                                    Material = (int)GroundCol.SoundMaterial.solidmetal
+                                    Material = (int) GroundCol.SoundMaterial.solidmetal
                                 }
                             }
                         },
                         new MapEntityModel
                         {
-                            Id = 1,
-                            Position = new Vector2(15, 0),
-                            Scale = new Vector3(10, 10, 10),
+                            Id = i + 2,
+                            Position = new Vector2(4f * i, 150),
+                            Scale = new Vector3(1, 1, 1),
                             Components =
                             {
                                 new EntityMeshComponentModel
@@ -179,7 +192,7 @@ namespace Oxide.GettingOverIt
                                 {
                                     Id = 1,
                                     Friction = 1f,
-                                    Material = (int)GroundCol.SoundMaterial.solidmetal,
+                                    Material = (int) GroundCol.SoundMaterial.metal,
                                     Points = new[]
                                     {
                                         new Vector2(-0.5f, 0.5f),
@@ -190,7 +203,12 @@ namespace Oxide.GettingOverIt
                                 }
                             }
                         }
-                    }
+                    });
+                }
+
+                mapManager.LoadMap(new GameMapModel
+                {
+                    Entities = entities
                 });
                 
                 localPlayerBase.Teleport(new Vector2(0, 10));

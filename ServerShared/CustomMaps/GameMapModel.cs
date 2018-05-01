@@ -4,6 +4,6 @@ namespace ServerShared.CustomMaps
 {
     public class GameMapModel
     {
-        public List<MapEntityModel> Entities { get; } = new List<MapEntityModel>();
+        public List<MapEntityModel> Entities { get; set; } = new List<MapEntityModel>();
     }
 }
