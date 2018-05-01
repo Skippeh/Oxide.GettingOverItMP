@@ -4,6 +4,7 @@ using Oxide.GettingOverIt;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents.Collision;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents.Visual;
+using RuntimeGizmos;
 using ServerShared.CustomMaps;
 using ServerShared.CustomMaps.ComponentModels;
 using ServerShared.CustomMaps.ComponentModels.Collision;
@@ -29,17 +30,17 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
                 if (baseComponent is EntityMeshComponentModel meshModel)
                 {
                     var component = componentObject.AddComponent<MeshComponent>();
-                    component.Update(meshModel);
+                    component.UpdateModel(meshModel);
                 }
                 else if (baseComponent is EntityPolygonColliderComponentModel polygonCollisionModel)
                 {
                     var component = componentObject.AddComponent<PolygonColliderComponent>();
-                    component.Update(polygonCollisionModel);
+                    component.UpdateModel(polygonCollisionModel);
                 }
                 else if (baseComponent is EntityCircleColliderComponentModel circleCollisionModel)
                 {
                     var component = componentObject.AddComponent<CircleColliderComponent>();
-                    component.Update(circleCollisionModel);
+                    component.UpdateModel(circleCollisionModel);
                 }
                 else
                 {

@@ -7,7 +7,7 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents
     {
         public T Model { get; private set; }
 
-        public void Update(T model)
+        public void UpdateModel(T model)
         {
             Model = model;
             UpdateFromModel();
