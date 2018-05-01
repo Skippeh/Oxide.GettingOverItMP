@@ -1,23 +1,24 @@
-﻿using ServerShared.CustomMaps.ComponentModels;
-using ServerShared.CustomMaps.ComponentModels.Collision;
+﻿using ServerShared.CustomMaps.ComponentModels.Collision;
 using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents.Collision
 {
-    public class CircleColliderComponent : MapComponent<EntityCircleColliderComponentModel>
+    public class CircleColliderComponent : MapComponent
     {
         protected override void UpdateFromModel()
         {
+            var model = (EntityCircleColliderComponentModel) Model;
+
             var collider = gameObject.GetComponent<CircleCollider2D>() ?? gameObject.AddComponent<CircleCollider2D>();
-            collider.radius = Model.Radius;
+            collider.radius = model.Radius;
             collider.sharedMaterial = new PhysicsMaterial2D
             {
-                bounciness = Model.Bounciness,
-                friction = Model.Friction
+                bounciness = model.Bounciness,
+                friction = model.Friction
             };
 
             var groundCol = gameObject.GetComponent<GroundCol>() ?? gameObject.AddComponent<GroundCol>();
-            groundCol.material = (GroundCol.SoundMaterial) Model.Material;
+            groundCol.material = (GroundCol.SoundMaterial) model.Material;
         }
 
         private void OnDestroy()

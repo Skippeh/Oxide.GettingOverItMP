@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents
 {
-    public class MapComponent<T> : MonoBehaviour where T : MapEntityComponentModel
+    public class MapComponent : MonoBehaviour
     {
-        public T Model { get; private set; }
+        public MapEntityComponentModel Model { get; private set; }
 
-        public void UpdateModel(T model)
+        public void UpdateModel(MapEntityComponentModel model)
         {
             Model = model;
             UpdateFromModel();
