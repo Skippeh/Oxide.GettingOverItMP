@@ -541,31 +541,7 @@ namespace RuntimeGizmos
 		{
 			if(lineMaterial == null)
 			{
-				lineMaterial = new Material(Shader.Find("Custom/Lines"));
-				#region Shader code
-				/*
-				Shader "Custom/Lines"
-				{
-					SubShader
-					{
-						Pass
-						{
-							Blend SrcAlpha OneMinusSrcAlpha
-							ZWrite Off
-							ZTest Always
-							Cull Off
-							Fog { Mode Off }
-
-							BindChannels
-							{
-								Bind "vertex", vertex
-								Bind "color", color
-							}
-						}
-					}
-				}
-				*/
-				#endregion
+			    lineMaterial = new Material(MPContent.Assets.LoadAsset<Shader>("assets/shaders/lines.shader"));
 			}
 		}
 	}
