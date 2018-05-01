@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Oxide.GettingOverIt;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents.Collision;
@@ -8,6 +9,7 @@ using RuntimeGizmos;
 using ServerShared.CustomMaps;
 using ServerShared.CustomMaps.ComponentModels;
 using ServerShared.CustomMaps.ComponentModels.Collision;
+using ServerShared.CustomMaps.ComponentModels.Informational;
 using ServerShared.CustomMaps.ComponentModels.Visual;
 using UnityEngine;
 
@@ -16,6 +18,7 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
     public class GameMap : MonoBehaviour
     {
         private readonly Dictionary<uint, MapEntity> entities = new Dictionary<uint, MapEntity>();
+        private List<MapEntity> spawnPoints = new List<MapEntity>();
         
         public MapEntity SpawnEntity(MapEntityModel entityModel)
         {
@@ -42,6 +45,10 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
                     var component = componentObject.AddComponent<CircleColliderComponent>();
                     component.UpdateModel(circleCollisionModel);
                 }
+                else if (baseComponent is EntitySpawnPointComponentModel)
+                {
+                    // No action required
+                }
                 else
                 {
                     throw new NotImplementedException($"Component model not implemented: {baseComponent.GetType().FullName}.");
@@ -66,7 +73,9 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
             entities.Add(entity.Id, entity);
 
             MPCore.LogGameObjects(new[] {newObject});
-
+            if (entityModel.Components.Any(component => component is EntitySpawnPointComponentModel))
+                spawnPoints.Add(entity);
+            
             return entity;
         }
 
@@ -76,15 +85,16 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
                 Destroy(entity.gameObject);
         }
 
-        private void Update()
+        /// <summary>
+        /// Returns a random spawn point.
+        /// </summary>
+        public Vector3 GetSpawnPoint()
         {
-            foreach (var kv in entities)
-            {
-                //kv.Value.GetComponent<Rigidbody2D>().MovePosition(new Vector2(5f * Mathf.Sin(Time.time / 5f), kv.Value.transform.position.y));
+            if (spawnPoints.Count == 0)
+                return Vector3.zero;
 
-                var meshObject = kv.Value.GetComponentInChildren<MeshRenderer>().transform.parent.gameObject;
-                //Debug.Log($"{meshObject.name} {meshObject.transform.position}");
-            }
+            var spawnPoint = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Count - 1)];
+            return spawnPoint.transform.position;
         }
     }
 }

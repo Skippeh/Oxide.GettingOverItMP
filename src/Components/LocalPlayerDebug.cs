@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Oxide.Core;
 using Oxide.GettingOverIt;
+using Oxide.GettingOverItMP.Components.CustomMaps;
 using Oxide.GettingOverItMP.Components.CustomMaps.Editing;
 using Oxide.GettingOverItMP.Debugging;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private PlayerControl localPlayerControl;
         private MapEditManager mapEditManager;
+        private MapManager mapManager;
         private LocalPlayer localPlayer;
 
         private GUIStyle backgroundStyle;
@@ -32,6 +34,7 @@ namespace Oxide.GettingOverItMP.Components
         {
             localPlayerControl = GameObject.Find("Player").GetComponent<PlayerControl>() ?? throw new NotImplementedException("Could not find PlayerControl");
             mapEditManager = GameObject.Find("GOIMP.MapManager").GetComponent<MapEditManager>() ?? throw new NotImplementedException("Could not find MapEditManager");
+            mapManager = mapEditManager.gameObject.GetComponent<MapManager>();
             localPlayer = GetComponent<LocalPlayer>();
         }
 
@@ -52,7 +55,7 @@ namespace Oxide.GettingOverItMP.Components
             }
             else if (Input.GetKeyDown(KeyCode.F6))
             {
-                localPlayer.Teleport(new Vector2(0, 10));
+                localPlayer.Teleport(mapManager.CurrentMap?.GetSpawnPoint() ?? Vector3.zero);
             }
         }
 
