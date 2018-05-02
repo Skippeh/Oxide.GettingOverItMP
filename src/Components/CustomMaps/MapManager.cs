@@ -23,14 +23,12 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
 
         public static void LoadMapObjects()
         {
-            var allGameObjects = GameObject.Find("Mountain").GetChildren()
-                .Concat(GameObject.Find("Background").GetChildren())
-                .Concat(GameObject.Find("Props").GetChildren())
-                .Concat(GameObject.Find("Mountain_NoCollide").GetChildren())
-                .Concat(new[]
+            var resourceObjects = Resources.FindObjectsOfTypeAll<GameObject>().Where(go => go.GetComponentInChildren<MeshRenderer>() != null);
+            var allGameObjects = resourceObjects.Where(go => !go.name.ToLower().Contains("lod") && (go.GetComponent<MeshFilter>()?.sharedMesh.isReadable ?? false))
+                .Where(go =>
                 {
-                    GameObject.Find("Snake"),
-                    GameObject.Find("Rope4")
+                    string pathString = go.ToHierarchicalString();
+                    return pathString.StartsWith("Mountain") || pathString.StartsWith("Props");
                 }).ToList();
 
             var uniqueGameObjects = new Dictionary<string, GameObject>();
@@ -71,12 +69,7 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
                 prefab.transform.position = Vector3.zero;
                 prefab.transform.rotation = Quaternion.identity;
                 prefab.transform.localScale = Vector3.one;
-
-                var polygonCollider = prefab.GetComponent<PolygonCollider2D>();
-
-                if (polygonCollider)
-                    DestroyImmediate(polygonCollider);
-
+                
                 ObjectPrefabs.Add(key, prefab);
             }
 
