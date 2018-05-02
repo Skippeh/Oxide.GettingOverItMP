@@ -137,7 +137,7 @@ namespace Oxide.GettingOverIt
                 InitUI();
                 InitClient();
                 InitMapEditor();
-
+                
                 var entities = new List<MapEntityModel>();
 
                 entities.Add(new MapEntityModel
@@ -150,13 +150,27 @@ namespace Oxide.GettingOverIt
                     }
                 });
 
+                entities.Add(new MapEntityModel
+                {
+                    Id = 1,
+                    Position = new Vector3(-5, 150),
+                    Components =
+                    {
+                        new EntityMeshComponentModel()
+                        {
+                            Id = 0,
+                            PrefabId = "Mountain/Rock/rock_03 (3)/rock_03"
+                        }
+                    }
+                });
+
                 for (uint i = 0; i < 300; i += 3)
                 {
                     entities.AddRange(new[]
                     {
                         new MapEntityModel
                         {
-                            Id = i + 1,
+                            Id = i + 2,
                             Position = new Vector2(8f * i, 150),
                             Scale = new Vector3(10, 10, 10),
                             Components =
@@ -164,7 +178,6 @@ namespace Oxide.GettingOverIt
                                 new EntityMeshComponentModel
                                 {
                                     Id = 0,
-                                    //PrefabId = "Mountain/Intresto_rock055_252vert_500face_scale_1m_tex_sandstone1"
                                     PrefabId = "GOIMP/Sphere"
                                 },
                                 new EntityCircleColliderComponentModel
@@ -178,7 +191,7 @@ namespace Oxide.GettingOverIt
                         },
                         new MapEntityModel
                         {
-                            Id = i + 2,
+                            Id = i + 3,
                             Position = new Vector2(4f * i, 150),
                             Scale = new Vector3(1, 1, 1),
                             Components =
