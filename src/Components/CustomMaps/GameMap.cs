@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Oxide.GettingOverIt;
+using Oxide.GettingOverItMP.Components.CustomMaps.Editing;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents.Collision;
 using Oxide.GettingOverItMP.Components.CustomMaps.EntityComponents.Visual;
@@ -61,6 +62,8 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps
             
             var entity = newObject.AddComponent<MapEntity>();
             entity.Id = entityModel.Id;
+
+            newObject.AddComponent<EditableEntity>();
 
             newObject.transform.localPosition = entityModel.Position;
             newObject.transform.localRotation = entityModel.Rotation;

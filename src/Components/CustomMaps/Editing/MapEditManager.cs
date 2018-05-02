@@ -40,6 +40,11 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
 
             transformGizmo.enabled = true;
 
+            foreach (var editableEntity in GameObject.FindObjectsOfType<EditableEntity>())
+            {
+                editableEntity.OnEditModeEnabled();
+            }
+
             EditModeEnabled = true;
         }
 
@@ -50,7 +55,12 @@ namespace Oxide.GettingOverItMP.Components.CustomMaps.Editing
 
             SelectObject(null);
             transformGizmo.enabled = false;
-            
+
+            foreach (var editableEntity in GameObject.FindObjectsOfType<EditableEntity>())
+            {
+                editableEntity.OnEditModeDisabled();
+            }
+
             localPlayer.Enable();
             localPlayer.FreeCamera.enabled = false;
 
