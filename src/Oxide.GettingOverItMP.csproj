@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Facepunch.Steamworks\Facepunch.Steamworks\Facepunch.Steamworks.csproj" />
+    <ProjectReference Include="..\GettingOverItMP.UnitySDK\GettingOverItMP.UnitySDK.csproj" />
     <ProjectReference Include="..\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj" />
     <ProjectReference Include="..\ServerShared\ServerShared.csproj" />
   </ItemGroup>
@@ -84,6 +85,7 @@
       <CoreFiles Include="$(TargetDir)\ServerShared.dll" />
       <CoreFiles Include="$(TargetDir)Facepunch.Steamworks.dll" />
       <CoreFiles Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <CoreFiles Include="$(TargetDir)GettingOverItMP.UnitySDK.dll" />
     </ItemGroup>
     <ItemGroup>
         <AssetFiles Include="$(SolutionDir)GOIMP_Content\Assets\AssetBundles\goimp_content" />
