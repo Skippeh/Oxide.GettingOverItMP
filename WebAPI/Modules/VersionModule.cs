@@ -153,10 +153,10 @@ namespace WebAPI.Modules
 
                     var currentServerVersion = Version.Parse(latestVersion.Version);
 
-                    if (serverVersion <= currentServerVersion)
+                    /*if (serverVersion <= currentServerVersion)
                     {
                         return await Response.JsonError("The specified version is older or equal to the current version.", HttpStatusCode.BadRequest);
-                    }
+                    }*/
                 }
                 else if (modType == ModType.Client)
                 {
@@ -171,8 +171,8 @@ namespace WebAPI.Modules
                     if (!Version.TryParse(versions[0], out Version clientVersion) || !Version.TryParse(versions[1], out Version gameVersion))
                         return await Response.JsonError("The specified version is not valid.", HttpStatusCode.BadRequest);
 
-                    if (clientVersion <= currentClientVersion && gameVersion <= currentGameVersion)
-                        return await Response.JsonError("The specified version is older or equal to the current version.", HttpStatusCode.BadRequest);
+                    /*if (clientVersion <= currentClientVersion && gameVersion <= currentGameVersion)
+                        return await Response.JsonError("The specified version is older or equal to the current version.", HttpStatusCode.BadRequest);*/
                 }
             }
             
