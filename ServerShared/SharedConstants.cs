@@ -14,7 +14,7 @@ namespace ServerShared
         public static readonly Color ColorBlue = new Color(0.54f, 0.58f, 0.75f);
         public const float UpdateRate = 30;
         public const int MoveDataChannel = 1;
-        public const string MasterServerUrl = "https://master.gettingoverit.mp";
+        public const string MasterServerUrl = "http://master.gettingoverit.mp";
         public const int MaxServerNameLength = 40;
         public const int MaxPlayerLimit = 9999;
         public const uint SteamAppId = 240720;
