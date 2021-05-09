@@ -31,8 +31,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
-    <PackageReference Include="Oxide.References" Version="2.0.3751" />
-    <PackageReference Include="Oxide.Core" Version="2.0.3753" />
+    <PackageReference Include="Oxide.References" Version="2.0.3779" />
+    <PackageReference Include="Oxide.Core" Version="2.0.3991" />
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\Assembly-CSharp.dll</HintPath>
     </Reference>
