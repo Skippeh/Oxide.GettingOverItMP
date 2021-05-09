@@ -39,9 +39,6 @@ namespace Oxide.GettingOverItMP.Components
             var potObject = transform.Find("Pot/Mesh");
             var potRenderer = potObject.GetComponent<MeshRenderer>();
             PotMaterial = potRenderer.material;
-
-            string[] propertyNames = PotMaterial.GetTexturePropertyNames();
-            Interface.Oxide.LogDebug(string.Join(", ", propertyNames));
         }
 
         protected virtual void OnDestroy()
@@ -95,6 +92,7 @@ namespace Oxide.GettingOverItMP.Components
         /// <summary>Sets the material color on the pot. Note that the color will be blended with the pot's texture color.</summary>
         public void SetPotColor(Color color)
         {
+            // The pot material doesn't expose a _Color parameter so this code doesn't actually do anything right now.
             PotMaterial.color = color;
         }
 
