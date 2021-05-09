@@ -1,24 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net35</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Facepunch.Steamworks\Facepunch.Steamworks\Facepunch.Steamworks.csproj" />
     <ProjectReference Include="..\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\newtonsoft.json\8.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\facepunch.steamworks\2.3.3\lib\netstandard2.0\Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\net35\UnityEngine.dll</HintPath>
+      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
 </Project>

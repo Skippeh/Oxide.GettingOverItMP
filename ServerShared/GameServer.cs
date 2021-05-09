@@ -4,11 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
-using Facepunch.Steamworks;
 using Lidgren.Network;
 using ServerShared.Logging;
 using ServerShared.Networking;
 using ServerShared.Player;
+using Steamworks;
 using Color = UnityEngine.Color;
 
 namespace ServerShared
@@ -18,7 +18,6 @@ namespace ServerShared
         public string Name;
         public int Port => server.Configuration.Port;
         public int MaxPlayers => server.Configuration.MaximumConnections;
-        public Facepunch.Steamworks.Server SteamServer { get; private set; }
         public readonly ChatCommandManager ChatCommands;
         public readonly ConsoleCommandManager ConsoleCommands;
         public List<PlayerBan> BannedPlayers => Config.Bans;
@@ -103,14 +102,14 @@ namespace ServerShared
             {
                 Logger.LogDebug("Enabling steam authentication...");
 
-                var serverInit = new ServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
+                var serverInit = new SteamServerInit("Getting Over It", "Getting Over It with Bennett Foddy")
                 {
                     GamePort = (ushort)Port,
                     Secure = false
                 };
 
-                SteamServer = new Server(SharedConstants.SteamAppId, serverInit);
-                SteamServer.Auth.OnAuthChange += OnSteamAuthChange;
+                SteamServer.Init(SharedConstants.SteamAppId, serverInit, false);
+                SteamServer.OnValidateAuthTicketResponse += OnSteamAuthChange;
                 SteamServer.ServerName = Name;
                 SteamServer.AutomaticHeartbeats = false;
                 SteamServer.DedicatedServer = !ListenServer;
@@ -129,11 +128,10 @@ namespace ServerShared
             {
                 foreach (var player in Players.Values)
                 {
-                    SteamServer.Auth.EndSession(player.SteamId);
+                    SteamServer.EndSession(player.SteamId);
                 }
-                
-                SteamServer?.Dispose();
-                SteamServer = null;
+
+                SteamServer.Shutdown();
             }
 
             server.Shutdown("bye");
@@ -149,7 +147,7 @@ namespace ServerShared
         public void Update()
         {
             server.Update();
-            SteamServer?.Update();
+            SteamServer.RunCallbacks();
 
             double ms = DateTime.UtcNow.Ticks / 10_000d;
 
@@ -223,7 +221,7 @@ namespace ServerShared
         {
             PlayerBan ban;
 
-            if (SteamServer != null)
+            if (SteamServer.IsValid)
                 ban = BanSteamId(player.SteamId, reason, expirationDate, player.Name);
             else
                 ban = BanIp(player.Peer.RemoteEndPoint.Address, reason, expirationDate, player.Name);
@@ -335,7 +333,7 @@ namespace ServerShared
             netPlayer.SetWins(wins, false);
             netPlayer.SetGoldness(wins / 50f, false);
 
-            if (SteamServer != null && developerSteamIds.Contains(steamId))
+            if (SteamServer.IsValid && developerSteamIds.Contains(steamId))
             {
                 netPlayer.SetPotProperties(1f, developerPotColor, false);
             }
@@ -511,11 +509,8 @@ namespace ServerShared
                 {
                     if (!hasAuth)
                         throw new Exception("No steam auth session ticket in hail message.");
-                    
-                    if (!SteamServer.Auth.StartSession(sessionData, steamId))
-                    {
-                        throw new Exception("Could not start steam session.");
-                    }
+
+                    SteamServer.BeginAuthSession(sessionData, steamId);
 
                     pendingConnections.Add(new PendingConnection(args.Connection, steamId, playerName, movementData));
                     Logger.LogDebug($"Connection from {args.Connection.RemoteEndPoint}, awaiting steam auth approval...");
@@ -533,7 +528,7 @@ namespace ServerShared
             }
         }
 
-        private void OnSteamAuthChange(ulong steamId, ulong ownerId, ServerAuth.Status status)
+        private void OnSteamAuthChange(SteamId steamId, SteamId ownerId, AuthResponse response)
         {
             var pendingConnection = pendingConnections.FirstOrDefault(conn => conn.SteamId == steamId);
             var connection = pendingConnection?.Client ?? Players.FirstOrDefault(plr => plr.Value.SteamId == ownerId).Key;
@@ -547,7 +542,7 @@ namespace ServerShared
                 return;
             }
 
-            if (status == ServerAuth.Status.OK)
+            if (response == AuthResponse.OK)
             {
                 if (pendingConnection != null)
                 {
@@ -561,25 +556,28 @@ namespace ServerShared
                     Logger.LogDebug($"Got valid steam auth from {connection.RemoteEndPoint}");
                     AcceptConnection(connection, pendingConnection.PlayerName, pendingConnection.Movement, pendingConnection.SteamId, 0);
 
-                    SteamServer.Stats.Refresh(ownerId, (ownerId2, success) =>
+                    var requestStatsTask = SteamServerStats.RequestUserStatsAsync(ownerId);
+                    requestStatsTask.GetAwaiter().OnCompleted(() =>
                     {
+                        var statsResponse = requestStatsTask.Result;
+
                         if (!Players.ContainsKey(connection) || connection.Status != NetConnectionStatus.Connected)
                             return;
 
-                        if (!success)
+                        if (statsResponse != Result.OK)
                         {
-                            Logger.LogError($"Failed to refresh stats for steamid {ownerId2}.");
+                            Logger.LogError($"Failed to refresh stats for steamid {ownerId}.");
                             return;
                         }
 
-                        int totalWins = SteamServer.Stats.GetInt(ownerId2, "wins");
+                        int totalWins = SteamServerStats.GetInt(ownerId, "wins");
                         Players[connection].SetWins(totalWins, !developerSteamIds.Contains(ownerId)); // Only update goldness if this user is not a developer (otherwise the goldness will be changed from 1).
                     });
                 }
             }
             else
             {
-                KickConnection(connection, DisconnectReason.InvalidSteamSession, status.ToString());
+                KickConnection(connection, DisconnectReason.InvalidSteamSession, response.ToString());
             }
         }
 
@@ -625,7 +623,7 @@ namespace ServerShared
 
             if (RequireSteamAuth)
             {
-                SteamServer.Auth.EndSession(player.SteamId);
+                SteamServer.EndSession(player.SteamId);
             }
 
             RemoveConnection(connection);

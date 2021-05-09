@@ -54,8 +54,6 @@ namespace WebAPI
                     Thread.Sleep(500);
                 }
             }
-
-            return 0;
         }
     }
 }

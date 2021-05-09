@@ -19,8 +19,8 @@ namespace Oxide.GettingOverItMP.Components
             spectator = GameObject.Find("GOIMP.Spectator").GetComponent<Spectator>() ?? throw new NotImplementedException("Could not find Spectator");
             gameObject.AddComponent<LocalPlayerDebug>();
 
-            OriginalGoldness = ProceduralMaterial.GetProceduralFloat("Goldness");
-            OriginalPotColor = ProceduralMaterial.color;
+            //OriginalGoldness = ProceduralMaterial.GetProceduralFloat("Goldness");
+            //OriginalPotColor = ProceduralMaterial.color;
         }
 
         protected override void Update()

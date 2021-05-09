@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Oxide.Core;
 using Oxide.Core.Libraries;
@@ -13,7 +12,6 @@ using Oxide.GettingOverIt.Types;
 using Oxide.GettingOverItMP;
 using Oxide.GettingOverItMP.Components;
 using Oxide.GettingOverItMP.Networking;
-using RootMotion.FinalIK;
 using ServerShared;
 using Steamworks;
 using UnityEngine;
@@ -24,8 +22,6 @@ namespace Oxide.GettingOverIt
 {
     public class MPCore : GOIPlugin
     {
-        public static Facepunch.Steamworks.Client SteamClient { get; private set; }
-
         private GameObject uiGameObject;
         private GameObject clientGameObject;
         private GameObject spectateGameObject;
@@ -59,21 +55,17 @@ namespace Oxide.GettingOverIt
             Application.runInBackground = true;
             Physics2D.IgnoreLayerCollision((int) LayerType.Player, (int) LayerType.Layer31); // Use layer 31 for remote players
 
-            if (SteamClient == null)
+            if (!SteamClient.IsValid)
             {
-                Facepunch.Steamworks.Config.ForUnity(Application.platform.ToString());
-                SteamClient = new Facepunch.Steamworks.Client(SharedConstants.SteamAppId);
+                SteamClient.Init(SharedConstants.SteamAppId, false);
 
                 if (!SteamClient.IsValid)
                 {
-                    SteamClient.Dispose();
-                    SteamClient = null;
                     Interface.Oxide.LogWarning("Steam is not running.");
                 }
-                else if (!SteamClient.IsSubscribed)
+                else if (!SteamApps.IsSubscribed)
                 {
-                    SteamClient.Dispose();
-                    SteamClient = null;
+                    SteamClient.Shutdown();
                     Interface.Oxide.LogWarning("The current steam account is not subscribed to the game.");
                 }
             }
@@ -220,12 +212,13 @@ namespace Oxide.GettingOverIt
         [HookMethod("OnGameQuit")]
         private void OnGameQuit()
         {
-            SteamClient?.Dispose();
+            SteamClient.Shutdown();
         }
 
         protected override void Tick()
         {
-            SteamClient?.Update();
+            //SteamClient?.Update();
+            SteamClient.RunCallbacks();
 
             if (ListenServer.Running)
                 ListenServer.Update();

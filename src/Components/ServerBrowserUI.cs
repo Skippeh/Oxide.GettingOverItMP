@@ -9,6 +9,7 @@ using Oxide.GettingOverIt;
 using Oxide.GettingOverItMP.Networking;
 using ServerShared;
 using ServerShared.Networking;
+using Steamworks;
 using UnityEngine;
 
 namespace Oxide.GettingOverItMP.Components
@@ -166,9 +167,9 @@ namespace Oxide.GettingOverItMP.Components
 
                             GUILayout.Label(nameContent, GUILayout.Width(nameSize.x));
 
-                            if (MPCore.SteamClient != null)
+                            if (SteamClient.IsValid)
                             {
-                                playerName = MPCore.SteamClient.Username;
+                                playerName = SteamClient.Name;
 
                                 bool oldEnabled2 = GUI.enabled;
                                 GUI.enabled = false;
@@ -396,10 +397,10 @@ namespace Oxide.GettingOverItMP.Components
 
             hostPrivate = GUILayout.Toggle(hostPrivate, " Private server (don't show in server browser)");
 
-            GUI.enabled = !ListenServer.Running && MPCore.SteamClient != null;
+            GUI.enabled = !ListenServer.Running && SteamClient.IsValid;
             noSteam = GUILayout.Toggle(noSteam, " No steam authentication (players can join without owning the game on Steam but user identity verification will be limited to IP.)");
 
-            if (MPCore.SteamClient == null)
+            if (!SteamClient.IsValid)
                 noSteam = true;
             
             GUI.enabled = true;

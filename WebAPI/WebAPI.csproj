@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -20,8 +20,8 @@
     <ItemGroup>
       <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\GettingOverItMP.Updater.exe" />
     </ItemGroup>
-    <Exec WorkingDirectory="$(SolutionDir)\WebAPI-frontend" Command="yarn" />
-    <Exec WorkingDirectory="$(SolutionDir)\WebAPI-frontend" Command="yarn build" />
+    <Exec WorkingDirectory="$(SolutionDir)\WebAPI-frontend" Command="npm install" />
+    <Exec WorkingDirectory="$(SolutionDir)\WebAPI-frontend" Command="npm run build" />
     <Copy SourceFiles="@(FrontendDistFiles)" DestinationFiles="@(FrontendDistFiles->'$(OutputPath)\frontend\%(Filename)%(Extension)')" />
   </Target>
 </Project>

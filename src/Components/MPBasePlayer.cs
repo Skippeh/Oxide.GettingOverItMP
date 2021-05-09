@@ -18,7 +18,7 @@ namespace Oxide.GettingOverItMP.Components
         protected Transform lookTarget;
         protected Transform tip;
 
-        protected ProceduralMaterial ProceduralMaterial { get; private set; }
+        //protected ProceduralMaterial ProceduralMaterial { get; private set; }
         private bool renderersEnabled = true;
         private float goldness;
 
@@ -38,7 +38,7 @@ namespace Oxide.GettingOverItMP.Components
 
             var potObject = transform.Find("Pot/Mesh");
             var potRenderer = potObject.GetComponent<MeshRenderer>();
-            ProceduralMaterial = potRenderer.material as ProceduralMaterial;
+            //ProceduralMaterial = potRenderer.material as ProceduralMaterial;
         }
 
         protected virtual void OnDestroy()
@@ -86,14 +86,14 @@ namespace Oxide.GettingOverItMP.Components
                 return;
 
             this.goldness = goldness;
-            ProceduralMaterial.SetProceduralFloat("Goldness", goldness);
-            ProceduralMaterial.RebuildTextures();
+            //ProceduralMaterial.SetProceduralFloat("Goldness", goldness);
+            //ProceduralMaterial.RebuildTextures();
         }
 
         /// <summary>Sets the material color on the pot. Note that the color will be blended with the pot's texture color.</summary>
         public void SetPotColor(Color color)
         {
-            ProceduralMaterial.color = color;
+            //ProceduralMaterial.color = color;
         }
 
         public void EnableRenderers()

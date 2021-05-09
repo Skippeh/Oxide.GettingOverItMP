@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using CommandLineParser.Exceptions;
-using Facepunch.Steamworks;
 using GettingOverItMP.Server;
 using ServerShared;
 

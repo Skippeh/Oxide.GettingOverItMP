@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Net;
-using Facepunch.Steamworks;
 using FluffyUnderware.DevTools.Extensions;
 using Lidgren.Network;
 using Oxide.Core;
@@ -14,6 +13,7 @@ using Oxide.GettingOverItMP.EventArgs;
 using ServerShared;
 using ServerShared.Networking;
 using ServerShared.Player;
+using Steamworks;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using DisconnectReason = ServerShared.DisconnectReason;
@@ -47,7 +47,7 @@ namespace Oxide.GettingOverItMP.Components
         private float nextSendTime = 0;
         private bool handshakeResponseReceived;
         private float lastReceiveTime = 0;
-        private Auth.Ticket authTicket;
+        private AuthTicket authTicket;
 
         private IPEndPoint launchConnectEndPoint;
 
@@ -86,9 +86,9 @@ namespace Oxide.GettingOverItMP.Components
 
             if (string.IsNullOrEmpty(playerName))
             {
-                if (MPCore.SteamClient != null)
+                if (SteamClient.IsValid)
                 {
-                    playerName = MPCore.SteamClient.Username;
+                    playerName = SteamClient.Name;
                     PlayerPrefs.SetString("GOIMP_PlayerName", playerName);
                 }
                 else
@@ -111,7 +111,7 @@ namespace Oxide.GettingOverItMP.Components
 
         private void OnDisconnected(object sender, DisconnectedEventArgs args)
         {
-            if (MPCore.SteamClient != null)
+            if (SteamClient.IsValid)
                 ClearSteamInfo();
 
             localPlayer.ResetPotProperties();
@@ -232,8 +232,8 @@ namespace Oxide.GettingOverItMP.Components
                     handshakeResponseReceived = true;
                     chatUi.AddMessage("Connected to the server.", null, SharedConstants.ColorGreen);
                     Interface.Oxide.LogDebug($"Got id: {Id} and {remotePlayers.Count} remote player(s)");
-                    
-                    if (MPCore.SteamClient != null)
+
+                    if (SteamClient.IsValid)
                         UpdateSteamInfo();
 
                     break;
@@ -410,13 +410,13 @@ namespace Oxide.GettingOverItMP.Components
 
         private void UpdateSteamInfo()
         {
-            MPCore.SteamClient.User.SetRichPresence("status", $"Playing on {ServerInfo.Name}.");
-            MPCore.SteamClient.User.SetRichPresence("connect", $"--goimp-connect {server.RemoteEndPoint}");
+            SteamFriends.SetRichPresence("status", $"Playing on {ServerInfo.Name}.");
+            SteamFriends.SetRichPresence("connect", $"--goimp-connect {server.RemoteEndPoint}");
         }
 
         private void ClearSteamInfo()
         {
-            MPCore.SteamClient.User.ClearRichPresence();
+            SteamFriends.ClearRichPresence();
         }
 
         // Called by MPCore using StartCoroutine.
@@ -437,13 +437,13 @@ namespace Oxide.GettingOverItMP.Components
             hailMessage.Write(PlayerName);
             hailMessage.Write(localPlayer.CreateMove());
 
-            if (MPCore.SteamClient != null)
+            if (SteamClient.IsValid)
             {
-                authTicket = MPCore.SteamClient.Auth.GetAuthSessionTicket();
+                authTicket = SteamUser.GetAuthSessionTicket();
                 hailMessage.Write(true);
                 hailMessage.Write(authTicket.Data.Length);
                 hailMessage.Write(authTicket.Data);
-                hailMessage.Write(MPCore.SteamClient.SteamId);
+                hailMessage.Write(SteamClient.SteamId);
             }
             else
             {
