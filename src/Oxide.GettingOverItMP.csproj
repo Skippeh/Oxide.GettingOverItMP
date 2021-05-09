@@ -33,10 +33,6 @@
     <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
     <PackageReference Include="Oxide.References" Version="2.0.3751" />
     <PackageReference Include="Oxide.Core" Version="2.0.3753" />
-    <!--<PackageReference Include="Oxide.CSharp" Version="2.0.*" />-->
-    <PackageReference Include="Oxide.MySql" Version="2.0.3749" />
-    <PackageReference Include="Oxide.SQLite" Version="2.0.3749" />
-    <PackageReference Include="Oxide.Unity" Version="2.0.3747" />
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\Assembly-CSharp.dll</HintPath>
     </Reference>
