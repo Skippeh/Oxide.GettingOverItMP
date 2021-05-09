@@ -121,9 +121,6 @@ namespace Server
                 if (!WaitForKey(100, out var keyInfo))
                     continue;
 
-                if (keyInfo == null)
-                    continue;
-
                 if (keyInfo.Key == ConsoleKey.Backspace)
                 {
                     OnBackspace();
@@ -188,7 +185,7 @@ namespace Server
                 delay += 15;
             }
 
-            keyInfo = default(ConsoleKeyInfo);
+            keyInfo = default;
             return false;
         }
 
