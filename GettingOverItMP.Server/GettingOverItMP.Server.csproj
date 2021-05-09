@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>{45F81922-4A6D-4D25-8CCB-00EB3F372628}</ProjectGuid>
     <TargetFramework>net5.0</TargetFramework>
