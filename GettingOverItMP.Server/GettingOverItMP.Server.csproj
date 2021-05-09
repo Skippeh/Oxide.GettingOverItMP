@@ -22,7 +22,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -38,7 +37,9 @@
       <SteamFiles Include="$(SolutionDir)\SteamRedist\*.*" />
     </ItemGroup>
     <ItemGroup>
-      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\GettingOverItMP.Updater.exe" />
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\$(TargetFramework)\win-x64\GettingOverItMP.Updater.exe" />
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\$(TargetFramework)\win-x64\*.dll" />
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\$(TargetFramework)\win-x64\GettingOverItMP.Updater.runtimeconfig.json" />
     </ItemGroup>
     <Copy SourceFiles="@(SteamFiles)" DestinationFiles="@(SteamFiles->'$(TargetDir)\%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(UpdaterFiles)" DestinationFiles="@(UpdaterFiles->'$(TargetDir)\%(Filename)%(Extension)')" />

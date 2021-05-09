@@ -35,8 +35,6 @@ namespace GettingOverItMP.Updater
 
         private static int Main(string[] args)
         {
-            CosturaUtility.Initialize();
-
             ModType modType;
             bool launchGame = false;
 
@@ -81,7 +79,7 @@ namespace GettingOverItMP.Updater
                 currentModuleFileName = Path.Combine(currentModuleFileName, "GettingOverIt.Server.exe");
 
             var waitingProcesses = FindProcesses(currentModuleFileName, "GettingOverIt", "GettingOverIt.Server");
-            
+
             if (waitingProcesses.Length > 0)
             {
                 Console.WriteLine("Waiting for processes to exit...");
@@ -203,7 +201,7 @@ namespace GettingOverItMP.Updater
                         File.Delete(filePath);
 
                         string directory = Path.GetDirectoryName(filePath);
-                        
+
                         if (directory != string.Empty && !allDirectories.Contains(directory))
                         {
                             List<string> directories = GetDirectories(directory).ToList();
@@ -289,7 +287,7 @@ namespace GettingOverItMP.Updater
                 return false;
 
             File.WriteAllText("version.json", JsonConvert.SerializeObject(modVersion, Formatting.None, SerializerSettings));
-            
+
             return true;
         }
 

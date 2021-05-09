@@ -104,7 +104,8 @@
       <SteamFiles Include="$(SolutionDir)\SteamRedist\*.dll" />
     </ItemGroup>
     <ItemGroup>
-      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\GettingOverItMP.Updater.exe" />
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\net46\win-x64\GettingOverItMP.Updater.exe" />
+      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\net46\win-x64\*.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(StreamingAssetsDir)\%(Filename)%(Extension)')" />
