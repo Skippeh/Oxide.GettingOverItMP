@@ -19,6 +19,7 @@ namespace Server
         private static int historyPosition = 0; // 0 = oldest, higher = newer
 
         private static readonly object consoleLock = new object();
+        private static bool isRunning;
 
         public static void Initialize()
         {
@@ -27,6 +28,7 @@ namespace Server
             Console.Clear();
 
             Logger.LogMessageReceived += OnLogMessageReceived;
+            isRunning = true;
             inputThread = new Thread(DoInputThread);
             inputThread.Start();
 
@@ -36,7 +38,7 @@ namespace Server
         public static void Destroy()
         {
             Logger.LogMessageReceived -= OnLogMessageReceived;
-            inputThread.Abort();
+            isRunning = false;
             PopForegroundColor();
 
             foregroundColorStack.Clear();
@@ -116,7 +118,7 @@ namespace Server
 
         private static void DoInputThread()
         {
-            while (true)
+            while (isRunning)
             {
                 if (!WaitForKey(100, out var keyInfo))
                     continue;
