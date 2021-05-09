@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.SDk" TreatAsLocalProperty="SelfContained">
+<Project Sdk="Microsoft.NET.SDk">
   <PropertyGroup>
     <PublishSingleFile>true</PublishSingleFile>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetFrameworks>net46;net5.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <SelfContained>false</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
