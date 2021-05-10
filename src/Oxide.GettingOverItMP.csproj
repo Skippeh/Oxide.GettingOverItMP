@@ -34,16 +34,13 @@
     <PackageReference Include="Oxide.References" Version="2.0.3779" />
     <PackageReference Include="Oxide.Core" Version="2.0.3991" />
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="mscorlib">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\mscorlib.dll</HintPath>
+      <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Oxide.GettingOverIt">
       <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\Oxide.GettingOverIt.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\UnityEngine.dll</HintPath>
+      <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
@@ -67,7 +64,7 @@
       <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Compile Remove="Dependencies\**" />
     <EmbeddedResource Remove="Dependencies\**" />

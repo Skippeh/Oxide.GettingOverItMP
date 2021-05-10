@@ -6,11 +6,8 @@
     <ProjectReference Include="..\lidgren-network-gen3\Lidgren.Network\Lidgren.Network.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\facepunch.steamworks\2.3.3\lib\netstandard2.0\Facepunch.Steamworks.Win64.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\Oxide.GettingOverIt\src\bin\Release\netstandard2.0\UnityEngine.dll</HintPath>
+      <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\Oxide.GettingOverIt\src\Dependencies\Patched\GettingOverIt_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
