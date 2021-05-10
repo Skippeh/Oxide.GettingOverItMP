@@ -19,4 +19,14 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+
+  <!--
+  Workaround for a compile error that only happens when "dotnet build" is run on the solution file.
+  Project still builds successfully as far as i can tell but it still exits the process with a non zero value
+  -->
+  <Target Name="GetTargetPath" Returns="@(_FakeOutputPath)">
+    <ItemGroup>
+      <_FakeOutputPath Include="$(MSBuildProjectDirectory)\$(PackageOutputPath)\$(AssemblyName).exe" />
+    </ItemGroup>
+  </Target>
 </Project>
