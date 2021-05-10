@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="SelfContained">
   <PropertyGroup>
     <PublishSingleFile>true</PublishSingleFile>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetFrameworks>net46;net5.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

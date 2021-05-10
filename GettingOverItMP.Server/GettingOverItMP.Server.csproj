@@ -1,7 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="SelfContained">
   <PropertyGroup>
-    <ProjectGuid>{45F81922-4A6D-4D25-8CCB-00EB3F372628}</ProjectGuid>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <TargetFramework>net5.0</TargetFramework>
+    <SelfContained>false</SelfContained>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
