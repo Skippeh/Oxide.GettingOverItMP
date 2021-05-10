@@ -103,14 +103,9 @@
     <ItemGroup>
       <SteamFiles Include="$(SolutionDir)\SteamRedist\*.dll" />
     </ItemGroup>
-    <ItemGroup>
-      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\net46\win-x64\GettingOverItMP.Updater.exe" />
-      <UpdaterFiles Include="$(SolutionDir)\GettingOverItMP.Updater\bin\$(Configuration)\net46\win-x64\*.dll" />
-    </ItemGroup>
     <Copy SourceFiles="@(CoreFiles)" DestinationFiles="@(CoreFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(ManagedDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\$(StreamingAssetsDir)\%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(SteamFiles)" DestinationFiles="@(SteamFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\GettingOverIt_Data\Plugins\x86_64\%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(UpdaterFiles)" DestinationFiles="@(UpdaterFiles->'$(ProjectDir)\bin\Bundle\$(PackageId)\%(Filename)%(Extension)')" />
   </Target>
   <Target Name="LocalDeploy" AfterTargets="AfterBuild" Condition="Exists('$(SolutionDir)\.deploy')">
     <Exec Command="start /b /wait taskkill /f /im GettingOverIt.exe /fi &quot;memusage gt 2&quot;" Condition="'$(OS)' == 'Windows_NT'" />
