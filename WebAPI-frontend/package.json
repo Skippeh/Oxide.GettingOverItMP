@@ -21,7 +21,7 @@
   "dependencies": {
     "@types/prop-types": "^15.5.2",
     "bootstrap": "4.0.0-beta.2",
-    "moment": "^2.20.1",
+    "moment": "^2.29.4",
     "popper.js": "^1.12.9",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
